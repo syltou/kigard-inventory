@@ -15,9 +15,11 @@ const subp = urlParams.get('g');
 const inv = urlParams.get('genre');
 
 let mules_id = JSON.parse(localStorage.getItem("mules_id"));
-if (mules_id == undefined) mules_id=[];
+if (mules_id == null) mules_id=[];
 let mules_name = JSON.parse(localStorage.getItem("mules_name"));
-if (mules_name == undefined) mules_name=[];
+if (mules_name == null) mules_name=[];
+let myskin = localStorage.getItem("myskin");
+if (myskin == null) myskin="images/vue/pj/HumainF.gif";
 
 
 var id_equip = [1,2,7,8,9,10,11,14,16,17,18,19,20,21,22,23,24,25,27,28,29,30,31,32,33,
@@ -51,6 +53,23 @@ if (page == "empathie") {
 	duplicateButtonEmpathie();
 }
 
+if (page == "vue"){
+    saveSkin();
+
+}
+
+if(page == "formules") {
+    addFormulasCategory();
+	// updateOriginalFilters();
+	// addCategoryFilter();
+	// addDifficultyFilter();
+	// addExtraFilters()
+	// updateTableTitle();
+	// addCopyButton($('#formulas-table')[0],"formulas");
+}
+
+
+
 
 function findMules() {
     mules_id = [];
@@ -66,4 +85,52 @@ function findMules() {
 function duplicateButtonEmpathie() {
     $("input.pos:odd").after("&nbsp;&nbsp;",$("input[name=modif_suivant]:last").clone());
     $("img.po").after("&nbsp;&nbsp;",$("input[name=modif_suivant]:last").clone());
+}
+
+function saveSkin() {
+    $(document).ready( function() {
+        myskin = $("div[class='cellule filtre clic']").parent().find("img:first").attr("src");
+        if (myskin == undefined) myskin="images/vue/pj/HumainF.gif";
+        localStorage.setItem('myskin',myskin);
+    });
+}
+
+function addFormulasCategory() {
+
+    function parseCategory(string) {
+        switch(string) {
+            case 'Tête':
+                return 'tete';
+            case 'Buste':
+                return 'buste';
+            case 'Pieds':
+                return 'pieds';
+            case 'Main droite':
+                return 'main-droite';
+            case 'Main gauche':
+                return 'main-gauche';
+            case 'Deux mains':
+            case 'Deux mains d\'arc':
+            case 'Deux mains de fusil':
+                return 'deux-mains';
+            default:
+                return 'autres';
+        }
+    }
+
+    $("table:first")
+        .attr("id","formulas_table")
+        .find("small").each( function() {
+        if( $(this).parent().prop("tagName")!='EM' ) {
+            let value = $(this).text().split('-')[1].trim();
+            $(this).parent().parent().attr('data-category', parseCategory(value));
+        }
+    });
+
+    $("table:first")
+        .find("tr").each( function() {
+        if( $(this).attr('data-category') == null ) {
+            $(this).attr('data-category','autres');
+        }
+    });
 }
