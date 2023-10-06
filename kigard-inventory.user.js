@@ -1,11 +1,11 @@
 // ==UserScript==
-// @name         Kigard Inventory
-// @version      0.1
+// @name		 Kigard Inventory
+// @version	  0.1
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
-// @author       Fergal <ffeerrggaall@gmail.com>
-// @match        https://tournoi.kigard.fr/*
-// @icon         https://tournoi.kigard.fr/images/items/37.gif
-// @grant        none
+// @author	   Fergal <ffeerrggaall@gmail.com>
+// @match		https://tournoi.kigard.fr/*
+// @icon		 https://tournoi.kigard.fr/images/items/37.gif
+// @grant		none
 // ==/UserScript==
 
 const queryString = window.location.search;
@@ -14,56 +14,63 @@ const page = urlParams.get('p');
 const subp = urlParams.get('g');
 const inv = urlParams.get('genre');
 
-let mules_id = JSON.parse(localStorage.getItem("mules_id"));
-if (mules_id == null) mules_id=[];
-let mules_name = JSON.parse(localStorage.getItem("mules_name"));
-if (mules_name == null) mules_name=[];
+let mules_id = localStorage.getItem("mules_id");
+if (mules_id == null) mules_id = [];
+else mules_id = JSON.parse(mules_id);
+let mules_name = localStorage.getItem("mules_name");
+if (mules_name == null) mules_name = [];
+else mules_name = JSON.parse(mules_name);
 let myskin = localStorage.getItem("myskin");
-if (myskin == null) myskin="images/vue/pj/HumainF.gif";
+if (myskin == null) myskin = "images/vue/pj/HumainF.gif";
 
 
 var id_equip = [1,2,7,8,9,10,11,14,16,17,18,19,20,21,22,23,24,25,27,28,29,30,31,32,33,
-			   34,39,47,48,49,51,52,53,54,55,56,57,58,59,60,62,64,74,75,76,77,78,
-			   79,80,81,82,83,84,85,86,87,91,92,93,95,98,100,101,102,103,104,105,
-			   106,107,108,109,110,111,114,115,116,117,118,119,121,122,123,124,
-			   125,126,127,129,136,137,138,140,141,146,147,148,149,150,151,
-			   152,155,156,157,160,161,162,163,166,167,168,177,181,182,183,184,
-			   185,186,188,189,190,191,192,193,194,195,196,197,198,199,200,
-			   203,204,205,206,207,212,216,224,225,226,227,228,229,230,231,232,233,
-			   236,237,239,241,242,243,244,245,246,249,250,252,256,257,260,261,267,
-			   268,269,270,271,275,284,285,286,287,289,290,291,292,294,296,297,
-			   306,307,308,309,311,312,313,316,317,318,319,326,327,328,329,331,333,
-			   334,335,336,337,344,350];
+				34,39,47,48,49,51,52,53,54,55,56,57,58,59,60,62,64,74,75,76,77,78,
+				79,80,81,82,83,84,85,86,87,91,92,93,95,98,100,101,102,103,104,105,
+				106,107,108,109,110,111,114,115,116,117,118,119,121,122,123,124,
+				125,126,127,129,136,137,138,140,141,146,147,148,149,150,151,
+				152,155,156,157,160,161,162,163,166,167,168,177,181,182,183,184,
+				185,186,188,189,190,191,192,193,194,195,196,197,198,199,200,
+				203,204,205,206,207,212,216,224,225,226,227,228,229,230,231,232,233,
+				236,237,239,241,242,243,244,245,246,249,250,252,256,257,260,261,267,
+				268,269,270,271,275,284,285,286,287,289,290,291,292,294,296,297,
+				306,307,308,309,311,312,313,316,317,318,319,326,327,328,329,331,333,
+				334,335,336,337,344,350];
 
 var id_conso = [3,4,15,26,36,38,40,41,42,43,44,45,46,61,63,96,97,113,131,153,154,159,
-			   164,165,178,179,180,208,211,213,214,215,217,218,219,221,222,253,258,259,
-			   272,273,277,278,279,280,281,282,303,304,305,330,339,340];
+				164,165,178,179,180,208,211,213,214,215,217,218,219,221,222,253,258,259,
+				272,273,277,278,279,280,281,282,303,304,305,330,339,340];
 
 var id_resso = [5,6,12,13,35,65,66,67,68,69,70,71,72,73,89,90,112,
 				142,143,144,145,171,172,173,174,175,176,187,209,210,220,223,254,255,262,
 				274,276,283,293,295,298,299,300,301,302,310,314,315,338,341,342,343];
 
 var id_left = [37,50,88,94,99,120,128,130,132,133,134,135,139,158,169,170,201,202,
-			  234,235,238,240,247,248,251,263,264,265,266,288,320,321,322,323,324,
-			  325,332,345,346,347,348,349,351,352,353,354,355,356,357,358,359,360,
-			  361,362,363,364,365,366,367,368,369,370];
+				234,235,238,240,247,248,251,263,264,265,266,288,320,321,322,323,324,
+				325,332,345,346,347,348,349,351,352,353,354,355,356,357,358,359,360,
+				361,362,363,364,365,366,367,368,369,370];
 
 if (page == "empathie") {
-    findMules();
+	findMules();
 	duplicateButtonEmpathie();
 }
 
 if (page == "vue"){
-    saveSkin();
+	saveSkin();
 
 }
 
 if(page == "formules") {
-    addFormulasCategory();
-	// updateOriginalFilters();
-	// addCategoryFilter();
-	// addDifficultyFilter();
+	
+	improveFormulasPage();
+	
+	//----------addFormulasCategory();
+	//----------updateOriginalFilters();
+	// ---------addCategoryFilter();
+	// ---------addDifficultyFilter();
 	// addExtraFilters()
+	
+	
 	// updateTableTitle();
 	// addCopyButton($('#formulas-table')[0],"formulas");
 }
@@ -72,65 +79,233 @@ if(page == "formules") {
 
 
 function findMules() {
-    mules_id = [];
-    mules_name = [];
-    $("img[title=Mulet]").parent().children("a").each( function() {
-        mules_id.push( $(this).attr('href').split('id=')[1].split('&type')[0] );
-        mules_name.push( $(this).text().trim() );
-    });
+	mules_id = [];
+	mules_name = [];
+	$("img[title=Mulet]").parent().children("a").each( function() {
+		mules_id.push( $(this).attr('href').split('id=')[1].split('&type')[0] );
+		mules_name.push( $(this).text().trim() );
+	});
 	localStorage.setItem("mules_name",JSON.stringify(mules_name));
 	localStorage.setItem("mules_id",JSON.stringify(mules_id));
 }
 
 function duplicateButtonEmpathie() {
-    $("input.pos:odd").after("&nbsp;&nbsp;",$("input[name=modif_suivant]:last").clone());
-    $("img.po").after("&nbsp;&nbsp;",$("input[name=modif_suivant]:last").clone());
+	$("input.pos:odd").after("&nbsp;&nbsp;",$("input[name=modif_suivant]:last").clone());
+	$("img.po").after("&nbsp;&nbsp;",$("input[name=modif_suivant]:last").clone());
 }
 
 function saveSkin() {
-    $(document).ready( function() {
-        myskin = $("div[class='cellule filtre clic']").parent().find("img:first").attr("src");
-        if (myskin == undefined) myskin="images/vue/pj/HumainF.gif";
-        localStorage.setItem('myskin',myskin);
-    });
+	$(document).ready( function() {
+		myskin = $("div[class='cellule filtre clic']").parent().find("img:first").attr("src");
+		if (myskin == undefined) myskin="images/vue/pj/HumainF.gif";
+		localStorage.setItem('myskin',myskin);
+	});
 }
 
-function addFormulasCategory() {
 
-    function parseCategory(string) {
-        switch(string) {
-            case 'Tête':
-                return 'tete';
-            case 'Buste':
-                return 'buste';
-            case 'Pieds':
-                return 'pieds';
-            case 'Main droite':
-                return 'main-droite';
-            case 'Main gauche':
-                return 'main-gauche';
-            case 'Deux mains':
-            case 'Deux mains d\'arc':
-            case 'Deux mains de fusil':
-                return 'deux-mains';
-            default:
-                return 'autres';
-        }
-    }
+//---------------------------------------------------------------------------------------
+// PART OF SCRIPT RUNNING ON PAGE "FORMULES"
+//---------------------------------------------------------------------------------------
 
-    $("table:first")
-        .attr("id","formulas_table")
-        .find("small").each( function() {
-        if( $(this).parent().prop("tagName")!='EM' ) {
-            let value = $(this).text().split('-')[1].trim();
-            $(this).parent().parent().attr('data-category', parseCategory(value));
-        }
-    });
+function improveFormulasPage() {
 
-    $("table:first")
-        .find("tr").each( function() {
-        if( $(this).attr('data-category') == null ) {
-            $(this).attr('data-category','autres');
-        }
-    });
+	//---------------------------------------------
+	// LOCAL FUNCTIONS
+	function parseCategory(string) {
+		switch(string) {
+			case 'Tête':
+				return 'tete';
+			case 'Buste':
+				return 'buste';
+			case 'Pieds':
+				return 'pieds';
+			case 'Main droite':
+				return 'main-droite';
+			case 'Main gauche':
+				return 'main-gauche';
+			case 'Deux mains':
+			case 'Deux mains d\'arc':
+			case 'Deux mains de fusil':
+				return 'deux-mains';
+			case 'Toutes':
+				return 'Tous';
+			default:
+				return 'autres';
+		}
+	}
+	
+	function linkCategory(string) {
+		return $("<a/>").attr('href','#').attr('data-category',parseCategory(string)).text(string);
+	}
+	
+	function linkDifficulty(percent) {
+		if(percent=="Toutes") return $("<a/>").attr('href','#').attr('data-difficulty',"Tous").text("Toutes");
+		else return $("<a/>").attr('href','#').attr('data-difficulty',String(percent)).text(percent+"%");
+	}
+	
+	function imageCategory(id) {
+		return $("<img/>").attr("src","images/items/"+id+".gif").attr("class","item");
+	}
+	
+	
+	//---------------------------------------------
+	// ADD CATEGORY ATTRIBUTES TO EVERY LINE FOR FILTERING
+	$("table:first")
+		.attr("id","formulas_table")
+		.find("small").each( function() {
+		if( $(this).parent().prop("tagName")!='EM' ) {
+			let value = $(this).text().split('-')[1].trim();
+			$(this).parent().parent().attr('data-category', parseCategory(value));
+		}
+	});
+	$("table:first")
+		.find("tr").each( function() {
+		if( $(this).attr('data-category') == null ) {
+			$(this).attr('data-category','autres');
+		}
+	});
+
+	//---------------------------------------------
+	// UPDATE ORIGINAL FILTERS
+	// split "formules" and "métiers" filters
+	$("blockquote.bloc:first").clone().insertAfter($("blockquote.bloc:first"));
+	let metiers = $("blockquote.bloc:first > a[data-formule=Realisables] ~ *").detach().get();
+	$("blockquote.bloc:last > br:first ~ *").remove();
+	$("blockquote.bloc:last > strong:first").text("Métiers");
+	$("blockquote.bloc:last").append(metiers.slice(2));
+	// remove existing click event for formule filter and add a new one, select Connues by default
+	$("a[data-formule]").off("click").on("click", { filter: "formule"}, selectFormulaFilter);
+	$('a[data-formule="Connues"]').attr("class", "sel"); 
+	// remove existing click event for metier filter and add a new one, select Tous by default
+	$("a[data-metier]").off("click").on("click", { filter: "metier"}, selectFormulaFilter);
+	$('a[data-metier="Tous"]').attr("class", "sel");
+	
+	//---------------------------------------------
+	// ADD CATEGORY FILTER
+	// duplicate blockquote and change title
+	$("blockquote.bloc:first").clone().insertAfter($("blockquote.bloc:last"));
+	$("blockquote.bloc:last > br:first ~ *").remove();
+	$("blockquote.bloc:last > strong:first").text("Catégories");
+	// add puces, icons and filter links
+	let puce = $("<img/>").attr("src","images/interface/puce_small.gif")
+	$("blockquote.bloc:last")
+		.append( linkCategory("Toutes") )
+		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageCategory(7), linkCategory("Tête")) )
+		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageCategory(48), linkCategory("Buste")) )
+		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageCategory(8), linkCategory("Pieds")) )
+		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageCategory(136), imageCategory(76), linkCategory("Main droite")) )
+		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageCategory(2), imageCategory(24), linkCategory("Main gauche")) )
+		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageCategory(122), imageCategory(17), linkCategory("Deux mains")) )
+		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", linkCategory("Autres")) );
+	// add click event for category filter, select Tous by default
+	$("a[data-category]").on("click", { filter: "category"}, selectFormulaFilter);
+	$('a[data-category="Tous"]').attr("class", "sel");
+	
+	//---------------------------------------------
+	// ADD DIFFICULTY FILTER
+	// duplicate blockquote and change title
+	$("blockquote.bloc:first").clone().insertAfter($("blockquote.bloc:last"));
+	$("blockquote.bloc:last > br:first ~ *").remove();
+	$("blockquote.bloc:last > strong:first").text("Difficulté");
+	// add puces, icons and filter links
+	$("blockquote.bloc:last")
+		.append( linkDifficulty("Toutes") )
+		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", linkDifficulty(0)) )
+		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", linkDifficulty(20)) )
+		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", linkDifficulty(40)) );
+	// add click event for difficulty filter, select Tous by default
+	$('a[data-difficulty]').on("click", { filter: "difficulty"}, selectFormulaFilter);
+	$('a[data-difficulty="Tous"]').attr("class", "sel"); 
+	
+	//---------------------------------------------
+	// ADD EXTRA FILTERS (COMPONENTS AND SEARCHBAR)
+	// create new div and blockquote, append it to upper div
+	$("div.filtres:first").after( 
+		$("<div/>").attr("style","text-align:center;").attr("class","filtres")
+					.append( $("<blockquote/>").attr("id","extra-filters").attr("class","bloc") ) 
+	);
+	// Component filter
+	$("blockquote.bloc:last").append( $("<strong/>").text("Filtrer par ingrédient") )
+		.append( $("<div/>").attr("id","list-components").attr("class","filtres").attr("style","text-align:center;") );
+	updateComponentFilter();
+	// add click event for component filter, select Tous by default
+	$("#list-components a[data-comp]").on("click", selectComponentFilter);
+	$("#list-components a[data-comp=Tous]").attr("class", "sel");
+	// Searchbar
+	$("blockquote.bloc:last").append( $("<strong/>").append( $("<span/>").attr("style","font-size: 1.2em; font-weight: bold; color: red").append("OU&nbsp;") )
+													.append("par chaîne de caractères") )
+		.append( $("<div/>").attr("id","search-bar").attr("style","text-align:center;").append( $("<input/>").attr("id","search").attr("type","text") ) );
+	// add change event for searchbar
+	$('#search').on("change", searchText);
+	
+}
+
+
+function updateComponentFilter() {
+	// get list of components used in displayed formulas
+	let componentList = [];
+	let componentListNames = [];
+	$("tr[data-formule]:visible > td:last-child > img").each( function() {
+		let ingr = $(this).attr("src").split("/items/")[1];
+		let name = $(this).attr("alt");
+		if ( !(componentList.includes(ingr)) ) {
+			componentList.push(ingr);
+			componentListNames.push(name);
+		}
+	});
+	// update component filter accordingly
+	$("#list-components > *").remove();
+	$("#list-components").append( $("<a/>").attr("href","#").attr("data-comp","Tous").hide() );
+	for(var i=0;i<componentList.length;i++) {
+		$("#list-components")
+			.append( $("<span/>")
+						.append( $("<a/>").attr("href","#").attr("data-comp",componentList[i].split('.')[0])
+									.append( $("<img/>").attr("src",'images/items/' + componentList[i]).attr("title",componentListNames[i]) ) ) );
+	}
+}
+
+
+// event when click on a formula filter
+function selectFormulaFilter(event) {
+	$('#search').val("");
+	$("a[data-"+event.data.filter+"]").removeAttr("class");
+	$(this).attr("class", "sel");
+	$(document).ready( function() {
+		// applyFiltering()
+		updateComponentFilter();
+	});
+	return false;
+}
+
+function selectComponentFilter() {
+	$("#search").val("");
+	let prev = $("a[data-comp][class=sel]").data("comp");
+	$("a[data-comp]").removeAttr("class");
+	$("a[data-comp] > img").removeAttr("style");
+
+	var comp = $(this).data("comp");
+	if (comp==prev) {
+		comp = "Tous";
+		$("a[data-comp=Tous]").attr("class", "sel");
+	}
+	else {
+		$(this).attr("class", "sel");
+		$("a[data-comp]").not("[class=sel]").children("img").attr("style","opacity:0.4");
+	}
+	$(document).ready( filterComponents(comp));
+	return false;
+}
+
+function filterComponents(comp) {
+	
+}
+
+function searchText() {
+	let tex = $("#search").val() ;
+	$(document).ready( function() {
+		// applyFiltering();
+		updateComponentFilter();
+		$("tr[data-formule]:visible:not(:contains('"+tex+"'))").hide();
+		// updateTableTitle()
+	});
 }
