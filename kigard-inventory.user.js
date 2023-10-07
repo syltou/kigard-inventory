@@ -68,7 +68,7 @@ if(page == "formules") {
 	//----------updateOriginalFilters();
 	// ---------addCategoryFilter();
 	// ---------addDifficultyFilter();
-	// addExtraFilters()
+	// ---------addExtraFilters()
 	
 	
 	// updateTableTitle();
@@ -228,9 +228,7 @@ function improveFormulasPage() {
 	$("blockquote.bloc:last").append( $("<strong/>").text("Filtrer par ingrédient") )
 		.append( $("<div/>").attr("id","list-components").attr("class","filtres").attr("style","text-align:center;") );
 	updateComponentFilter();
-	// add click event for component filter, select Tous by default
-	$("#list-components a[data-comp]").on("click", selectComponentFilter);
-	$("#list-components a[data-comp=Tous]").attr("class", "sel");
+	
 	// Searchbar
 	$("blockquote.bloc:last").append( $("<strong/>").append( $("<span/>").attr("style","font-size: 1.2em; font-weight: bold; color: red").append("OU&nbsp;") )
 													.append("par chaîne de caractères") )
@@ -238,6 +236,12 @@ function improveFormulasPage() {
 	// add change event for searchbar
 	$('#search').on("change", searchText);
 	
+	//---------------------------------------------
+	// ADD COPY BUTTON 
+	addCopyButton($('#formulas_table')[0],"formulas");
+	
+	
+	updateTableTitle();
 }
 
 
@@ -262,50 +266,274 @@ function updateComponentFilter() {
 						.append( $("<a/>").attr("href","#").attr("data-comp",componentList[i].split('.')[0])
 									.append( $("<img/>").attr("src",'images/items/' + componentList[i]).attr("title",componentListNames[i]) ) ) );
 	}
+	// add click event for component filter, select Tous by default
+	$("#list-components a[data-comp]").on("click", selectComponentFilter);
+	$("#list-components a[data-comp=Tous]").attr("class", "sel");
 }
 
 
-// event when click on a formula filter
+// event when click on a filter
 function selectFormulaFilter(event) {
 	$('#search').val("");
 	$("a[data-"+event.data.filter+"]").removeAttr("class");
 	$(this).attr("class", "sel");
 	$(document).ready( function() {
-		// applyFiltering()
+		applyFiltering()
 		updateComponentFilter();
 	});
 	return false;
 }
 
+// event when click on Component filter
 function selectComponentFilter() {
 	$("#search").val("");
 	let prev = $("a[data-comp][class=sel]").data("comp");
+	let comp = $(this).data("comp");
 	$("a[data-comp]").removeAttr("class");
 	$("a[data-comp] > img").removeAttr("style");
-
-	var comp = $(this).data("comp");
+	
+	applyFiltering();
 	if (comp==prev) {
-		comp = "Tous";
 		$("a[data-comp=Tous]").attr("class", "sel");
+		return false;
 	}
 	else {
 		$(this).attr("class", "sel");
 		$("a[data-comp]").not("[class=sel]").children("img").attr("style","opacity:0.4");
+		$("td:last-child").not(":has([src*='items/"+comp+".gif'])").parent("[data-formule]:visible").hide();
+		updateTableTitle()
+		return false;
 	}
-	$(document).ready( filterComponents(comp));
-	return false;
 }
 
-function filterComponents(comp) {
-	
-}
 
 function searchText() {
 	let tex = $("#search").val() ;
 	$(document).ready( function() {
-		// applyFiltering();
+		applyFiltering();
 		updateComponentFilter();
 		$("tr[data-formule]:visible:not(:contains('"+tex+"'))").hide();
-		// updateTableTitle()
+		updateTableTitle()
 	});
+	return false;
+}
+
+
+function applyFiltering() {//formule,metier,cat,diff,comp) {
+	var formule = $('a[data-formule][class="sel"]').data('formule');
+	var metier = $('a[data-metier][class="sel"]').data('metier');
+	var cat = $('a[data-category][class="sel"]').data('category');
+	var diff = $('a[data-difficulty][class="sel"]').data('difficulty');
+
+	$('tr[data-formule]').show();
+	if (formule != 'Connues') {
+		$('tr[data-formule="Connues"]').hide();
+	}
+	if (metier != 'Tous') {
+		$('tr:not([data-metier*=' + metier + '])').hide();
+	}
+	if (cat != 'Tous') {
+		$('tr:not([data-category*=' + cat + '])').hide();
+	}
+	if (diff != 'Tous') {
+		// $('td:nth-child(2):not(:contains("' + diff + '"))').parent().hide();
+		$('td:nth-child(2)').filter(function() {
+			return $(this).text() !== diff+'%';
+		}).parent('[data-formule]').hide();
+	}
+
+	$('tr[data-metier=fixe]').show();
+	updateTableTitle()
+}
+
+function updateTableTitle() {
+	let displayed_lines = $("tr[data-formule]:visible");
+	let nombre = displayed_lines.length;
+	let s = "s";
+	if(nombre<2) s = '';
+	if(nombre==0) nombre = "Aucune";
+	
+	$("table:first").children("tbody:first").children("tr:first").children("td:first")[0].innerText = nombre + " formule" + s;
+	$("table:first").find("td").removeClass("clair");
+	$("table:first").find("tr:visible:odd > td").addClass("clair");
+}
+
+function addCopyButton(table,type) {
+
+	let parent = table.parentNode;
+	let span = document.createElement("span");
+	parent.insertBefore(span,table);
+
+	// let button2 = '<input name="copy_list" type="button" value="Copier la liste">';
+	let button = document.createElement("input");//, { name: "copy_list"; type: "button"; value: "Copier la liste" });
+	button.id = "copy_list";
+	button.type = "button";
+	button.value = "Copier la liste";
+
+	let space = document.createTextNode('&nbsp;')
+    let filter1, filter2, filter3, filter4, filter5;
+    let label1, label2, label3, label4, label5;
+
+	switch(type) {
+
+		  case 'inventory':
+			span.appendChild(button);
+			$("#copy_list").click(copyListInventory);
+			break;
+
+		  case 'formulas':
+			filter1 = document.createElement("input");
+			filter1.id = "show_formule";
+			filter1.type = "checkbox";
+			label1 = document.createElement("label");
+			label1.setAttribute('for',"show_formule");
+			label1.innerHTML = "Formules";
+
+            filter2 = document.createElement("input");
+			filter2.id = "show_caracs";
+			filter2.type = "checkbox";
+			label2 = document.createElement("label");
+			label2.setAttribute('for',"show_caracs");
+			label2.innerHTML = "Caracs";
+
+            filter3 = document.createElement("input");
+			filter3.id = "show_diff";
+			filter3.type = "checkbox";
+			label3 = document.createElement("label");
+			label3.setAttribute('for',"show_diff");
+			label3.innerHTML = "Difficulté";
+
+            filter4 = document.createElement("input");
+			filter4.id = "show_metier";
+			filter4.type = "checkbox";
+			label4 = document.createElement("label");
+			label4.setAttribute('for',"show_metier");
+			label4.innerHTML = "Métier";
+
+            filter5 = document.createElement("input");
+			filter5.id = "show_bonus";
+			filter5.type = "checkbox";
+			label5 = document.createElement("label");
+			label5.setAttribute('for',"show_bonus");
+			label5.innerHTML = "Bonus";
+
+            span.appendChild(button);
+			span.appendChild( document.createTextNode( '\u00A0\u00A0' ) );
+			span.appendChild(filter1);
+			span.appendChild( document.createTextNode( '\u00A0' ) );
+			span.appendChild(label1);
+			span.appendChild( document.createTextNode( '\u00A0\u00A0' ) );
+			span.appendChild(filter2);
+			span.appendChild( document.createTextNode( '\u00A0' ) );
+			span.appendChild(label2);
+			span.appendChild( document.createTextNode( '\u00A0\u00A0' ) );
+			span.appendChild(filter3);
+			span.appendChild( document.createTextNode( '\u00A0' ) );
+			span.appendChild(label3);
+			span.appendChild( document.createTextNode( '\u00A0\u00A0' ) );
+			span.appendChild(filter4);
+			span.appendChild( document.createTextNode( '\u00A0' ) );
+			span.appendChild(label4);
+			span.appendChild( document.createTextNode( '\u00A0\u00A0' ) );
+			span.appendChild(filter5);
+			span.appendChild( document.createTextNode( '\u00A0' ) );
+			span.appendChild(label5);
+			$("#copy_list").click(copyListFormulas);
+			break;
+
+		  default:
+
+	}
+}
+
+function copyListInventory() {
+
+	// navigator.clipboard.writeText($("table:first").children("tbody:first").children("tr:visible").find("strong").each(function(){$(this).text($(this).text()+'\n')}).text());
+	navigator.clipboard.writeText($("tr:visible strong:nth-child(2)").clone().each(function(){$(this).text($(this).text()+'\n')}).text().trim());
+}
+
+function copyListFormulas() {
+
+	var i, j , m, p;
+
+	var formule = $('a[data-formule][class="sel"]').data('formule');
+	var metier = $('a[data-metier][class="sel"]').data('metier');
+	var cat = $('a[data-category][class="sel"]').data('category');
+	var diff = $('a[data-difficulty][class="sel"]').data('difficulty');
+	var comp = $('a[data-comp][class="sel"]').data('comp');
+	var comp_name = $('a[data-comp][class="sel"]').children("img").attr("title");
+	var search = $('#search')[0].value ;
+
+	let show_formule = $("#show_formule")[0].checked;
+	let show_caracs = $("#show_caracs")[0].checked;
+	let show_diff = $("#show_diff")[0].checked;
+	let show_metier = $("#show_metier")[0].checked;
+	let show_bonus = $("#show_bonus")[0].checked;
+
+	let category = ''
+	for ( i=0;i<cat.split('-').length;i++) {
+		category += cat.split('-')[i][0].toUpperCase();
+		for ( j=1;j<cat.split('-')[i].length;j++) {
+			category += cat.split('-')[i][j];
+		}
+		category += ' ';
+	}
+
+	let buffer = "";
+	buffer += "Formules ";
+	if(metier != 'Tous') buffer += metier;
+    if(diff != 'Tous') buffer += " de difficulté " + diff + "%";
+    if(cat != 'Tous') buffer += " pour les éléments de type " + category.trim();
+    if(comp != 'Tous') buffer += " contenant l'ingrédient " + comp_name.trim();
+	if(search) buffer += ' dont la description contient "' + search + '"';
+    buffer += " :\n";
+
+	let liste = $("tr[data-formule]:visible");
+    for (i=0;i<liste.length;i++) {
+        buffer += "- " + liste[i].getElementsByTagName("strong")[0].innerText;
+		if(show_diff || show_metier) {
+			buffer += " (";
+			if(show_diff) {
+				buffer += liste[i].getElementsByTagName("td")[1].innerText;
+				if(show_metier) buffer += ', ';
+			}
+			if(show_metier) {
+				let metiers = liste[i].getElementsByTagName("td")[2].getElementsByTagName('img');
+				for ( m=0; m<metiers.length; m++) {
+					buffer += metiers[m].title;
+					if(m<metiers.length-1) buffer += '/';
+				}
+			}
+			buffer += ")";
+		}
+
+        // buffer += " (" + liste[i].getElementsByTagName("td")[1].innerText + "):";
+        let components = liste[i].getElementsByTagName("td")[3].getElementsByTagName("img");
+        let quantity = liste[i].getElementsByTagName("td")[3].innerText.split('x');
+        if(show_formule) {
+			buffer += " :";
+			for (j=0;j<components.length;j++) {
+				buffer += " " + quantity[j] + "x " + components[j].alt;
+			}
+		}
+        buffer += "\n";
+		if(show_caracs) {
+			let line2 = liste[i].getElementsByTagName("td")[0].innerText.split('\n')[1];
+			let caracs = line2.split(' )')[0];
+			let place = line2.split(' )')[1];
+			buffer += caracs.slice(0,-1)+"Poids "+caracs.slice(-1) +")";
+			buffer += place;
+		}
+		let line3 = liste[i].getElementsByTagName("td")[0].innerText.split('\n')[2];
+		if(show_bonus && line3 != undefined) {
+			let parts = line3.split(" : ");
+			buffer += " " + parts[0] + " : ";
+			for (p=1;p<parts.length;p++) {
+				buffer += parts[p] + " ";
+			}
+		}
+		if( show_caracs || (show_bonus && line3 != undefined) ) buffer += "\n";
+    }
+
+	navigator.clipboard.writeText(buffer);
 }
