@@ -61,20 +61,14 @@ if (page == "vue"){
 }
 
 if(page == "formules") {
-	
 	improveFormulasPage();
-	
-	//----------addFormulasCategory();
-	//----------updateOriginalFilters();
-	// ---------addCategoryFilter();
-	// ---------addDifficultyFilter();
-	// ---------addExtraFilters()
-	
-	
-	// updateTableTitle();
-	// addCopyButton($('#formulas-table')[0],"formulas");
 }
 
+
+
+//---------------------------------------------------------------------------------------
+// PART OF SCRIPT RUNNING FOR INVENTORY
+//---------------------------------------------------------------------------------------
 
 
 
@@ -92,6 +86,46 @@ function findMules() {
 function duplicateButtonEmpathie() {
 	$("input.pos:odd").after("&nbsp;&nbsp;",$("input[name=modif_suivant]:last").clone());
 	$("img.po").after("&nbsp;&nbsp;",$("input[name=modif_suivant]:last").clone());
+}
+
+function copyListInventory() {
+	navigator.clipboard.writeText($("tr:visible strong:nth-child(2)").clone().each(function(){$(this).text($(this).text()+'\n')}).text().trim());
+}
+
+//---------------------------------------------------------------------------------------
+// PART OF SCRIPT RUNNING SOME EXTRAS
+//---------------------------------------------------------------------------------------
+
+function addCopyButton(table,type) {
+
+	function createCheckbox(string) {
+		return $("<span/>")
+					.append("&nbsp;&nbsp;")
+					.append( $("<input/>").attr("id","show_"+string).attr("type","checkbox") )
+					.append("&nbsp;")
+					.append( $("<label/>").attr("for","show_"+string).text(string) );
+	}
+
+	$("<br/>").insertBefore(table);
+	$("<div/>").attr("id","copy_area")
+				.append( $("<input/>").attr("id","copy_list").attr("type","button").val("Copier la liste") )
+				.insertBefore(table);
+
+	let list_boxes = ["Formule","Caracs","Difficulté","Métier","Bonus"];
+	switch(type) {
+
+		case 'inventory':
+			$("#copy_list").click(copyListInventory);
+			break;
+
+		case 'formulas':
+			for(var s=0; s<list_boxes.length; s++) {
+				$("#copy_area").append( createCheckbox(list_boxes[s]) );
+			}
+			$("#copy_list").click(copyListFormulas);
+
+		default:
+	}
 }
 
 function saveSkin() {
@@ -133,21 +167,21 @@ function improveFormulasPage() {
 				return 'autres';
 		}
 	}
-	
+
 	function linkCategory(string) {
 		return $("<a/>").attr('href','#').attr('data-category',parseCategory(string)).text(string);
 	}
-	
+
 	function linkDifficulty(percent) {
 		if(percent=="Toutes") return $("<a/>").attr('href','#').attr('data-difficulty',"Tous").text("Toutes");
 		else return $("<a/>").attr('href','#').attr('data-difficulty',String(percent)).text(percent+"%");
 	}
-	
+
 	function imageCategory(id) {
 		return $("<img/>").attr("src","images/items/"+id+".gif").attr("class","item");
 	}
-	
-	
+
+
 	//---------------------------------------------
 	// ADD CATEGORY ATTRIBUTES TO EVERY LINE FOR FILTERING
 	$("table:first")
@@ -175,11 +209,11 @@ function improveFormulasPage() {
 	$("blockquote.bloc:last").append(metiers.slice(2));
 	// remove existing click event for formule filter and add a new one, select Connues by default
 	$("a[data-formule]").off("click").on("click", { filter: "formule"}, selectFormulaFilter);
-	$('a[data-formule="Connues"]').attr("class", "sel"); 
+	$('a[data-formule="Connues"]').attr("class", "sel");
 	// remove existing click event for metier filter and add a new one, select Tous by default
 	$("a[data-metier]").off("click").on("click", { filter: "metier"}, selectFormulaFilter);
 	$('a[data-metier="Tous"]').attr("class", "sel");
-	
+
 	//---------------------------------------------
 	// ADD CATEGORY FILTER
 	// duplicate blockquote and change title
@@ -200,7 +234,7 @@ function improveFormulasPage() {
 	// add click event for category filter, select Tous by default
 	$("a[data-category]").on("click", { filter: "category"}, selectFormulaFilter);
 	$('a[data-category="Tous"]').attr("class", "sel");
-	
+
 	//---------------------------------------------
 	// ADD DIFFICULTY FILTER
 	// duplicate blockquote and change title
@@ -215,32 +249,31 @@ function improveFormulasPage() {
 		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", linkDifficulty(40)) );
 	// add click event for difficulty filter, select Tous by default
 	$('a[data-difficulty]').on("click", { filter: "difficulty"}, selectFormulaFilter);
-	$('a[data-difficulty="Tous"]').attr("class", "sel"); 
-	
+	$('a[data-difficulty="Tous"]').attr("class", "sel");
+
 	//---------------------------------------------
 	// ADD EXTRA FILTERS (COMPONENTS AND SEARCHBAR)
 	// create new div and blockquote, append it to upper div
-	$("div.filtres:first").after( 
+	$("div.filtres:first").after(
 		$("<div/>").attr("style","text-align:center;").attr("class","filtres")
-					.append( $("<blockquote/>").attr("id","extra-filters").attr("class","bloc") ) 
+					.append( $("<blockquote/>").attr("id","extra-filters").attr("class","bloc") )
 	);
 	// Component filter
 	$("blockquote.bloc:last").append( $("<strong/>").text("Filtrer par ingrédient") )
 		.append( $("<div/>").attr("id","list-components").attr("class","filtres").attr("style","text-align:center;") );
 	updateComponentFilter();
-	
+
 	// Searchbar
 	$("blockquote.bloc:last").append( $("<strong/>").append( $("<span/>").attr("style","font-size: 1.2em; font-weight: bold; color: red").append("OU&nbsp;") )
 													.append("par chaîne de caractères") )
 		.append( $("<div/>").attr("id","search-bar").attr("style","text-align:center;").append( $("<input/>").attr("id","search").attr("type","text") ) );
 	// add change event for searchbar
 	$('#search').on("change", searchText);
-	
+
 	//---------------------------------------------
-	// ADD COPY BUTTON 
-	addCopyButton($('#formulas_table')[0],"formulas");
-	
-	
+	// ADD COPY BUTTON
+	addCopyButton($('#formulas_table'),"formulas");
+
 	updateTableTitle();
 }
 
@@ -291,7 +324,7 @@ function selectComponentFilter() {
 	let comp = $(this).data("comp");
 	$("a[data-comp]").removeAttr("class");
 	$("a[data-comp] > img").removeAttr("style");
-	
+
 	applyFiltering();
 	if (comp==prev) {
 		$("a[data-comp=Tous]").attr("class", "sel");
@@ -352,104 +385,10 @@ function updateTableTitle() {
 	let s = "s";
 	if(nombre<2) s = '';
 	if(nombre==0) nombre = "Aucune";
-	
+
 	$("table:first").children("tbody:first").children("tr:first").children("td:first")[0].innerText = nombre + " formule" + s;
 	$("table:first").find("td").removeClass("clair");
 	$("table:first").find("tr:visible:odd > td").addClass("clair");
-}
-
-function addCopyButton(table,type) {
-
-	let parent = table.parentNode;
-	let span = document.createElement("span");
-	parent.insertBefore(span,table);
-
-	// let button2 = '<input name="copy_list" type="button" value="Copier la liste">';
-	let button = document.createElement("input");//, { name: "copy_list"; type: "button"; value: "Copier la liste" });
-	button.id = "copy_list";
-	button.type = "button";
-	button.value = "Copier la liste";
-
-	let space = document.createTextNode('&nbsp;')
-    let filter1, filter2, filter3, filter4, filter5;
-    let label1, label2, label3, label4, label5;
-
-	switch(type) {
-
-		  case 'inventory':
-			span.appendChild(button);
-			$("#copy_list").click(copyListInventory);
-			break;
-
-		  case 'formulas':
-			filter1 = document.createElement("input");
-			filter1.id = "show_formule";
-			filter1.type = "checkbox";
-			label1 = document.createElement("label");
-			label1.setAttribute('for',"show_formule");
-			label1.innerHTML = "Formules";
-
-            filter2 = document.createElement("input");
-			filter2.id = "show_caracs";
-			filter2.type = "checkbox";
-			label2 = document.createElement("label");
-			label2.setAttribute('for',"show_caracs");
-			label2.innerHTML = "Caracs";
-
-            filter3 = document.createElement("input");
-			filter3.id = "show_diff";
-			filter3.type = "checkbox";
-			label3 = document.createElement("label");
-			label3.setAttribute('for',"show_diff");
-			label3.innerHTML = "Difficulté";
-
-            filter4 = document.createElement("input");
-			filter4.id = "show_metier";
-			filter4.type = "checkbox";
-			label4 = document.createElement("label");
-			label4.setAttribute('for',"show_metier");
-			label4.innerHTML = "Métier";
-
-            filter5 = document.createElement("input");
-			filter5.id = "show_bonus";
-			filter5.type = "checkbox";
-			label5 = document.createElement("label");
-			label5.setAttribute('for',"show_bonus");
-			label5.innerHTML = "Bonus";
-
-            span.appendChild(button);
-			span.appendChild( document.createTextNode( '\u00A0\u00A0' ) );
-			span.appendChild(filter1);
-			span.appendChild( document.createTextNode( '\u00A0' ) );
-			span.appendChild(label1);
-			span.appendChild( document.createTextNode( '\u00A0\u00A0' ) );
-			span.appendChild(filter2);
-			span.appendChild( document.createTextNode( '\u00A0' ) );
-			span.appendChild(label2);
-			span.appendChild( document.createTextNode( '\u00A0\u00A0' ) );
-			span.appendChild(filter3);
-			span.appendChild( document.createTextNode( '\u00A0' ) );
-			span.appendChild(label3);
-			span.appendChild( document.createTextNode( '\u00A0\u00A0' ) );
-			span.appendChild(filter4);
-			span.appendChild( document.createTextNode( '\u00A0' ) );
-			span.appendChild(label4);
-			span.appendChild( document.createTextNode( '\u00A0\u00A0' ) );
-			span.appendChild(filter5);
-			span.appendChild( document.createTextNode( '\u00A0' ) );
-			span.appendChild(label5);
-			$("#copy_list").click(copyListFormulas);
-			break;
-
-		  default:
-
-	}
-}
-
-function copyListInventory() {
-
-	// navigator.clipboard.writeText($("table:first").children("tbody:first").children("tr:visible").find("strong").each(function(){$(this).text($(this).text()+'\n')}).text());
-	navigator.clipboard.writeText($("tr:visible strong:nth-child(2)").clone().each(function(){$(this).text($(this).text()+'\n')}).text().trim());
 }
 
 function copyListFormulas() {
@@ -464,11 +403,11 @@ function copyListFormulas() {
 	var comp_name = $('a[data-comp][class="sel"]').children("img").attr("title");
 	var search = $('#search')[0].value ;
 
-	let show_formule = $("#show_formule")[0].checked;
-	let show_caracs = $("#show_caracs")[0].checked;
-	let show_diff = $("#show_diff")[0].checked;
-	let show_metier = $("#show_metier")[0].checked;
-	let show_bonus = $("#show_bonus")[0].checked;
+	let show_formule = $("#show_Formule").prop("checked");
+	let show_caracs = $("#show_Caracs").prop("checked");
+	let show_diff = $("#show_Difficulté").prop("checked");
+	let show_metier = $("#show_Métier").prop("checked");
+	let show_bonus = $("#show_Bonus").prop("checked");
 
 	let category = ''
 	for ( i=0;i<cat.split('-').length;i++) {
@@ -482,15 +421,15 @@ function copyListFormulas() {
 	let buffer = "";
 	buffer += "Formules ";
 	if(metier != 'Tous') buffer += metier;
-    if(diff != 'Tous') buffer += " de difficulté " + diff + "%";
-    if(cat != 'Tous') buffer += " pour les éléments de type " + category.trim();
-    if(comp != 'Tous') buffer += " contenant l'ingrédient " + comp_name.trim();
+	if(diff != 'Tous') buffer += " de difficulté " + diff + "%";
+	if(cat != 'Tous') buffer += " pour les éléments de type " + category.trim();
+	if(comp != 'Tous') buffer += " contenant l'ingrédient " + comp_name.trim();
 	if(search) buffer += ' dont la description contient "' + search + '"';
-    buffer += " :\n";
+	buffer += " :\n";
 
 	let liste = $("tr[data-formule]:visible");
-    for (i=0;i<liste.length;i++) {
-        buffer += "- " + liste[i].getElementsByTagName("strong")[0].innerText;
+	for (i=0;i<liste.length;i++) {
+		buffer += "- " + liste[i].getElementsByTagName("strong")[0].innerText;
 		if(show_diff || show_metier) {
 			buffer += " (";
 			if(show_diff) {
@@ -507,16 +446,16 @@ function copyListFormulas() {
 			buffer += ")";
 		}
 
-        // buffer += " (" + liste[i].getElementsByTagName("td")[1].innerText + "):";
-        let components = liste[i].getElementsByTagName("td")[3].getElementsByTagName("img");
-        let quantity = liste[i].getElementsByTagName("td")[3].innerText.split('x');
-        if(show_formule) {
+		// buffer += " (" + liste[i].getElementsByTagName("td")[1].innerText + "):";
+		let components = liste[i].getElementsByTagName("td")[3].getElementsByTagName("img");
+		let quantity = liste[i].getElementsByTagName("td")[3].innerText.split('x');
+		if(show_formule) {
 			buffer += " :";
 			for (j=0;j<components.length;j++) {
 				buffer += " " + quantity[j] + "x " + components[j].alt;
 			}
 		}
-        buffer += "\n";
+		buffer += "\n";
 		if(show_caracs) {
 			let line2 = liste[i].getElementsByTagName("td")[0].innerText.split('\n')[1];
 			let caracs = line2.split(' )')[0];
@@ -533,7 +472,7 @@ function copyListFormulas() {
 			}
 		}
 		if( show_caracs || (show_bonus && line3 != undefined) ) buffer += "\n";
-    }
+	}
 
 	navigator.clipboard.writeText(buffer);
 }
