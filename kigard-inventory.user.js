@@ -14,14 +14,14 @@ const page = urlParams.get('p');
 const subp = urlParams.get('g');
 const inv = urlParams.get('genre');
 
-let mules_id = localStorage.getItem("mules_id");
-if (mules_id == null) mules_id = [];
-else mules_id = JSON.parse(mules_id);
-let mules_name = localStorage.getItem("mules_name");
-if (mules_name == null) mules_name = [];
-else mules_name = JSON.parse(mules_name);
-let myskin = localStorage.getItem("myskin");
-if (myskin == null) myskin = "images/vue/pj/HumainF.gif";
+// variables saved locally
+let ts_te = (t=localStorage.getItem("Tenue_ts")) ? (new Date()).getTime() - t : null;
+let ts_eq = (t=localStorage.getItem("Equipement_ts")) ? (new Date()).getTime() - t : null;
+let ts_co = (t=localStorage.getItem("Consommable_ts")) ? (new Date()).getTime() - t : null;
+let ts_re = (t=localStorage.getItem("Ressource_ts")) ? (new Date()).getTime() - t : null;
+let mules_id = (v=localStorage.getItem("mules_id")) ? JSON.parse(v) : [];
+let mules_name = (v=localStorage.getItem("mules_name")) ? JSON.parse(v) : [];
+let myskin = (v=localStorage.getItem("myskin")) ? v : "images/vue/pj/HumainF.gif";
 
 
 var id_equip = [1,2,7,8,9,10,11,14,16,17,18,19,20,21,22,23,24,25,27,28,29,30,31,32,33,
@@ -50,6 +50,9 @@ var id_left = [37,50,88,94,99,120,128,130,132,133,134,135,139,158,169,170,201,20
 				325,332,345,346,347,348,349,351,352,353,354,355,356,357,358,359,360,
 				361,362,363,364,365,366,367,368,369,370];
 
+
+changeMenu();
+
 if (page == "empathie") {
 	findMules();
 	duplicateButtonEmpathie();
@@ -57,11 +60,24 @@ if (page == "empathie") {
 
 if (page == "vue"){
 	saveSkin();
-
 }
 
 if(page == "formules") {
 	improveFormulasPage();
+}
+
+if (page == 'InventaireComplet') {
+	createInventoryPage();
+}
+
+if (page == "inventaire") {
+	saveInventory(inv);
+	addCopyButton( $("#bloc table:first"),"inventory");
+}
+
+if (page == "gestion_stock") {
+	saveMulet(urlParams.get('id_monstre'));
+	addCopyButton( $("#bloc table:first"),"inventory");
 }
 
 
@@ -70,24 +86,249 @@ if(page == "formules") {
 // PART OF SCRIPT RUNNING FOR INVENTORY
 //---------------------------------------------------------------------------------------
 
+function saveInventory(inv) {
+	
+	function processInventoryLine() {
+		$(this).find("td:first").remove();
+		if( $(this).find("td").length>1 ) $(this).find("td:last").remove();
+		let name = $(this).find("strong:first");
+		let serti = $(name).find(".sertissage");
+		let enchant = $(name).find(".enchantement");
+		$(name).find(".sertissage").remove();
+		$(name).find(".enchantement").remove();
+		let item = $(name).text();
+		let quali = "";
+		if(item.includes("de maître")) {
+			item = item.split("de maître")[0];
+			quali = "de maître ";
+		}
+		else if (item.includes("de qualité")) {
+			item = item.split("de qualité")[0];
+			quali = "de qualité ";
+		} 
+		$(name).text("");
+		$(name).append(enchant);
+		$(name).append( $("<span></span>").addClass("name") );
+		$(name).append( $("<span></span>").addClass("qualite").attr("style","font-style:italic; color:#B18A17") );
+		$(name).append(serti);
+		$(this).find(".name").text(item);
+		$(this).find(".qualite").text(quali);
+	}
+
+	let lines = $("table:first tbody tr td:nth-child(2)").parent().clone()
+				.each(processInventoryLine)
+				.attr("data-inv", (inv=="Tenue") ? "Equipement" : inv )
+				.attr("data-place", (inv=="Tenue") ? "Tenue" : "Inventaire" )
+				.append( $("<td></td>").append( $("<img>").attr("src", (inv=="Tenue") ? myskin : "images/items/169.gif") ));
+	let extra_lines = null;
+	if ( $("table:last")[0] != $("table:first")[0] ) {
+		extra_lines = $("table:last tbody tr td:nth-child(2)").parent().clone()
+				.each(processInventoryLine)
+				.attr("data-inv", "Equipement")
+				.attr("data-place", "Tenue")
+				.append( $("<td></td>").append( $("<img>").attr("src",myskin).attr("style","opacity:0.4")));
+	}
+
+	$("<table ></table>")
+		.append( $("<tbody id='temp'></tbody>").append(lines).append(extra_lines) )
+		.insertAfter( $("table:last")[0] )
+		.hide();
+	localStorage.setItem(inv, $("#temp").html());
+	localStorage.setItem(inv+'_ts', (new Date()).getTime());
+}
+
+function saveMulet(mule) {
+	
+	function processMuleLine() {
+		$(this).find("td:last").remove();
+		let name = $(this).find("strong:first");
+		let serti = $(name).find(".sertissage");
+		let enchant = $(name).find(".enchantement");
+		$(name).find(".sertissage").remove();
+		$(name).find(".enchantement").remove();
+		let item = $(name).text();
+		let quali = "";
+		if(item.includes("de maître")) {
+			item = item.split("de maître")[0];
+			quali = "de maître ";
+		}
+		else if (item.includes("de qualité")) {
+			item = item.split("de qualité")[0];
+			quali = "de qualité ";
+		} 
+		$(name).text("");
+		$(name).append(enchant);
+		$(name).append( $("<span></span>").addClass("name") );
+		$(name).append( $("<span></span>").addClass("qualite").attr("style","font-style:italic; color:#B18A17") );
+		$(name).append(serti);
+		$(this).find(".name").text(item);
+		$(this).find(".qualite").text(quali);
+		
+		let icon = $(this).find("img:first").attr("src").split('items/')[1].split('.gif')[0];
+		let inv = undefined
+		if (id_equip.includes(~~icon)) inv = "Equipement";
+		if (id_conso.includes(~~icon)) inv = "Consommable";
+		if (id_resso.includes(~~icon)) inv = "Ressource";
+		
+		$(this).attr("data-inv", inv)
+	}
+	
+	let lines = $("table tbody tr td:first-child").parent().clone()
+				.each(processMuleLine)
+				.attr("data-place", mule)
+				.append( $("<td></td>").append( $("<img>").attr("src","images/vue/monstre/37.gif") ) );
+	$("<table></table>")
+		.append( $("<tbody id='temp'></tbody>").append(lines) )
+		.insertAfter( $("table")[0] )
+		.hide();
+	localStorage.setItem(mule, $("#temp").html());
+	localStorage.setItem(mule+'_ts', (new Date()).getTime());
+}
+
+function createInventoryPage() {
+	
+	function linkCategory(string) {
+		return $("<a/>").attr('href','#').attr('data-inv',parseCategory(string)).text(string);
+	}
+
+	function imageCategory(id) {
+		return $("<img/>").attr("src","images/items/"+id+".gif").attr("class","item");
+	}
+
+	// remove everything on the page
+	$("#bloc").children("*").remove();
+	
+	// add title
+	$("#bloc").append( $("<h3/>").text("Inventaire complet") );
+
+	// ADD CATEGORY FILTER
+	
+	// let category_selector = document.createElement("div");
+	// category_selector.setAttribute('class',"filtres");
+	// // category_selector.setAttribute('hidden',"true");
+	// category_selector.setAttribute('style',"text-align:center;");
+	
+	
+	$("<div/>").attr("class","filtres").attr("style","text-align:center;").attr("id","categories")
+			.append( $("<blockquote/>").attr("class","bloc").append( $("<strong/>").text("Catégories") ).append( $("<br/>") ) )
+			.appendTo( $("#bloc") );
+	$("<div/>").attr("class","filtres").attr("style","text-align:center;").attr("id","categories")
+			.append( $("<blockquote/>").attr("class","bloc").append( $("<strong/>").text("Emplacements") ).append( $("<br/>") ) )
+			.appendTo( $("#bloc") );
+
+}
+
+function nope() {
+	let puce = $("<img/>").attr("src","images/interface/puce_small.gif")
+	$("blockquote.bloc")
+			.append( $("<a/>").attr("href","#").attr("data-inv","Tous").attr("style","font-weight: lighter; font-style: italic").append( $("<emph/>").text(Aucun) ) );
+			
+			
+				
+
+	category_selector.innerHTML = '<blockquote class="bloc"><strong>Catégories</strong><br>'
+		+ '<a href="#" data-inv="Tous" style="font-weight: lighter; font-style: italic"><emph>Aucun</emph></a> '
+		+ '<span><img src="images/interface/puce_small.gif" alt=""> '
+		+ '<img src="images/items/74.gif" class="item"><a href="#" data-inv="Equipement" class="sel">Équipements' + ' (' + formatTime(ts_eq) + ') </a> </span> '
+		+ '<span><img src="images/interface/puce_small.gif" alt=""> '
+		+ '<img src="images/items/3.gif" class="item"><a href="#" data-inv="Consommable" class="sel">Consommables' + ' (' + formatTime(ts_co) + ') </a> </span> '
+		+ '<span><img src="images/interface/puce_small.gif" alt=""> '
+		+ '<img src="images/items/5.gif" class="item"><a href="#" data-inv="Ressource" class="sel">Ressources' + ' (' + formatTime(ts_re) + ') </a> </span> '
+		+ '</blockquote>';
+	myhtml += category_selector.outerHTML;
+
+	// -------------------------------------------------------------------
+
+	let place_selector = document.createElement("div");
+	place_selector.setAttribute('class',"filtres");
+	// place_selector.setAttribute('hidden',"true");
+	place_selector.setAttribute('style',"text-align:center;");
+
+	placeFilterHTML = '<blockquote class="bloc"><strong>Emplacements</strong><br>'
+		+ '<a href="#" data-place="Tous" style="font-weight: lighter; font-style: italic"><emph>Aucun</emph></a> '
+		+ '<span><img src="images/interface/puce_small.gif" alt=""> '
+		+ '<img src="images/items/169.gif" class="item"><a href="#" data-place="Inventaire" class="sel">Inventaire</a> </span> ';
 
 
+	for(i=0; i<mules_id.length; i++) {
+		let name = mules_name[i];
+		let mule_ts = localStorage.getItem(mules_id[i]+"_ts");
+		let ts = null;
+		if(mule_ts) ts = (new Date()).getTime() - mule_ts;
+		placeFilterHTML += '<span><img src="images/interface/puce_small.gif" alt=""> '
+								+ '<img src="images/vue/monstre/37.gif" class="item">&nbsp;'
+								+ '<a href="#" data-place="' +  mules_id[i] + '" class="sel">' + name + ' (' + formatTime(ts) + ')</a> </span> '
+	}
+	
+	placeFilterHTML += '<span><img src="images/interface/puce_small.gif" alt=""> '
+		+ '<img src="' + myskin + '" class="item"><a href="#" data-place="Tenue" class="sel">Tenue/Ceinture (' + formatTime(ts_te) + ') </a> </span> '
+	
+	placeFilterHTML += '</blockquote>';
+	place_selector.innerHTML = placeFilterHTML;
+	myhtml += place_selector.outerHTML;
+	
+	// -------------------------------------------------------------------
+
+	// let table = mergeInventory();
+	// myhtml += table;
+
+	let bloc = document.getElementById("bloc");
+	bloc.innerHTML = myhtml;
+	
+	let table = mergeInventory();
+	$("div.filtres:last").after(table);
+
+	addCopyButton(document.getElementById("inventaire_complet"),'inventory');
+	
+	$('a[data-inv]').click(selectInventoryCategory);
+	$('a[data-place]').click(selectInventoryPlace);
+	// $('a[data-inv="Tous"]').attr("class", "sel"); // default selected
+	
+	addGroupButton(document.getElementById("inventaire_complet"))
+
+}
+
+// add some entries in the inventory menu
+function changeMenu() {
+	// one direct link till every mule
+	for(j=0;j<mules_id.length;j++) {
+		let name = mules_name[j];
+		if(name=="Mulet") name += " " + mules_id[j];
+		$("#menu a.parent:contains(Inventaire) ~ ul").append( 
+			$("<li/>").append(
+				$("<a/>").attr("href","index.php?p=gestion_stock&id_monstre=" + mules_id[j])
+					.append( $("<img/>").attr("src","images/vue/monstre/37.gif").attr("vertical-align","middle").attr("class","elements") )
+					.append( " " + name  ) ) );
+	}
+	// one link to the complete inventory that will be built
+	$("#menu a.parent:contains(Inventaire) ~ ul").append( 
+			$("<li/>").append(
+				$("<a/>").attr("href","index.php?p=InventaireComplet")
+					.append( $("<img/>").attr("src","images/items/37.gif").attr("vertical-align","middle").attr("class","elements") )
+					.append( " Complet " ) ) );
+}
+
+// find all mules in the page empathie
 function findMules() {
 	mules_id = [];
 	mules_name = [];
+	
 	$("img[title=Mulet]").parent().children("a").each( function() {
 		mules_id.push( $(this).attr('href').split('id=')[1].split('&type')[0] );
 		mules_name.push( $(this).text().trim() );
 	});
+	
 	localStorage.setItem("mules_name",JSON.stringify(mules_name));
 	localStorage.setItem("mules_id",JSON.stringify(mules_id));
 }
 
+// copy apply button directly after input fields
 function duplicateButtonEmpathie() {
 	$("input.pos:odd").after("&nbsp;&nbsp;",$("input[name=modif_suivant]:last").clone());
 	$("img.po").after("&nbsp;&nbsp;",$("input[name=modif_suivant]:last").clone());
 }
 
+// copy list of items from inventory table
 function copyListInventory() {
 	navigator.clipboard.writeText($("tr:visible strong:nth-child(2)").clone().each(function(){$(this).text($(this).text()+'\n')}).text().trim());
 }
