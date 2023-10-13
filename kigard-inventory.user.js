@@ -15,13 +15,17 @@ const subp = urlParams.get('g');
 const inv = urlParams.get('genre');
 
 // variables saved locally
+var v, t;
+let mules_id = (v=localStorage.getItem("mules_id")) ? JSON.parse(v) : [];
+let mules_name = (v=localStorage.getItem("mules_name")) ? JSON.parse(v) : [];
+let myskin = (v=localStorage.getItem("myskin")) ? v : "images/vue/pj/HumainF.gif";
+
 let ts_te = (t=localStorage.getItem("Tenue_ts")) ? (new Date()).getTime() - t : null;
 let ts_eq = (t=localStorage.getItem("Equipement_ts")) ? (new Date()).getTime() - t : null;
 let ts_co = (t=localStorage.getItem("Consommable_ts")) ? (new Date()).getTime() - t : null;
 let ts_re = (t=localStorage.getItem("Ressource_ts")) ? (new Date()).getTime() - t : null;
-let mules_id = (v=localStorage.getItem("mules_id")) ? JSON.parse(v) : [];
-let mules_name = (v=localStorage.getItem("mules_name")) ? JSON.parse(v) : [];
-let myskin = (v=localStorage.getItem("myskin")) ? v : "images/vue/pj/HumainF.gif";
+
+
 
 
 var id_equip = [1,2,7,8,9,10,11,14,16,17,18,19,20,21,22,23,24,25,27,28,29,30,31,32,33,
@@ -87,10 +91,17 @@ if (page == "gestion_stock") {
 //---------------------------------------------------------------------------------------
 
 function saveInventory(inv) {
-	
+
+	//---------------------------------------------
+	// PROCESS LINE FROM ORIGINAL INVENTORY TABLES
 	function processInventoryLine() {
+		// remove first and last cells
 		$(this).find("td:first").remove();
 		if( $(this).find("td").length>1 ) $(this).find("td:last").remove();
+		// reformat content
+		let content = $(this).find("td").html().split("<br>");
+		$(this).find("td").html("<span class='item_name'>" + content[0] + "</span><br/><span class='item_descr'>" + content[1] + "</span>");
+		
 		let name = $(this).find("strong:first");
 		let serti = $(name).find(".sertissage");
 		let enchant = $(name).find(".enchantement");
@@ -105,28 +116,28 @@ function saveInventory(inv) {
 		else if (item.includes("de qualité")) {
 			item = item.split("de qualité")[0];
 			quali = "de qualité ";
-		} 
-		$(name).text("");
-		$(name).append(enchant);
-		$(name).append( $("<span></span>").addClass("name") );
-		$(name).append( $("<span></span>").addClass("qualite").attr("style","font-style:italic; color:#B18A17") );
-		$(name).append(serti);
-		$(this).find(".name").text(item);
-		$(this).find(".qualite").text(quali);
+		}
+		$(name).text("")
+			.append(enchant)
+			.append( $("<span></span>").addClass("name").text(item) )
+			.append( (quali!="") ? $("<span></span>").addClass("qualite").attr("style","color:#B18A17").text(quali) : null )
+			.append(serti);
 	}
 
-	let lines = $("table:first tbody tr td:nth-child(2)").parent().clone()
+	let lines = $("table:first td:nth-child(2)").parent().clone()
 				.each(processInventoryLine)
 				.attr("data-inv", (inv=="Tenue") ? "Equipement" : inv )
 				.attr("data-place", (inv=="Tenue") ? "Tenue" : "Inventaire" )
-				.append( $("<td></td>").append( $("<img>").attr("src", (inv=="Tenue") ? myskin : "images/items/169.gif") ));
+				.append( $("<td></td>").attr("style","text-align:center;").text( (inv=="Tenue") ? "Equipement" : inv ) )
+				.append( $("<td></td>").attr("style","text-align:center;").append( $("<img>").attr("src", (inv=="Tenue") ? myskin : "images/items/169.gif") ));
 	let extra_lines = null;
 	if ( $("table:last")[0] != $("table:first")[0] ) {
 		extra_lines = $("table:last tbody tr td:nth-child(2)").parent().clone()
 				.each(processInventoryLine)
 				.attr("data-inv", "Equipement")
 				.attr("data-place", "Tenue")
-				.append( $("<td></td>").append( $("<img>").attr("src",myskin).attr("style","opacity:0.4")));
+				.append( $("<td></td>").attr("style","text-align:center;").text("Equipement") )
+				.append( $("<td></td>").attr("style","opacity:0.4; text-align:center;").append( $("<img>").attr("src", myskin) ) );
 	}
 
 	$("<table ></table>")
@@ -138,9 +149,14 @@ function saveInventory(inv) {
 }
 
 function saveMulet(mule) {
-	
+
 	function processMuleLine() {
+		// remove first cell
 		$(this).find("td:last").remove();
+		// reformat content
+		let content = $(this).find("td").html().split("<br>");
+		$(this).find("td").html("<span class='item_name'>" + content[0] + "</span><br/><span class='item_descr'>" + content[1] + "</span>");
+				
 		let name = $(this).find("strong:first");
 		let serti = $(name).find(".sertissage");
 		let enchant = $(name).find(".enchantement");
@@ -155,28 +171,29 @@ function saveMulet(mule) {
 		else if (item.includes("de qualité")) {
 			item = item.split("de qualité")[0];
 			quali = "de qualité ";
-		} 
+		}
 		$(name).text("");
 		$(name).append(enchant);
 		$(name).append( $("<span></span>").addClass("name") );
-		$(name).append( $("<span></span>").addClass("qualite").attr("style","font-style:italic; color:#B18A17") );
+		$(name).append( $("<span></span>").addClass("qualite").attr("style","color:#B18A17") );
 		$(name).append(serti);
 		$(this).find(".name").text(item);
 		$(this).find(".qualite").text(quali);
-		
+
 		let icon = $(this).find("img:first").attr("src").split('items/')[1].split('.gif')[0];
 		let inv = undefined
 		if (id_equip.includes(~~icon)) inv = "Equipement";
 		if (id_conso.includes(~~icon)) inv = "Consommable";
 		if (id_resso.includes(~~icon)) inv = "Ressource";
-		
-		$(this).attr("data-inv", inv)
+
+		$(this).attr("data-inv", inv);
+		$(this).append( $("<td></td>").attr("style","text-align:center;").text( inv ) );
+		$(this).append( $("<td></td>").attr("style","text-align:center;").append( $("<img>").attr("src","images/vue/monstre/37.gif") ) );
 	}
-	
+
 	let lines = $("table tbody tr td:first-child").parent().clone()
 				.each(processMuleLine)
-				.attr("data-place", mule)
-				.append( $("<td></td>").append( $("<img>").attr("src","images/vue/monstre/37.gif") ) );
+				.attr("data-place", mule);
 	$("<table></table>")
 		.append( $("<tbody id='temp'></tbody>").append(lines) )
 		.insertAfter( $("table")[0] )
@@ -186,107 +203,436 @@ function saveMulet(mule) {
 }
 
 function createInventoryPage() {
-	
-	function linkCategory(string) {
-		return $("<a/>").attr('href','#').attr('data-inv',parseCategory(string)).text(string);
+
+	//---------------------------------------------
+	// LOCAL FUNCTIONS
+	function formatTime(time) {
+		if(typeof(time)!="number") return -1;
+		time /= 1000; // time in sec
+		let list_divid = [60,60,24,7];
+		let list_units = ['s','m','h','d','w'];
+		var i = 0;
+		while(i<list_divid.length){
+			if(time/list_divid[i]<1) break;
+			time = time/list_divid[i];
+			i += 1;
+		}
+		return ""+Math.floor(time)+list_units[i];
 	}
 
-	function imageCategory(id) {
+	function parseName(string) {
+		switch(string) {
+			case 'Équipements':
+				return 'Equipement';
+			case 'Consommables':
+				return 'Consommable';
+			case 'Ressources':
+				return 'Ressource';
+			case 'Tenue/Ceinture':
+				return 'Tenue';
+			default:
+				return string;
+		}
+	}
+
+	function linkCategory(string) {
+		return $("<a/>").attr('href','#').attr('data-inv',parseName(string)).attr("class","sel").text(string);
+	}
+
+	function linkPlace(string) {
+		return $("<a/>").attr('href','#').attr('data-place', (i=mules_name.indexOf(string))>-1 ? mules_id[i] : parseName(string)).attr("class","sel").text(string);
+	}
+
+	function imageItem(id) {
 		return $("<img/>").attr("src","images/items/"+id+".gif").attr("class","item");
 	}
 
-	// remove everything on the page
+	function imageMonstre(id) {
+		return $("<img/>").attr("src","images/vue/monstre/"+id+".gif").attr("class","item");
+	}
+
+	var i;
+
+	// remove everything on the page and add title
 	$("#bloc").children("*").remove();
-	
-	// add title
 	$("#bloc").append( $("<h3/>").text("Inventaire complet") );
 
-	// ADD CATEGORY FILTER
-	
-	// let category_selector = document.createElement("div");
-	// category_selector.setAttribute('class',"filtres");
-	// // category_selector.setAttribute('hidden',"true");
-	// category_selector.setAttribute('style',"text-align:center;");
-	
-	
+	//---------------------------------------------
+	// ADD FILTER BLOCS
 	$("<div/>").attr("class","filtres").attr("style","text-align:center;").attr("id","categories")
 			.append( $("<blockquote/>").attr("class","bloc").append( $("<strong/>").text("Catégories") ).append( $("<br/>") ) )
 			.appendTo( $("#bloc") );
-	$("<div/>").attr("class","filtres").attr("style","text-align:center;").attr("id","categories")
+	$("<div/>").attr("class","filtres").attr("style","text-align:center;").attr("id","places")
 			.append( $("<blockquote/>").attr("class","bloc").append( $("<strong/>").text("Emplacements") ).append( $("<br/>") ) )
 			.appendTo( $("#bloc") );
 
-}
-
-function nope() {
+	//---------------------------------------------
+	// DEFINE FILTERS
+	// category filter
 	let puce = $("<img/>").attr("src","images/interface/puce_small.gif")
-	$("blockquote.bloc")
-			.append( $("<a/>").attr("href","#").attr("data-inv","Tous").attr("style","font-weight: lighter; font-style: italic").append( $("<emph/>").text(Aucun) ) );
-			
-			
-				
-
-	category_selector.innerHTML = '<blockquote class="bloc"><strong>Catégories</strong><br>'
-		+ '<a href="#" data-inv="Tous" style="font-weight: lighter; font-style: italic"><emph>Aucun</emph></a> '
-		+ '<span><img src="images/interface/puce_small.gif" alt=""> '
-		+ '<img src="images/items/74.gif" class="item"><a href="#" data-inv="Equipement" class="sel">Équipements' + ' (' + formatTime(ts_eq) + ') </a> </span> '
-		+ '<span><img src="images/interface/puce_small.gif" alt=""> '
-		+ '<img src="images/items/3.gif" class="item"><a href="#" data-inv="Consommable" class="sel">Consommables' + ' (' + formatTime(ts_co) + ') </a> </span> '
-		+ '<span><img src="images/interface/puce_small.gif" alt=""> '
-		+ '<img src="images/items/5.gif" class="item"><a href="#" data-inv="Ressource" class="sel">Ressources' + ' (' + formatTime(ts_re) + ') </a> </span> '
-		+ '</blockquote>';
-	myhtml += category_selector.outerHTML;
-
-	// -------------------------------------------------------------------
-
-	let place_selector = document.createElement("div");
-	place_selector.setAttribute('class',"filtres");
-	// place_selector.setAttribute('hidden',"true");
-	place_selector.setAttribute('style',"text-align:center;");
-
-	placeFilterHTML = '<blockquote class="bloc"><strong>Emplacements</strong><br>'
-		+ '<a href="#" data-place="Tous" style="font-weight: lighter; font-style: italic"><emph>Aucun</emph></a> '
-		+ '<span><img src="images/interface/puce_small.gif" alt=""> '
-		+ '<img src="images/items/169.gif" class="item"><a href="#" data-place="Inventaire" class="sel">Inventaire</a> </span> ';
-
-
+	$("#categories > blockquote.bloc")
+			.append( $("<a/>").attr("href","#").attr("data-inv","Tous").attr("style","font-weight: lighter; font-style: italic").append( $("<emph/>").text("Aucun") ) )
+			.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageItem(74), linkCategory("Équipements")) )
+			.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageItem(178), linkCategory("Consommables")) )
+			.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageItem(5), linkCategory("Ressources")) );
+	// place filter
+	$("#places > blockquote.bloc")
+			.append( $("<a/>").attr("href","#").attr("data-place","Tous").attr("style","font-weight: lighter; font-style: italic").append( $("<emph/>").text("Aucun") ) )
+			.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageItem(169), linkPlace("Inventaire")) );
 	for(i=0; i<mules_id.length; i++) {
-		let name = mules_name[i];
-		let mule_ts = localStorage.getItem(mules_id[i]+"_ts");
-		let ts = null;
-		if(mule_ts) ts = (new Date()).getTime() - mule_ts;
-		placeFilterHTML += '<span><img src="images/interface/puce_small.gif" alt=""> '
-								+ '<img src="images/vue/monstre/37.gif" class="item">&nbsp;'
-								+ '<a href="#" data-place="' +  mules_id[i] + '" class="sel">' + name + ' (' + formatTime(ts) + ')</a> </span> '
+		$("#places > blockquote.bloc")
+			.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageMonstre(37), "&nbsp;", linkPlace(mules_name[i])) );
+		$("a[data-place="+mules_id[i]+"]").text($("a[data-place="+mules_id[i]+"]").text()+ " ("+formatTime((new Date()).getTime() - localStorage.getItem(mules_id[i]+"_ts"))+")");
 	}
-	
-	placeFilterHTML += '<span><img src="images/interface/puce_small.gif" alt=""> '
-		+ '<img src="' + myskin + '" class="item"><a href="#" data-place="Tenue" class="sel">Tenue/Ceinture (' + formatTime(ts_te) + ') </a> </span> '
-	
-	placeFilterHTML += '</blockquote>';
-	place_selector.innerHTML = placeFilterHTML;
-	myhtml += place_selector.outerHTML;
-	
-	// -------------------------------------------------------------------
-
-	// let table = mergeInventory();
-	// myhtml += table;
-
-	let bloc = document.getElementById("bloc");
-	bloc.innerHTML = myhtml;
-	
-	let table = mergeInventory();
-	$("div.filtres:last").after(table);
-
-	addCopyButton(document.getElementById("inventaire_complet"),'inventory');
-	
+	$("#places > blockquote.bloc").append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", $("<img>").attr("src", myskin).attr("class","item"), linkPlace("Tenue/Ceinture")) );
+	// add time since last update in names
+	$("a[data-inv=Equipement]").text($("a[data-inv=Equipement]").text()+ " ("+formatTime(ts_eq)+")");
+	$("a[data-inv=Consommable]").text($("a[data-inv=Consommable]").text()+ " ("+formatTime(ts_co)+")");
+	$("a[data-inv=Ressource]").text($("a[data-inv=Ressource]").text()+ " ("+formatTime(ts_re)+")");
+	$("a[data-place=Tenue]").text($("a[data-place=Tenue]").text()+ " ("+formatTime(ts_te)+")");
+	// add click events to the filters entries
 	$('a[data-inv]').click(selectInventoryCategory);
 	$('a[data-place]').click(selectInventoryPlace);
-	// $('a[data-inv="Tous"]').attr("class", "sel"); // default selected
+
+	//---------------------------------------------
+	// CREATE TABLE AND MERGE ENTRIES SAVED FROM OTHER PAGES
+	$("<table/>").attr("id","inventory_table").attr("width","100%").append( $("<tbody/>") )
+			.appendTo( $("#bloc") );
+	$("#inventory_table > tbody").append( 
+		$("<tr/>").attr("data-inv","fixe").attr("data-place","fixe")
+			.append( $("<td/>").attr("class","fonce").attr("width","700").text("tbd") )
+			.append( $("<td/>").attr("class","fonce").attr("style","text-align:center;").text("Catégorie") )
+			.append( $("<td/>").attr("class","fonce").attr("style","text-align:center;").text("Emplacement") ) );
+	let page_to_show = ["Tenue","Equipement","Consommable","Ressource"];
+	for(i=0; i<page_to_show.length; i++){
+		let table = localStorage.getItem(page_to_show[i]);
+		$("#inventory_table > tbody").append( table );
+	}
+	for(i=0; i<mules_id.length; i++){
+		let table = localStorage.getItem(mules_id[i]);
+		$("#inventory_table > tbody").append( table );
+	}
+
+	//---------------------------------------------
+	// ADD BUTTONS TO THE PAGE
+	// copy list button
+	$("<br/>").appendTo( $("#bloc") );
+	$("<div/>").attr("id","button_area").appendTo( $("#bloc") )
+		.append( $("<span/>").append( $("<input/>").attr("id","copy_list").attr("type","button").val("Copier la liste") ) )
+		.append( $("<span/>").append( $("<input/>").attr("id","group_entries").attr("type","button").val("Grouper les entrées similaires") ) );
+	$("#copy_list").click(copyListInventory);
+	$("#group_entries").click(toggleInventoryGrouping);
 	
-	addGroupButton(document.getElementById("inventaire_complet"))
+	//---------------------------------------------
+	// ADD TABLE TO THE PAGE
+	$("#inventory_table").appendTo( $("#bloc") );
+	// apply filters and update table title line
+	applyInventoryFilters();
+	updateInventoryTableTitle();
+	sortInventory();
+}
+
+
+function sortInventory() {
+
+	// let new_tbody = document.createElement("tbody");
+	// new_tbody.id = "sorted_table";
+	// new_tbody.innerHTML = "";
+
+	// let lines = $("table[id=inventory_table] > tbody > tr:visible").sort(function (a, b) {
+		// return a.getElementsByTagName("strong")[0].innerText > b.getElementsByTagName("strong")[0].innerText;
+	// });
+
+	// var tbody = $("#inventory_table").find("tbody")
+	// var rows = tbody.children().detach().get();
+	
+	let rows = $("#inventory_table tr[data-inv!=fixe]").detach().get();
+
+	rows.sort(function (a, b) {
+		let inv_a = $(a).data("inv");
+		let inv_b = $(b).data("inv");
+
+		if ( inv_a == inv_b ) {
+			let $a = $(a).find(".name").text().trim();
+			let $b = $(b).find(".name").text().trim();
+			return $a > $b;
+		}
+		else {
+			if( inv_a == "Equipement" ) {
+				return -1;
+			}
+			else if( inv_a == "Consommable" ) {
+				if (inv_b == "Equipement") return 1;
+				else return -1;
+			}
+			else {
+				return 1;
+			}
+		}
+	});
+
+	// for( var i=0; i<lines.length; i++) {
+		// new_tbody.innerHTML += lines[i].outerHTML;
+	// }
+
+	$("#inventory_table tr[data-inv=fixe]").after(rows);
+
+	// let table = document.getElementById("inventory_table");
+	// let tbody = table.getElementsByTagName("tbody")[0];
+	// table.removeChild(tbody);
+	// table.appendChild(new_tbody);
+}
+
+
+
+
+function selectInventoryCategory() {
+
+	if($(this).data('inv')=='Tous'){
+		if($(this).text()=='Tout') {
+			$('a[data-inv]').attr('class','sel');
+			$('a[data-inv]').removeAttr('style');
+			$(this).text('Aucun');
+		}
+		else {
+			$('a[data-inv]').removeAttr('class');
+			$('a[data-inv]').attr("style","opacity:0.4");
+			$(this).text('Tout');
+		}
+
+
+	}
+	else {
+		if($(this).attr('class')=='sel'){
+			$(this).removeAttr('class');
+			$(this).attr("style","opacity:0.4");
+		}
+		else {
+			$(this).attr('class', 'sel');
+			$(this).attr("style","");
+		}
+	}
+
+	$('a[data-inv="Tous"]').removeAttr('class');
+	$('a[data-inv="Tous"]').attr('style',"font-weight: lighter; font-style: italic");
+
+	if($("a[data-inv][class=sel]").length>$("a[data-inv]").length/2) {
+		$('a[data-inv="Tous"]').text("Aucun");
+	}
+	else {
+		$('a[data-inv="Tous"]').text("Tout");
+	}
+
+	console.log($(this).attr('class'));
+
+	applyInventoryFilters();
+	
+	return false;
 
 }
+
+
+function selectInventoryPlace() {
+
+	if($(this).data('place')=='Tous'){
+		if($(this).text()=='Tous') {
+			$('a[data-place]').attr('class','sel');
+			$('a[data-place]').removeAttr('style');
+			$(this).text('Aucun');
+		}
+		else {
+			$('a[data-place]').removeAttr('class');
+			$('a[data-place]').attr("style","opacity:0.4");
+			$(this).text('Tous');
+		}
+
+
+	}
+	else {
+		if($(this).attr('class')=='sel'){
+			$(this).removeAttr('class');
+			$(this).attr("style","opacity:0.4");
+		}
+		else {
+			$(this).attr('class', 'sel');
+			$(this).attr("style","");
+		}
+	}
+
+	$('a[data-place="Tous"]').removeAttr('class');
+	$('a[data-place="Tous"]').attr('style',"font-weight: lighter; font-style: italic");
+
+	if($("a[data-place][class=sel]").length>=$("a[data-place]").length/2) {
+		$('a[data-place="Tous"]').text("Aucun");
+	}
+	else {
+		$('a[data-place="Tous"]').text("Tous");
+	}
+
+	console.log($(this).attr('class'));
+
+	applyInventoryFilters();
+	
+	return false;
+}
+
+function updateInventoryTableTitle() {
+	let nombre = $("tr[data-formule]:visible").length;
+	let s = (nombre<2) ? "" : "s";
+
+	$("#formulas_table tr[data-metier=fixe] > td:first").text( (nombre==0) ? "Aucune formule" : nombre + " formule" + s);
+	$("#formulas_table tr[data-metier!=fixe] td").removeAttr("class");
+	$("#formulas_table tr:visible:odd > td").attr("class","info_objet");
+	$("#formulas_table tr:visible:odd > td").attr("class","info_objet clair");
+}
+
+
+function applyInventoryFilters() {
+
+	ungroupInventoryEntries();
+
+	let selected_mules = [];
+	$("a[data-place][class=sel]").each(function () {  selected_mules.push($(this).data('place')) });
+	// selected_mules.push('Inventaire');
+	let selected_categ = [];
+	$("a[data-inv][class=sel]").each(function () {  selected_categ.push($(this).data('inv')) });
+
+	// console.log(selected_categ);
+	// console.log(selected_mules);
+
+	$("#inventory_table tr[data-inv!=fixe][data-place!=fixe]").hide();
+	// $("table:last").find("tr[data-inv=" + selected_categ + "][data-place=" + selected_mules + "]").show();
+
+	$("#inventory_table tr[data-inv!=fixe][data-place!=fixe]").each( function () {
+		if( ($.inArray($(this).data('inv'), selected_categ) != -1) && ($.inArray($(this).data('place'), selected_mules) != -1) ) {
+			$(this).show();
+		}
+	});
+
+	// sortInventory();
+
+	$("#inventory_table td").removeClass("clair");
+	$("#inventory_table tr[data-inv!=fixe]:visible:even > td").addClass("clair");
+}
+
+function toggleInventoryGrouping() {
+	if ($("#group_entries").val() == "Grouper les entrées similaires") {
+		groupInventoryEntries();
+	}
+	else {
+		ungroupInventoryEntries();
+	}
+}
+
+function groupInventoryEntries() {
+	let list_entries = [];
+	var i, item_name, item_count, item_line;
+	var grouped_table = $("<table/>").attr("id","grouped_inventory_table").attr("width","100%")
+							.append( $("<tbody/>").append( $("#inventory_table tr:first").clone() ) )
+							.insertAfter( $("#inventory_table") );
+
+	if ($("#group_entries").val() == "Grouper les entrées similaires") {
+		
+		$("#inventory_table tr:visible:has(.name)").each( function() {
+			item_name = $(this).find(".name").text().trim();
+			item_line = $("#grouped_inventory_table tr:contains("+item_name+")");
+			if ( $(this).find("i.fa-solid").parent().html() ) {
+				item_weight = ~~$(this).find("i.fa-solid").parent().html().split(' <i')[0].split(/[|(]+/).slice(-1)[0];
+			}
+			
+			if ( item_line.length==1 ) {
+				console.log(item_name + " already in list");
+				let count = ~~$(item_line).find("span.item_count").text().split("x")[1] + 1;
+				$(item_line).find("span.item_count").text(" x" + count);
+			}
+			else if ( item_line.length==0 ) {
+				console.log(item_name + " added");
+				$("#grouped_inventory_table > tbody")
+					.append( $("<tr/>")
+								.attr("data-inv",$(this).attr("data-inv"))
+								.attr("data-place",$(this).attr("data-place"))
+								.append( $(this).children("*").clone() ) );
+				$("#grouped_inventory_table tr:last").find(".sertissage").remove();
+				$("#grouped_inventory_table tr:last").find(".enchantement").remove();
+				$("#grouped_inventory_table tr:last").find(".qualite").remove();
+				$("#grouped_inventory_table tr:last").find(".item_descr").remove();
+				$("#grouped_inventory_table tr:last").find("strong").append( $("<span/>").attr("class","item_count").text(" x1") )
+				$("#grouped_inventory_table tr:last").find("strong").append( $("<span/>").attr("class","item_weight")
+					.html( " (" + item_weight + " <i class='fa-solid fa-weight-hanging'></i>)" ) );
+			}
+			else {
+				console.log("Ohohohohooooooo");
+			}
+			
+			$("#inventory_table").after( $("#grouped_inventory_table") );
+			
+			// if( (i = list_entries.indexOf(item)) > -1 ) {
+				// console.log(item + ' already in list in position ' + i);
+				// // let name = $("tr:visible .name").eq(i).text().trim().split(' x')[0];
+				// // let count = ~~$("tr:visible > td > strong:nth-child(2)").eq(i).text().trim().split(' x')[1];
+				// if (count==0) count++;
+				// $("tr:visible > td > strong:nth-child(2)").eq(i).text( name + ' x' + (count+1));
+				// $("tr:visible > td > strong:nth-child(2)").eq(i).parent().parent().attr('grouped',true);
+				// $(this).parent().parent().hide();
+				// $(this).parent().parent().attr('grouped_hidden',true);
+
+			// }
+			// else {
+				// list_entries.push(item_name);
+				// console.log($(this).text().trim() + ' added');
+				
+			// }
+		});
+		$("#group_entries").val("Dégrouper les entrées similaires");
+		
+		// $(".item_descr").hide();
+		// $(".qualite").hide();
+		// $(".sertissage").hide();
+		// $(".enchantement").hide();
+		// $(".aide_popin").hide();
+	}
+}
+
+function ungroupInventoryEntries() {
+	if ($("#group_entries").val() == "Dégrouper les entrées similaires")  {
+		
+		// $(".item_descr").show();
+		// $(".qualite").show();
+		// $(".sertissage").show();
+		// $(".enchantement").show();
+		
+		$("tr[grouped=true] > td > strong").each( function() {
+			$(this).text( $(this).text().trim().split(' x')[0]);
+		});
+		$("tr[grouped=true]").removeAttr('grouped');
+		$("tr[grouped_hidden=true]").show();
+		$("tr[grouped_hidden=true]").removeAttr('grouped_hidden');
+		$("#group_entries").val("Grouper les entrées similaires");
+	}
+}
+
+
+function addGroupButton(table) {
+
+	let parent = table.parentNode;
+	let span = document.createElement("span");
+	parent.insertBefore(span,table);
+
+	// let button2 = '<input name="copy_list" type="button" value="Copier la liste">';
+	let button = document.createElement("input");//, { name: "copy_list"; type: "button"; value: "Copier la liste" });
+	button.id = "group_entries";
+	button.type = "button";
+	button.value = "Grouper les entrées similaires";
+	
+	$("<input/>").attr("id","group_entries").attr("type","button").val("Grouper les entrées similaires");
+
+	span.appendChild(button);
+	$("#group_entries").click(toggleInventoryGrouping);
+}
+
+
+
+
 
 // add some entries in the inventory menu
 function changeMenu() {
@@ -294,17 +640,17 @@ function changeMenu() {
 	for(j=0;j<mules_id.length;j++) {
 		let name = mules_name[j];
 		if(name=="Mulet") name += " " + mules_id[j];
-		$("#menu a.parent:contains(Inventaire) ~ ul").append( 
+		$("#menu a.parent:contains(Inventaire) ~ ul").append(
 			$("<li/>").append(
 				$("<a/>").attr("href","index.php?p=gestion_stock&id_monstre=" + mules_id[j])
-					.append( $("<img/>").attr("src","images/vue/monstre/37.gif").attr("vertical-align","middle").attr("class","elements") )
+					.append( $("<img/>").attr("src","images/vue/monstre/37.gif").attr("class","elements") )
 					.append( " " + name  ) ) );
 	}
 	// one link to the complete inventory that will be built
-	$("#menu a.parent:contains(Inventaire) ~ ul").append( 
+	$("#menu a.parent:contains(Inventaire) ~ ul").append(
 			$("<li/>").append(
 				$("<a/>").attr("href","index.php?p=InventaireComplet")
-					.append( $("<img/>").attr("src","images/items/37.gif").attr("vertical-align","middle").attr("class","elements") )
+					.append( $("<img/>").attr("src","images/items/37.gif").attr("class","elements") )
 					.append( " Complet " ) ) );
 }
 
@@ -312,12 +658,12 @@ function changeMenu() {
 function findMules() {
 	mules_id = [];
 	mules_name = [];
-	
+
 	$("img[title=Mulet]").parent().children("a").each( function() {
 		mules_id.push( $(this).attr('href').split('id=')[1].split('&type')[0] );
 		mules_name.push( $(this).text().trim() );
 	});
-	
+
 	localStorage.setItem("mules_name",JSON.stringify(mules_name));
 	localStorage.setItem("mules_id",JSON.stringify(mules_id));
 }
@@ -371,9 +717,7 @@ function addCopyButton(table,type) {
 
 function saveSkin() {
 	$(document).ready( function() {
-		myskin = $("div[class='cellule filtre clic']").parent().find("img:first").attr("src");
-		if (myskin == undefined) myskin="images/vue/pj/HumainF.gif";
-		localStorage.setItem('myskin',myskin);
+		localStorage.setItem('myskin', $("div.description > img.vue").attr("src").replace("_cheval",""));
 	});
 }
 
@@ -425,16 +769,14 @@ function improveFormulasPage() {
 
 	//---------------------------------------------
 	// ADD CATEGORY ATTRIBUTES TO EVERY LINE FOR FILTERING
-	$("table:first")
-		.attr("id","formulas_table")
-		.find("small").each( function() {
+	$("table:first").attr("id","formulas_table");
+	$("#formulas_table small").each( function() {
 		if( $(this).parent().prop("tagName")!='EM' ) {
 			let value = $(this).text().split('-')[1].trim();
 			$(this).parent().parent().attr('data-category', parseCategory(value));
 		}
 	});
-	$("table:first")
-		.find("tr").each( function() {
+	$("#formulas_table tr[data-metier!=fixe]").each( function() {
 		if( $(this).attr('data-category') == null ) {
 			$(this).attr('data-category','autres');
 		}
@@ -512,12 +854,12 @@ function improveFormulasPage() {
 	$('#search').on("change", searchText);
 
 	//---------------------------------------------
-	// ADD COPY BUTTON
+	// FINALIZE
+	// update the title of the table with the number of selected formulas
+	updateFormulasTableTitle();
+	// add button and checkbox to copy the list with a choice of information
 	addCopyButton($('#formulas_table'),"formulas");
-
-	updateTableTitle();
 }
-
 
 function updateComponentFilter() {
 	// get list of components used in displayed formulas
@@ -575,7 +917,7 @@ function selectComponentFilter() {
 		$(this).attr("class", "sel");
 		$("a[data-comp]").not("[class=sel]").children("img").attr("style","opacity:0.4");
 		$("td:last-child").not(":has([src*='items/"+comp+".gif'])").parent("[data-formule]:visible").hide();
-		updateTableTitle()
+		updateFormulasTableTitle()
 		return false;
 	}
 }
@@ -587,7 +929,7 @@ function searchText() {
 		applyFiltering();
 		updateComponentFilter();
 		$("tr[data-formule]:visible:not(:contains('"+tex+"'))").hide();
-		updateTableTitle()
+		updateFormulasTableTitle()
 	});
 	return false;
 }
@@ -617,24 +959,22 @@ function applyFiltering() {//formule,metier,cat,diff,comp) {
 	}
 
 	$('tr[data-metier=fixe]').show();
-	updateTableTitle()
+	updateFormulasTableTitle()
 }
 
-function updateTableTitle() {
-	let displayed_lines = $("tr[data-formule]:visible");
-	let nombre = displayed_lines.length;
-	let s = "s";
-	if(nombre<2) s = '';
-	if(nombre==0) nombre = "Aucune";
+function updateFormulasTableTitle() {
+	let nombre = $("tr[data-formule]:visible").length;
+	let s = (nombre<2) ? "" : "s";
 
-	$("table:first").children("tbody:first").children("tr:first").children("td:first")[0].innerText = nombre + " formule" + s;
-	$("table:first").find("td").removeClass("clair");
-	$("table:first").find("tr:visible:odd > td").addClass("clair");
+	$("#formulas_table tr[data-metier=fixe] > td:first").text( (nombre==0) ? "Aucune formule" : nombre + " formule" + s);
+	$("#formulas_table tr[data-metier!=fixe] td").removeAttr("class");
+	$("#formulas_table tr:visible:odd > td").attr("class","info_objet");
+	$("#formulas_table tr:visible:odd > td").attr("class","info_objet clair");
 }
 
 function copyListFormulas() {
 
-	var i, j , m, p;
+	var i, j, m, p;
 
 	var formule = $('a[data-formule][class="sel"]').data('formule');
 	var metier = $('a[data-metier][class="sel"]').data('metier');
