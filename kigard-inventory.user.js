@@ -91,6 +91,8 @@ if (page == "gestion_stock") {
 //---------------------------------------------------------------------------------------
 
 function saveInventory(inv) {
+	
+	if( inv==null ) inv = "Tenue";
 
 	//---------------------------------------------
 	// PROCESS LINE FROM ORIGINAL INVENTORY TABLES
@@ -278,7 +280,12 @@ function createInventoryPage() {
 	// remove everything on the page and add title
 	$("#bloc").children("*").remove();
 	$("#bloc").append( $("<h3/>").text("Inventaire complet") );
-
+	$("#bloc").append( $("<p/>").attr("id","last_update").attr("style","font-style: italic; font-size: 0.8em")
+		.text("Dernière visite - Tenue : " + formatTime(ts_te) + ", Equipements : " + formatTime(ts_eq) 
+					+ ", Consommables : " + formatTime(ts_co) + ", Ressources : " + formatTime(ts_re) ) );
+	for(i=0; i<mules_id.length; i++) {
+		$("#last_update").text( $("#last_update").text() + ", " + mules_name[i] + " : " + formatTime((new Date()).getTime() - localStorage.getItem(mules_id[i]+"_ts")) )
+	}
 	//---------------------------------------------
 	// ADD FILTER BLOCS
 	$("<div/>").attr("class","filtres").attr("style","text-align:center;").attr("id","categories")
@@ -304,14 +311,9 @@ function createInventoryPage() {
 	for(i=0; i<mules_id.length; i++) {
 		$("#places > blockquote.bloc")
 			.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageMonstre(37), "&nbsp;", linkPlace(mules_name[i])) );
-		$("a[data-place="+mules_id[i]+"]").text($("a[data-place="+mules_id[i]+"]").text()+ " ("+formatTime((new Date()).getTime() - localStorage.getItem(mules_id[i]+"_ts"))+")");
 	}
 	$("#places > blockquote.bloc").append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", $("<img>").attr("src", myskin).attr("class","item"), linkPlace("Tenue/Ceinture")) );
-	// add time since last update in names
-	$("a[data-inv=Equipement]").text($("a[data-inv=Equipement]").text()+ " ("+formatTime(ts_eq)+")");
-	$("a[data-inv=Consommable]").text($("a[data-inv=Consommable]").text()+ " ("+formatTime(ts_co)+")");
-	$("a[data-inv=Ressource]").text($("a[data-inv=Ressource]").text()+ " ("+formatTime(ts_re)+")");
-	$("a[data-place=Tenue]").text($("a[data-place=Tenue]").text()+ " ("+formatTime(ts_te)+")");
+
 	// add click events to the filters entries
 	$('a[data-inv]').click(selectInventoryCategory);
 	$('a[data-place]').click(selectInventoryPlace);
@@ -321,7 +323,7 @@ function createInventoryPage() {
 	$("<table/>").attr("id","inventory_table").attr("width","100%").append( $("<tbody/>") )
 			.appendTo( $("#bloc") );
 	$("#inventory_table > tbody").append( 
-		$("<tr/>").attr("data-inv","fixe").attr("data-place","fixe")
+		$("<tr/>").attr("data-inv","fixe")
 			.append( $("<td/>").attr("class","fonce").attr("width","700").text("tbd") )
 			.append( $("<td/>").attr("class","fonce").attr("style","text-align:center;").text("Poids") )
 			.append( $("<td/>").attr("class","fonce").attr("style","text-align:center;").text("Catégorie") )
@@ -449,6 +451,7 @@ function selectInventoryCategory() {
 	console.log($(this).attr('class'));
 
 	applyInventoryFilters();
+	updateInventoryTableTitle();
 	
 	return false;
 
@@ -495,18 +498,37 @@ function selectInventoryPlace() {
 	console.log($(this).attr('class'));
 
 	applyInventoryFilters();
+	updateInventoryTableTitle();
 	
 	return false;
 }
 
 function updateInventoryTableTitle() {
-	let nombre = $("tr[data-formule]:visible").length;
+	
+	$("span.weight").remove();
+	let nombre = $("tr[data-place]:visible").length;
 	let s = (nombre<2) ? "" : "s";
-
-	$("#formulas_table tr[data-metier=fixe] > td:first").text( (nombre==0) ? "Aucune formule" : nombre + " formule" + s);
-	$("#formulas_table tr[data-metier!=fixe] td").removeAttr("class");
-	$("#formulas_table tr:visible:odd > td").attr("class","info_objet");
-	$("#formulas_table tr:visible:odd > td").attr("class","info_objet clair");
+	let weight = 0;
+	$("#inventory_table tr[data-place]:visible td:nth-child(2)").each( function() {
+			weight += ~~$(this).text();
+	});
+	$("#inventory_table tr[data-inv=fixe] > td:first").text( (nombre==0) ? "Aucun item" : nombre + " item" + s )
+		.append( $("<span/>").attr("class","weight")
+				.append(" (", weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging"), ")" ) );
+	$("#inventory_table tr[data-inv!=fixe] td").removeAttr("class");
+	$("#inventory_table tr:visible:odd > td").attr("class","info_objet");
+	$("#inventory_table tr:visible:odd > td").attr("class","info_objet clair");
+	
+	let page_to_show = ["Tenue","Equipement","Consommable","Ressource"];
+	for (var i=0; i<page_to_show.length; i++) {
+		let weight = 0
+		$("#inventory_table tr[data-inv=" + page_to_show[i] + "]:visible td:nth-child(2)").each( function() {
+			weight += ~~$(this).text();
+		});
+		$("a[data-inv="+page_to_show[i]+"]").after( 
+			$("<span/>").attr("class","weight")
+				.append(" (", weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging"), ")" ) );
+	}
 }
 
 
