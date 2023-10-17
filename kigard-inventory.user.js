@@ -62,7 +62,7 @@ if (page == "empathie") {
 	duplicateButtonEmpathie();
 }
 
-if (page == "vue"){
+if (page == "profil"){
 	saveSkin();
 }
 
@@ -103,19 +103,22 @@ function saveInventory(inv) {
 		if( $(this).find("td").length>1 ) $(this).find("td:last").remove();
 		// reformat content
 		let content = $(this).find("td").html().split("<br>");
-		let html = "<span class='item_name'>";
-		for (var i=0; i<content.length-1; i++) {
-			html +=  content[i] + "<br>";
+		let html = "<span class='item_name'>" + content[0] + "</span><br><span class='item_descr'>";
+		for (var i=1; i<content.length; i++) {
+			html += content[i];
+			if ( i<content.length-1 ) html += "<br/>";
 		}
-		html += "</span><span class='item_descr'>" + content[content.length-1] + "</span>";
+		html += "</span>";
 		$(this).find("td").html(html);
 		let name = $(this).find("strong:first");
 		let serti = $(name).find(".sertissage");
 		let enchant = $(name).find(".enchantement");
+		let conso = $(name).find(".conso");
 		$(this).find("span.item_descr").attr("weight", $(this).find("td").html().split(" <i class=\"fa")[0].split(/[|(]+/).slice(-1)[0] );
 		
 		$(name).find(".sertissage").remove();
 		$(name).find(".enchantement").remove();
+		$(name).find(".conso").remove();
 		let item = $(name).text();
 		let quali = "";
 		if(item.includes("de maître")) {
@@ -130,27 +133,33 @@ function saveInventory(inv) {
 			.append(enchant)
 			.append( $("<span></span>").addClass("name").text(item) )
 			.append( (quali!="") ? $("<span></span>").addClass("qualite").attr("style","color:#B18A17").text(quali) : null )
-			.append(serti);
+			.append(serti)
+			.append(conso);
 	}
-
-	let lines = $("table:first tr").not(":contains('Capacité à équiper')").clone()
-				.each(processInventoryLine)
-				.attr("data-inv", (inv=="Tenue") ? "Equipement" : inv )
-				.attr("data-place", (inv=="Tenue") ? "Tenue" : "Inventaire" )
-				.append( $("<td></td>").attr("style","text-align:center;").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) )
-				.append( $("<td></td>").attr("style","text-align:center;").text( (inv=="Tenue") ? "Equipement" : inv ) )
-				.append( $("<td></td>").attr("style","text-align:center;").append( $("<img>").attr("src", (inv=="Tenue") ? myskin : "images/items/169.gif") ));
-	let extra_lines = null;
-	if ( $("table:last")[0] != $("table:first")[0] ) {
-		extra_lines = $("table:last tr").clone()
-				.each(processInventoryLine)
-				.attr("data-inv", "Equipement")
-				.attr("data-place", "Tenue")
-				.append( $("<td></td>").attr("style","text-align:center;").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) )
-				.append( $("<td></td>").attr("style","text-align:center;").text("Equipement") )
-				.append( $("<td></td>").attr("style","opacity:0.4; text-align:center;").append( $("<img>").attr("src", myskin) ) );
+	
+	var lines, extra_line;
+	if ( $("table tbody td").length == 1 ) { //if table is empty there's only one cell
+		lines = null; 
 	}
-
+	else {
+		lines = $("table:first tr").not(":contains('Capacité à équiper')").clone()
+					.each(processInventoryLine)
+					.attr("data-inv", (inv=="Tenue") ? "Equipement" : inv )
+					.attr("data-place", (inv=="Tenue") ? "Tenue" : "Inventaire" )
+					.append( $("<td></td>").attr("style","text-align:center;").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) )
+					.append( $("<td></td>").attr("style","text-align:center;").text( (inv=="Tenue") ? "Equipement" : inv ) )
+					.append( $("<td></td>").attr("style","text-align:center;").append( $("<img>").attr("src", (inv=="Tenue") ? myskin : "images/items/169.gif") ));
+		extra_lines = null;
+		if ( $("table:last")[0] != $("table:first")[0] ) {
+			extra_lines = $("table:last tr").clone()
+					.each(processInventoryLine)
+					.attr("data-inv", "Equipement")
+					.attr("data-place", "Tenue")
+					.append( $("<td></td>").attr("style","text-align:center;").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) )
+					.append( $("<td></td>").attr("style","text-align:center;").text("Equipement") )
+					.append( $("<td></td>").attr("style","opacity:0.4; text-align:center;").append( $("<img>").attr("src", myskin) ) );
+		}
+	}
 	$("<table ></table>")
 		.append( $("<tbody id='temp'></tbody>").append(lines).append(extra_lines) )
 		.insertAfter( $("table:last")[0] )
@@ -165,15 +174,17 @@ function saveInventory(inv) {
 function saveMulet(mule) {
 
 	function processMuleLine() {
-		// remove first cell
+		
+		// remove last cell
 		$(this).find("td:last").remove();
 		// reformat content
 		let content = $(this).find("td").html().split("<br>");
-		let html = "<span class='item_name'>";
-		for (var i=0; i<content.length-1; i++) {
-			html +=  content[i] + "<br>";
+		let html = "<span class='item_name'>" + content[0] + "</span><br><span class='item_descr'>";
+		for (var i=1; i<content.length; i++) {
+			html += content[i];
+			if ( i<content.length-1 ) html += "<br/>";
 		}
-		html += "</span><span class='item_descr'>" + content[content.length-1] + "</span>";
+		html += "</span>";
 		$(this).find("td").html(html);
 		let name = $(this).find("strong:first");
 		let serti = $(name).find(".sertissage");
@@ -212,9 +223,15 @@ function saveMulet(mule) {
 		$(this).append( $("<td></td>").attr("style","text-align:center;").append( $("<img>").attr("src","images/vue/monstre/37.gif") ) );
 	}
 
-	let lines = $("table tbody tr td:first-child").parent().clone()
-				.each(processMuleLine)
-				.attr("data-place", mule);
+	var lines;
+	if ( $("table tbody td").length == 1 ) { //if table is empty there's only one cell
+		lines = null; 
+	}
+	else {
+		lines = $("table tbody tr td:first-child").parent().clone()
+						.each(processMuleLine)
+						.attr("data-place", mule);
+	}
 	$("<table></table>")
 		.append( $("<tbody id='temp'></tbody>").append(lines) )
 		.insertAfter( $("table")[0] )
@@ -233,8 +250,8 @@ function createInventoryPage() {
 	function formatTime(time) {
 		if(typeof(time)!="number") return -1;
 		time /= 1000; // time in sec
-		let list_divid = [60,60,24,7];
-		let list_units = ['s','m','h','d','w'];
+		let list_divid = [60,60,24];
+		let list_units = ['s','m','h','j'];
 		var i = 0;
 		while(i<list_divid.length){
 			if(time/list_divid[i]<1) break;
@@ -325,7 +342,7 @@ function createInventoryPage() {
 	$("#inventory_table > tbody").append( 
 		$("<tr/>").attr("data-inv","fixe")
 			.append( $("<td/>").attr("class","fonce").attr("width","700").text("tbd") )
-			.append( $("<td/>").attr("class","fonce").attr("style","text-align:center;").text("Poids") )
+			.append( $("<td/>").attr("class","fonce").attr("style","text-align:center;").text("").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) )
 			.append( $("<td/>").attr("class","fonce").attr("style","text-align:center;").text("Catégorie") )
 			.append( $("<td/>").attr("class","fonce").attr("style","text-align:center;").text("Emplacement") ) );
 	let page_to_show = ["Tenue","Equipement","Consommable","Ressource"];
@@ -338,6 +355,39 @@ function createInventoryPage() {
 		$("#inventory_table > tbody").append( table );
 	}
 
+	// Add table to the page
+	$("#inventory_table").appendTo( $("#bloc") );
+	// Apply filters and update table title line
+	applyInventoryFilters();
+	updateInventoryTableTitle();
+	sortInventory();
+	
+	//---------------------------------------------
+	// UPDATE FILTER NAMES WITH WEIGHT OF ITEMS
+	let invs = ["Tenue","Equipement","Consommable","Ressource"];
+	for (var i=0; i<invs.length; i++) {
+		let weight = 0;
+		$("#inventory_table tr[data-inv=" + invs[i] + "]:visible td:nth-child(2)").each( function() {
+			weight += ~~$(this).text();
+		});
+		$("a[data-inv="+invs[i]+"]").append( 
+			$("<span/>").attr("class","weight")
+				.append(" (", weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging"), ")" ) );
+	}
+	
+	let places = ["Inventaire","Tenue"]; 
+	mules_id.forEach( function(item) { places.push(item)})
+	for (var i=0; i<places.length; i++) {
+		let weight = 0;
+		$("#inventory_table tr[data-place=" + places[i] + "]:visible td:nth-child(2)").each( function() {
+			weight += ~~$(this).text();
+		});
+		$("a[data-place="+places[i]+"]").append( 
+			$("<span/>").attr("class","weight")
+				.append(" (", weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging"), ")" ) );
+	}
+	
+
 	//---------------------------------------------
 	// ADD BUTTONS TO THE PAGE
 	// copy list button
@@ -348,13 +398,8 @@ function createInventoryPage() {
 	$("#copy_list").click(copyListInventory);
 	$("#group_entries").click(toggleInventoryGrouping);
 	
-	//---------------------------------------------
-	// ADD TABLE TO THE PAGE
-	$("#inventory_table").appendTo( $("#bloc") );
-	// apply filters and update table title line
-	applyInventoryFilters();
-	updateInventoryTableTitle();
-	sortInventory();
+
+
 }
 
 
@@ -505,30 +550,23 @@ function selectInventoryPlace() {
 
 function updateInventoryTableTitle() {
 	
-	$("span.weight").remove();
+	// $("span.weight").remove();
 	let nombre = $("tr[data-place]:visible").length;
 	let s = (nombre<2) ? "" : "s";
 	let weight = 0;
 	$("#inventory_table tr[data-place]:visible td:nth-child(2)").each( function() {
 			weight += ~~$(this).text();
 	});
-	$("#inventory_table tr[data-inv=fixe] > td:first").text( (nombre==0) ? "Aucun item" : nombre + " item" + s )
-		.append( $("<span/>").attr("class","weight")
-				.append(" (", weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging"), ")" ) );
+	$("#inventory_table tr[data-inv=fixe] > td").eq(0)
+		.text( (nombre==0) ? "Aucun item" : nombre + " item" + s + ", " + weight + " ")
+		.append( $("<span/>").attr("class","weight").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) );
+	$("#inventory_table tr[data-inv=fixe] > td").eq(1).text("")
+		.append( $("<span/>").attr("class","weight").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) );
 	$("#inventory_table tr[data-inv!=fixe] td").removeAttr("class");
 	$("#inventory_table tr:visible:odd > td").attr("class","info_objet");
 	$("#inventory_table tr:visible:odd > td").attr("class","info_objet clair");
 	
-	let page_to_show = ["Tenue","Equipement","Consommable","Ressource"];
-	for (var i=0; i<page_to_show.length; i++) {
-		let weight = 0
-		$("#inventory_table tr[data-inv=" + page_to_show[i] + "]:visible td:nth-child(2)").each( function() {
-			weight += ~~$(this).text();
-		});
-		$("a[data-inv="+page_to_show[i]+"]").after( 
-			$("<span/>").attr("class","weight")
-				.append(" (", weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging"), ")" ) );
-	}
+	
 }
 
 
@@ -577,21 +615,21 @@ function groupInventoryEntries() {
 							.insertAfter( $("#inventory_table") );
 
 	if ($("#group_entries").val() == "Grouper les entrées similaires") {
-		
 		$("#inventory_table tr:visible:has(.name)").each( function() {
 			item_name = $(this).find(".name").text().trim();
 			item_line = $("#grouped_inventory_table tr:contains("+item_name+")");
 			if ( $(this).find("i.fa-solid").parent().html() ) {
 				item_weight = ~~$(this).find("i.fa-solid").parent().html().split(' <i')[0].split(/[|(]+/).slice(-1)[0];
 			}
-			
 			if ( item_line.length==1 ) {
-				console.log(item_name + " already in list");
+				// console.log(item_name + " already in list");
 				let count = ~~$(item_line).find("span.item_count").text().split("x")[1] + 1;
 				$(item_line).find("span.item_count").text(" x" + count);
+				$(item_line).find("span.item_weight").text("")
+					.append( item_weight*count, " ", $("<i/>").addClass("fa-solid fa-weight-hanging") );
 			}
 			else if ( item_line.length==0 ) {
-				console.log(item_name + " added");
+				// console.log(item_name + " added");
 				$("#grouped_inventory_table > tbody")
 					.append( $("<tr/>")
 								.attr("data-inv",$(this).attr("data-inv"))
@@ -601,9 +639,9 @@ function groupInventoryEntries() {
 				$("#grouped_inventory_table tr:last").find(".enchantement").remove();
 				$("#grouped_inventory_table tr:last").find(".qualite").remove();
 				$("#grouped_inventory_table tr:last").find(".item_descr").remove();
-				$("#grouped_inventory_table tr:last").find("strong").append( $("<span/>").attr("class","item_count").text(" x1") )
-				$("#grouped_inventory_table tr:last").find("strong").append( $("<span/>").attr("class","item_weight")
-					.html( " (" + item_weight + " <i class='fa-solid fa-weight-hanging'></i>)" ) );
+				$("#grouped_inventory_table tr:last").find("strong").after( $("<span/>").attr("class","item_count").text(" x1") )
+				$("#grouped_inventory_table tr:last tr").eq(1).text("")
+					.append( $("<span/>").attr("class","item_weight").append( item_weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging") ) );
 			}
 			else {
 				console.log("Ohohohohooooooo");
@@ -762,7 +800,7 @@ function addCopyButton(table,type) {
 
 function saveSkin() {
 	$(document).ready( function() {
-		localStorage.setItem('myskin', $("div.description > img.vue").attr("src").replace("_cheval",""));
+		localStorage.setItem('myskin', $("div.infoline:contains(Race)").find("img").attr("src")); //.replace("_cheval",""));
 	});
 }
 
