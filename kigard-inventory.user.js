@@ -277,11 +277,11 @@ function createInventoryPage() {
 	}
 
 	function linkCategory(string) {
-		return $("<a/>").attr('href','#').attr('data-inv',parseName(string)).attr("class","sel").text(string);
+		return $("<a/>").attr('href','#').attr('data-inv',parseName(string)).attr("class","select").text(string);
 	}
 
 	function linkPlace(string) {
-		return $("<a/>").attr('href','#').attr('data-place', (i=mules_name.indexOf(string))>-1 ? mules_id[i] : parseName(string)).attr("class","sel").text(string);
+		return $("<a/>").attr('href','#').attr('data-place', (i=mules_name.indexOf(string))>-1 ? mules_id[i] : parseName(string)).attr("class","select").text(string);
 	}
 
 	function imageItem(id) {
@@ -362,30 +362,6 @@ function createInventoryPage() {
 	updateInventoryTableTitle();
 	sortInventory();
 	
-	//---------------------------------------------
-	// UPDATE FILTER NAMES WITH WEIGHT OF ITEMS
-	let invs = ["Tenue","Equipement","Consommable","Ressource"];
-	for (var i=0; i<invs.length; i++) {
-		let weight = 0;
-		$("#inventory_table tr[data-inv=" + invs[i] + "]:visible td:nth-child(2)").each( function() {
-			weight += ~~$(this).text();
-		});
-		$("a[data-inv="+invs[i]+"]").append( 
-			$("<span/>").attr("class","weight")
-				.append(" (", weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging"), ")" ) );
-	}
-	
-	let places = ["Inventaire","Tenue"]; 
-	mules_id.forEach( function(item) { places.push(item)})
-	for (var i=0; i<places.length; i++) {
-		let weight = 0;
-		$("#inventory_table tr[data-place=" + places[i] + "]:visible td:nth-child(2)").each( function() {
-			weight += ~~$(this).text();
-		});
-		$("a[data-place="+places[i]+"]").append( 
-			$("<span/>").attr("class","weight")
-				.append(" (", weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging"), ")" ) );
-	}
 	
 
 	//---------------------------------------------
@@ -460,7 +436,7 @@ function selectInventoryCategory() {
 
 	if($(this).data('inv')=='Tous'){
 		if($(this).text()=='Toutes') {
-			$('a[data-inv]').attr('class','sel');
+			$('a[data-inv]').attr('class','select');
 			$('a[data-inv]').removeAttr('style');
 			$(this).text('Aucune');
 		}
@@ -473,12 +449,12 @@ function selectInventoryCategory() {
 
 	}
 	else {
-		if($(this).attr('class')=='sel'){
+		if($(this).attr('class')=='select'){
 			$(this).removeAttr('class');
 			$(this).attr("style","opacity:0.4");
 		}
 		else {
-			$(this).attr('class', 'sel');
+			$(this).attr('class', 'select');
 			$(this).attr("style","");
 		}
 	}
@@ -486,7 +462,7 @@ function selectInventoryCategory() {
 	$('a[data-inv="Tous"]').removeAttr('class');
 	$('a[data-inv="Tous"]').attr('style',"font-weight: lighter; font-style: italic");
 
-	if($("a[data-inv][class=sel]").length>$("a[data-inv]").length/2) {
+	if($("a[data-inv][class=select]").length>$("a[data-inv]").length/2) {
 		$('a[data-inv="Tous"]').text("Aucune");
 	}
 	else {
@@ -507,7 +483,7 @@ function selectInventoryPlace() {
 
 	if($(this).data('place')=='Tous'){
 		if($(this).text()=='Tous') {
-			$('a[data-place]').attr('class','sel');
+			$('a[data-place]').attr('class','select');
 			$('a[data-place]').removeAttr('style');
 			$(this).text('Aucun');
 		}
@@ -520,12 +496,12 @@ function selectInventoryPlace() {
 
 	}
 	else {
-		if($(this).attr('class')=='sel'){
+		if($(this).attr('class')=='select'){
 			$(this).removeAttr('class');
 			$(this).attr("style","opacity:0.4");
 		}
 		else {
-			$(this).attr('class', 'sel');
+			$(this).attr('class', 'select');
 			$(this).attr("style","");
 		}
 	}
@@ -533,7 +509,7 @@ function selectInventoryPlace() {
 	$('a[data-place="Tous"]').removeAttr('class');
 	$('a[data-place="Tous"]').attr('style',"font-weight: lighter; font-style: italic");
 
-	if($("a[data-place][class=sel]").length>=$("a[data-place]").length/2) {
+	if($("a[data-place][class=select]").length>=$("a[data-place]").length/2) {
 		$('a[data-place="Tous"]').text("Aucun");
 	}
 	else {
@@ -566,6 +542,34 @@ function updateInventoryTableTitle() {
 	$("#inventory_table tr:visible:odd > td").attr("class","info_objet");
 	$("#inventory_table tr:visible:odd > td").attr("class","info_objet clair");
 	
+	//---------------------------------------------
+	// UPDATE FILTER NAMES WITH WEIGHT OF ITEMS
+	$("a[data-inv] span.weight").remove();
+	let invs = ["Tenue","Equipement","Consommable","Ressource"];
+	for (var i=0; i<invs.length; i++) {
+		let weight = 0;
+		$("#inventory_table tr[data-inv=" + invs[i] + "]:visible td:nth-child(2)").each( function() {
+			weight += ~~$(this).text();
+		});
+		$("a[data-inv="+invs[i]+"]").append( 
+			$("<span/>").attr("class","weight")
+				.append(" (", weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging"), ")" ) );
+	}
+	
+	$("a[data-place] span.weight").remove();
+	let places = ["Inventaire","Tenue"]; 
+	mules_id.forEach( function(item) { places.push(item)})
+	for (var i=0; i<places.length; i++) {
+		let weight = 0;
+		$("#inventory_table tr[data-place=" + places[i] + "]:visible td:nth-child(2)").each( function() {
+			weight += ~~$(this).text();
+		});
+		$("a[data-place="+places[i]+"]").append( 
+			$("<span/>").attr("class","weight")
+				.append(" (", weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging"), ")" ) );
+	}
+	
+	
 	
 }
 
@@ -575,10 +579,10 @@ function applyInventoryFilters() {
 	ungroupInventoryEntries();
 
 	let selected_mules = [];
-	$("a[data-place][class=sel]").each(function () {  selected_mules.push($(this).data('place')) });
+	$("a[data-place][class=select]").each(function () {  selected_mules.push($(this).data('place')) });
 	// selected_mules.push('Inventaire');
 	let selected_categ = [];
-	$("a[data-inv][class=sel]").each(function () {  selected_categ.push($(this).data('inv')) });
+	$("a[data-inv][class=select]").each(function () {  selected_categ.push($(this).data('inv')) });
 
 	// console.log(selected_categ);
 	// console.log(selected_mules);
@@ -638,6 +642,7 @@ function groupInventoryEntries() {
 				$("#grouped_inventory_table tr:last").find(".sertissage").remove();
 				$("#grouped_inventory_table tr:last").find(".enchantement").remove();
 				$("#grouped_inventory_table tr:last").find(".qualite").remove();
+				$("#grouped_inventory_table tr:last").find(".conso").remove();
 				$("#grouped_inventory_table tr:last").find(".item_descr").remove();
 				$("#grouped_inventory_table tr:last").find("strong").after( $("<span/>").attr("class","item_count").text(" x1") )
 				$("#grouped_inventory_table tr:last tr").eq(1).text("")
