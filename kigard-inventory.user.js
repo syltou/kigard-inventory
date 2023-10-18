@@ -163,7 +163,7 @@ function saveInventory(inv) {
 	$("<table ></table>")
 		.append( $("<tbody id='temp'></tbody>").append(lines).append(extra_lines) )
 		.insertAfter( $("table:last")[0] )
-		// .hide();
+		.hide();
 	$("#temp tr").each( function() {
 		$(this).find("td:nth-child(2)").text($(this).find("td:first span.item_descr").attr("weight"));
 	});
@@ -235,7 +235,7 @@ function saveMulet(mule) {
 	$("<table></table>")
 		.append( $("<tbody id='temp'></tbody>").append(lines) )
 		.insertAfter( $("table")[0] )
-		// .hide();
+		.hide();
 	$("#temp tr").each( function() {
 		$(this).find("td:nth-child(2)").text($(this).find("td:first span.item_descr").attr("weight"));
 	});
@@ -367,8 +367,8 @@ function createInventoryPage() {
 	//---------------------------------------------
 	// ADD BUTTONS TO THE PAGE
 	// copy list button
-	$("<br/>").appendTo( $("#bloc") );
-	$("<div/>").attr("id","button_area").appendTo( $("#bloc") )
+	$("<br/>").insertBefore( $("#inventory_table") );
+	$("<div/>").attr("id","button_area").insertBefore( $("#inventory_table") )
 		.append( $("<span/>").append( $("<input/>").attr("id","copy_list").attr("type","button").val("Copier la liste") ) )
 		.append( $("<span/>").append( $("<input/>").attr("id","group_entries").attr("type","button").val("Grouper les entrées similaires") ) );
 	$("#copy_list").click(copyListInventory);
@@ -535,39 +535,39 @@ function updateInventoryTableTitle() {
 	});
 	$("#inventory_table tr[data-inv=fixe] > td").eq(0)
 		.text( (nombre==0) ? "Aucun item" : nombre + " item" + s + ", " + weight + " ")
-		.append( $("<span/>").attr("class","weight").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) );
+		.append( (nombre==0) ? null : $("<span/>").attr("class","weight").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) );
 	$("#inventory_table tr[data-inv=fixe] > td").eq(1).text("")
 		.append( $("<span/>").attr("class","weight").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) );
 	$("#inventory_table tr[data-inv!=fixe] td").removeAttr("class");
-	$("#inventory_table tr:visible:odd > td").attr("class","info_objet");
-	$("#inventory_table tr:visible:odd > td").attr("class","info_objet clair");
+	$("#inventory_table tr[data-inv!=fixe]:visible:odd > td").attr("class","info_objet");
+	$("#inventory_table tr[data-inv!=fixe]:visible:even > td").attr("class","info_objet clair");
 	
-	//---------------------------------------------
-	// UPDATE FILTER NAMES WITH WEIGHT OF ITEMS
-	$("a[data-inv] span.weight").remove();
-	let invs = ["Tenue","Equipement","Consommable","Ressource"];
-	for (var i=0; i<invs.length; i++) {
-		let weight = 0;
-		$("#inventory_table tr[data-inv=" + invs[i] + "]:visible td:nth-child(2)").each( function() {
-			weight += ~~$(this).text();
-		});
-		$("a[data-inv="+invs[i]+"]").append( 
-			$("<span/>").attr("class","weight")
-				.append(" (", weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging"), ")" ) );
-	}
+	// //---------------------------------------------
+	// // UPDATE FILTER NAMES WITH WEIGHT OF ITEMS
+	// $("a[data-inv] span.weight").remove();
+	// let invs = ["Tenue","Equipement","Consommable","Ressource"];
+	// for (var i=0; i<invs.length; i++) {
+		// let weight = 0;
+		// $("#inventory_table tr[data-inv=" + invs[i] + "]:visible td:nth-child(2)").each( function() {
+			// weight += ~~$(this).text();
+		// });
+		// $("a[data-inv="+invs[i]+"]").append( 
+			// $("<span/>").attr("class","weight")
+				// .append(" (", weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging"), ")" ) );
+	// }
 	
-	$("a[data-place] span.weight").remove();
-	let places = ["Inventaire","Tenue"]; 
-	mules_id.forEach( function(item) { places.push(item)})
-	for (var i=0; i<places.length; i++) {
-		let weight = 0;
-		$("#inventory_table tr[data-place=" + places[i] + "]:visible td:nth-child(2)").each( function() {
-			weight += ~~$(this).text();
-		});
-		$("a[data-place="+places[i]+"]").append( 
-			$("<span/>").attr("class","weight")
-				.append(" (", weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging"), ")" ) );
-	}
+	// $("a[data-place] span.weight").remove();
+	// let places = ["Inventaire","Tenue"]; 
+	// mules_id.forEach( function(item) { places.push(item)})
+	// for (var i=0; i<places.length; i++) {
+		// let weight = 0;
+		// $("#inventory_table tr[data-place=" + places[i] + "]:visible td:nth-child(2)").each( function() {
+			// weight += ~~$(this).text();
+		// });
+		// $("a[data-place="+places[i]+"]").append( 
+			// $("<span/>").attr("class","weight")
+				// .append(" (", weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging"), ")" ) );
+	// }
 	
 	
 	
@@ -598,8 +598,8 @@ function applyInventoryFilters() {
 
 	// sortInventory();
 
-	$("#inventory_table td").removeClass("clair");
-	$("#inventory_table tr[data-inv!=fixe]:visible:even > td").addClass("clair");
+	// $("#inventory_table td").removeClass("clair");
+	// $("#inventory_table tr[data-inv!=fixe]:visible:even > td").addClass("clair");
 }
 
 function toggleInventoryGrouping() {
@@ -614,88 +614,110 @@ function toggleInventoryGrouping() {
 function groupInventoryEntries() {
 	let list_entries = [];
 	var i, item_name, item_count, item_line;
-	var grouped_table = $("<table/>").attr("id","grouped_inventory_table").attr("width","100%")
-							.append( $("<tbody/>").append( $("#inventory_table tr:first").clone() ) )
-							.insertAfter( $("#inventory_table") );
-
-	if ($("#group_entries").val() == "Grouper les entrées similaires") {
-		$("#inventory_table tr:visible:has(.name)").each( function() {
-			item_name = $(this).find(".name").text().trim();
-			item_line = $("#grouped_inventory_table tr:contains("+item_name+")");
-			if ( $(this).find("i.fa-solid").parent().html() ) {
-				item_weight = ~~$(this).find("i.fa-solid").parent().html().split(' <i')[0].split(/[|(]+/).slice(-1)[0];
-			}
-			if ( item_line.length==1 ) {
-				// console.log(item_name + " already in list");
-				let count = ~~$(item_line).find("span.item_count").text().split("x")[1] + 1;
-				$(item_line).find("span.item_count").text(" x" + count);
-				$(item_line).find("span.item_weight").text("")
-					.append( item_weight*count, " ", $("<i/>").addClass("fa-solid fa-weight-hanging") );
-			}
-			else if ( item_line.length==0 ) {
-				// console.log(item_name + " added");
-				$("#grouped_inventory_table > tbody")
-					.append( $("<tr/>")
-								.attr("data-inv",$(this).attr("data-inv"))
-								.attr("data-place",$(this).attr("data-place"))
-								.append( $(this).children("*").clone() ) );
-				$("#grouped_inventory_table tr:last").find(".sertissage").remove();
-				$("#grouped_inventory_table tr:last").find(".enchantement").remove();
-				$("#grouped_inventory_table tr:last").find(".qualite").remove();
-				$("#grouped_inventory_table tr:last").find(".conso").remove();
-				$("#grouped_inventory_table tr:last").find(".item_descr").remove();
-				$("#grouped_inventory_table tr:last").find("strong").after( $("<span/>").attr("class","item_count").text(" x1") )
-				$("#grouped_inventory_table tr:last tr").eq(1).text("")
-					.append( $("<span/>").attr("class","item_weight").append( item_weight, " ", $("<i/>").addClass("fa-solid fa-weight-hanging") ) );
-			}
-			else {
-				console.log("Ohohohohooooooo");
-			}
-			
-			$("#inventory_table").after( $("#grouped_inventory_table") );
-			
-			// if( (i = list_entries.indexOf(item)) > -1 ) {
-				// console.log(item + ' already in list in position ' + i);
-				// // let name = $("tr:visible .name").eq(i).text().trim().split(' x')[0];
-				// // let count = ~~$("tr:visible > td > strong:nth-child(2)").eq(i).text().trim().split(' x')[1];
-				// if (count==0) count++;
-				// $("tr:visible > td > strong:nth-child(2)").eq(i).text( name + ' x' + (count+1));
-				// $("tr:visible > td > strong:nth-child(2)").eq(i).parent().parent().attr('grouped',true);
-				// $(this).parent().parent().hide();
-				// $(this).parent().parent().attr('grouped_hidden',true);
-
-			// }
-			// else {
-				// list_entries.push(item_name);
-				// console.log($(this).text().trim() + ' added');
-				
-			// }
-		});
-		$("#group_entries").val("Dégrouper les entrées similaires");
+	let places = ["Inventaire","Tenue"]; 
+	mules_id.forEach( function(item) { places.push(item)})
 		
-		// $(".item_descr").hide();
-		// $(".qualite").hide();
-		// $(".sertissage").hide();
-		// $(".enchantement").hide();
-		// $(".aide_popin").hide();
-	}
+	$("#grouped_inventory_table").remove();
+	var grouped_table = $("<table/>").attr("id","grouped_inventory_table").attr("width","100%")
+					.append( $("<tbody/>").append( $("#inventory_table tr:first").clone() ) )
+					.insertAfter( $("#inventory_table") );
+	
+	$("#inventory_table tr:visible:has(.name)").each( function() {
+		item_name = $(this).find(".name").text().trim();
+		item_line = $("#grouped_inventory_table tr:contains("+item_name+")");
+		item_weight = ~~$(this).find("i.fa-solid").parent().html().split(' <i')[0].split(/[|(]+/).slice(-1)[0];
+		item_place = $(this).attr("data-place");
+		// item_place = 
+		if ( item_line.length==1 ) {
+			// console.log(item_name + " already in list");
+			let count = ~~$(item_line).find("span.item_count").text().split("x")[1] + 1;
+			$(item_line).find("span.item_count").text(" x" + count);
+			$(item_line).find("td").eq(1).text(count*item_weight);
+			$(item_line).find("td:last").text( $(item_line).find("td:last").text() + ", " + item_place );
+			// $(item_line).find("td").eq(3).append(
+		}
+		else if ( item_line.length==0 ) {
+			// console.log(item_name + " added");
+			$("#grouped_inventory_table > tbody")
+				.append( $("<tr/>")
+							.attr("data-inv",$(this).attr("data-inv"))
+							.attr("data-place",$(this).attr("data-place"))
+							.append( $(this).children("*").clone() ) );
+							
+			$("#grouped_inventory_table tr:last").find(".sertissage").remove();
+			$("#grouped_inventory_table tr:last").find(".enchantement").remove();
+			$("#grouped_inventory_table tr:last").find(".qualite").remove();
+			$("#grouped_inventory_table tr:last").find(".conso").remove();
+			$("#grouped_inventory_table tr:last").find(".item_descr").remove();
+			$("#grouped_inventory_table tr:last").find("strong").after( $("<span/>").attr("class","item_count").text(" x1") )
+			
+			$("#grouped_inventory_table tr:last td:last").text( item_place );
+		}
+		else {
+			console.log("Ohohohohooooooo");
+		}
+		
+		$("#inventory_table").after( $("#grouped_inventory_table") );
+		$("#inventory_table").hide();
+		
+		// if( (i = list_entries.indexOf(item)) > -1 ) {
+			// console.log(item + ' already in list in position ' + i);
+			// // let name = $("tr:visible .name").eq(i).text().trim().split(' x')[0];
+			// // let count = ~~$("tr:visible > td > strong:nth-child(2)").eq(i).text().trim().split(' x')[1];
+			// if (count==0) count++;
+			// $("tr:visible > td > strong:nth-child(2)").eq(i).text( name + ' x' + (count+1));
+			// $("tr:visible > td > strong:nth-child(2)").eq(i).parent().parent().attr('grouped',true);
+			// $(this).parent().parent().hide();
+			// $(this).parent().parent().attr('grouped_hidden',true);
+
+		// }
+		// else {
+			// list_entries.push(item_name);
+			// console.log($(this).text().trim() + ' added');
+			
+		// }
+	});
+	
+	// process last cell 
+	$("#grouped_inventory_table tr[data-inv!=fixe] td:last-child").each( function() {
+		let countPlaces = {};
+		let arrayPlaces = $(this).text().split(", ");
+		console.log(arrayPlaces)
+		$(this).text("");
+		arrayPlaces.forEach(function (x) { countPlaces[x] = (countPlaces[x] || 0) + 1; });
+		console.log(countPlaces)
+		for( var i=0;i<places.length;i++) {
+			if( countPlaces[places[i]]!=undefined )	$(this).append( $("a[data-place="+places[i]+"]").parent().find("img.item").clone() , "x"+countPlaces[places[i]], "&nbsp;" );
+		}
+	});
+	
+	$("#group_entries").val("Dégrouper les entrées similaires");
+	
+	// $(".item_descr").hide();
+	// $(".qualite").hide();
+	// $(".sertissage").hide();
+	// $(".enchantement").hide();
+	// $(".aide_popin").hide();
+	
 }
 
 function ungroupInventoryEntries() {
 	if ($("#group_entries").val() == "Dégrouper les entrées similaires")  {
 		
-		// $(".item_descr").show();
-		// $(".qualite").show();
-		// $(".sertissage").show();
-		// $(".enchantement").show();
+		// // $(".item_descr").show();
+		// // $(".qualite").show();
+		// // $(".sertissage").show();
+		// // $(".enchantement").show();
 		
-		$("tr[grouped=true] > td > strong").each( function() {
-			$(this).text( $(this).text().trim().split(' x')[0]);
-		});
-		$("tr[grouped=true]").removeAttr('grouped');
-		$("tr[grouped_hidden=true]").show();
-		$("tr[grouped_hidden=true]").removeAttr('grouped_hidden');
+		// $("tr[grouped=true] > td > strong").each( function() {
+			// $(this).text( $(this).text().trim().split(' x')[0]);
+		// });
+		// $("tr[grouped=true]").removeAttr('grouped');
+		// $("tr[grouped_hidden=true]").show();
+		// $("tr[grouped_hidden=true]").removeAttr('grouped_hidden');
 		$("#group_entries").val("Grouper les entrées similaires");
+		$("#grouped_inventory_table").hide();
+		$("#inventory_table").show();
 	}
 }
 
@@ -717,9 +739,6 @@ function addGroupButton(table) {
 	span.appendChild(button);
 	$("#group_entries").click(toggleInventoryGrouping);
 }
-
-
-
 
 
 // add some entries in the inventory menu
@@ -1056,8 +1075,8 @@ function updateFormulasTableTitle() {
 
 	$("#formulas_table tr[data-metier=fixe] > td:first").text( (nombre==0) ? "Aucune formule" : nombre + " formule" + s);
 	$("#formulas_table tr[data-metier!=fixe] td").removeAttr("class");
-	$("#formulas_table tr:visible:odd > td").attr("class","info_objet");
-	$("#formulas_table tr:visible:odd > td").attr("class","info_objet clair");
+	$("#formulas_table tr[data-metier!=fixe]:visible:odd > td").attr("class","info_objet");
+	$("#formulas_table tr[data-metier!=fixe]:visible:even > td").attr("class","info_objet clair");
 }
 
 function copyListFormulas() {
