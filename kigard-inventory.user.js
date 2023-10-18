@@ -120,7 +120,7 @@ function saveInventory(inv) {
 		$(name).find(".enchantement").remove();
 		$(name).find(".conso").remove();
 		let item = $(name).text();
-		let quali = "";
+		let quali = (inv=="Equipement") ? $("<i/>").append("ordinaire") : "";
 		if(item.includes("de maître")) {
 			item = item.split("de maître")[0];
 			quali = "de maître ";
@@ -132,7 +132,7 @@ function saveInventory(inv) {
 		$(name).text("")
 			.append(enchant)
 			.append( $("<span></span>").addClass("name").text(item) )
-			.append( (quali!="") ? $("<span></span>").addClass("qualite").attr("style","color:#B18A17").text(quali) : null )
+			.append( (quali!="") ? $("<span></span>").addClass("qualite").attr("style","color:#B18A17").append(quali) : null )
 			.append(serti)
 			.append(conso);
 	}
@@ -175,6 +175,12 @@ function saveMulet(mule) {
 
 	function processMuleLine() {
 		
+		let icon = $(this).find("img:first").attr("src").split('items/')[1].split('.gif')[0];
+		let inv = undefined
+		if (id_equip.includes(~~icon)) inv = "Equipement";
+		if (id_conso.includes(~~icon)) inv = "Consommable";
+		if (id_resso.includes(~~icon)) inv = "Ressource";
+		
 		// remove last cell
 		$(this).find("td:last").remove();
 		// reformat content
@@ -189,12 +195,14 @@ function saveMulet(mule) {
 		let name = $(this).find("strong:first");
 		let serti = $(name).find(".sertissage");
 		let enchant = $(name).find(".enchantement");
+		let conso = $(name).find(".conso");
 		$(this).find("span.item_descr").attr("weight", $(this).find("td").html().split(" <i class=\"fa")[0].split(/[|(]+/).slice(-1)[0] );
 		
 		$(name).find(".sertissage").remove();
 		$(name).find(".enchantement").remove();
+		$(name).find(".conso").remove();
 		let item = $(name).text();
-		let quali = "";
+		let quali = (inv=="Equipement") ? $("<i/>").append("ordinaire") : "";
 		if(item.includes("de maître")) {
 			item = item.split("de maître")[0];
 			quali = "de maître ";
@@ -203,19 +211,14 @@ function saveMulet(mule) {
 			item = item.split("de qualité")[0];
 			quali = "de qualité ";
 		}
-		$(name).text("");
-		$(name).append(enchant);
-		$(name).append( $("<span></span>").addClass("name") );
-		$(name).append( $("<span></span>").addClass("qualite").attr("style","color:#B18A17") );
-		$(name).append(serti);
-		$(this).find(".name").text(item);
-		$(this).find(".qualite").text(quali);
+		$(name).text("")
+			.append(enchant)
+			.append( $("<span></span>").addClass("name").text(item) )
+			.append( (quali!="") ? $("<span></span>").addClass("qualite").attr("style","color:#B18A17").append(quali) : null )
+			.append(serti)
+			.append(conso);
 
-		let icon = $(this).find("img:first").attr("src").split('items/')[1].split('.gif')[0];
-		let inv = undefined
-		if (id_equip.includes(~~icon)) inv = "Equipement";
-		if (id_conso.includes(~~icon)) inv = "Consommable";
-		if (id_resso.includes(~~icon)) inv = "Ressource";
+
 
 		$(this).attr("data-inv", inv);
 		$(this).append( $("<td></td>").attr("style","text-align:center;").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) )
@@ -354,6 +357,7 @@ function createInventoryPage() {
 		let table = localStorage.getItem(mules_id[i]);
 		$("#inventory_table > tbody").append( table );
 	}
+	$("#inventory_table span.qualite:contains(ordinaire)").hide();
 
 	// Add table to the page
 	$("#inventory_table").appendTo( $("#bloc") );
@@ -625,16 +629,39 @@ function groupInventoryEntries() {
 	$("#inventory_table tr:visible:has(.name)").each( function() {
 		item_name = $(this).find(".name").text().trim();
 		item_line = $("#grouped_inventory_table tr:contains("+item_name+")");
-		item_weight = ~~$(this).find("i.fa-solid").parent().html().split(' <i')[0].split(/[|(]+/).slice(-1)[0];
+		item_weight = ~~$(this).find("i.fa-solid").parent().html().split(' <i').slice(-2)[0].split(/[|(]+/).slice(-1)[0];
 		item_place = $(this).attr("data-place");
 		// item_place = 
 		if ( item_line.length==1 ) {
+			
+			// .remove();
+			// .remove();
+			// $("#grouped_inventory_table tr:last").find(".qualite").remove();
+			// $("#grouped_inventory_table tr:last").find(".conso").remove();
+			
 			// console.log(item_name + " already in list");
 			let count = ~~$(item_line).find("span.item_count").text().split("x")[1] + 1;
 			$(item_line).find("span.item_count").text(" x" + count);
 			$(item_line).find("td").eq(1).text(count*item_weight);
 			$(item_line).find("td:last").text( $(item_line).find("td:last").text() + ", " + item_place );
-			// $(item_line).find("td").eq(3).append(
+			
+			if( $(item_line).find("span[class!=name]").length>0 ) {
+				$(item_line).find("td:first").append( 	$(item_line).find(".enchantement").detach(),
+														$(item_line).find(".qualite").show().detach(),
+														$(item_line).find(".sertissage").detach(),
+														$(item_line).find(".conso").detach(),
+														$("<br/>") );
+			}
+			
+			if( $(this).find(".enchantement").length>0 || $(this).find(".qualite").length>0 || 
+					$(this).find(".sertissage").length>0 || $(this).find(".conso").length>0 ) {
+				$(item_line).find("td:first").append( 	$(this).find(".enchantement").detach(),
+													$(this).find(".qualite").show().detach(),
+													$(this).find(".sertissage").detach(),
+													$(this).find(".conso").detach(),
+													$("<br/>") );
+			}
+			
 		}
 		else if ( item_line.length==0 ) {
 			// console.log(item_name + " added");
@@ -644,12 +671,9 @@ function groupInventoryEntries() {
 							.attr("data-place",$(this).attr("data-place"))
 							.append( $(this).children("*").clone() ) );
 							
-			$("#grouped_inventory_table tr:last").find(".sertissage").remove();
-			$("#grouped_inventory_table tr:last").find(".enchantement").remove();
-			$("#grouped_inventory_table tr:last").find(".qualite").remove();
-			$("#grouped_inventory_table tr:last").find(".conso").remove();
+			
 			$("#grouped_inventory_table tr:last").find(".item_descr").remove();
-			$("#grouped_inventory_table tr:last").find("strong").after( $("<span/>").attr("class","item_count").text(" x1") )
+			$("#grouped_inventory_table tr:last").find("strong:nth-child(2)").after( $("<span/>").attr("class","item_count").text(" x1") )
 			
 			$("#grouped_inventory_table tr:last td:last").text( item_place );
 		}
