@@ -113,21 +113,22 @@ function saveInventory(inv) {
 		let name = $(this).find("strong:first");
 		let serti = $(name).find(".sertissage");
 		let enchant = $(name).find(".enchantement");
+		$(enchant).text( $(enchant).text()+" " );
 		let conso = $(name).find(".conso");
 		$(this).find("span.item_descr").attr("weight", $(this).find("td").html().split(" <i class=\"fa")[0].split(/[|(]+/).slice(-1)[0] );
 		
 		$(name).find(".sertissage").remove();
 		$(name).find(".enchantement").remove();
 		$(name).find(".conso").remove();
-		let item = $(name).text();
-		let quali = (inv=="Equipement") ? $("<i/>").append("ordinaire") : "";
+		let item = $(name).text().trim();
+		let quali = (inv=="Equipement") ? $("<i/>").append(" ordinaire") : "";
 		if(item.includes("de maître")) {
-			item = item.split("de maître")[0];
-			quali = "de maître ";
+			item = item.split("de maître")[0].trim();
+			quali = " de maître ";
 		}
 		else if (item.includes("de qualité")) {
-			item = item.split("de qualité")[0];
-			quali = "de qualité ";
+			item = item.split("de qualité")[0].trim();
+			quali = " de qualité ";
 		}
 		$(name).text("")
 			.append(enchant)
@@ -195,21 +196,22 @@ function saveMulet(mule) {
 		let name = $(this).find("strong:first");
 		let serti = $(name).find(".sertissage");
 		let enchant = $(name).find(".enchantement");
+		$(enchant).text( $(enchant).text()+" " );
 		let conso = $(name).find(".conso");
 		$(this).find("span.item_descr").attr("weight", $(this).find("td").html().split(" <i class=\"fa")[0].split(/[|(]+/).slice(-1)[0] );
 		
 		$(name).find(".sertissage").remove();
 		$(name).find(".enchantement").remove();
 		$(name).find(".conso").remove();
-		let item = $(name).text();
-		let quali = (inv=="Equipement") ? $("<i/>").append("ordinaire") : "";
+		let item = $(name).text().trim();
+		let quali = (inv=="Equipement") ? $("<i/>").append(" ordinaire") : "";
 		if(item.includes("de maître")) {
-			item = item.split("de maître")[0];
-			quali = "de maître ";
+			item = item.split("de maître")[0].trim();
+			quali = " de maître ";
 		}
 		else if (item.includes("de qualité")) {
-			item = item.split("de qualité")[0];
-			quali = "de qualité ";
+			item = item.split("de qualité")[0].trim();
+			quali = " de qualité ";
 		}
 		$(name).text("")
 			.append(enchant)
@@ -615,6 +617,26 @@ function toggleInventoryGrouping() {
 	}
 }
 
+
+function expandList() {
+	
+	$(this).parent().parent().parent().find("span.item_list").hide();
+	$(this).children("*").remove();
+	$(this).text("");
+	$(this).append( "&nbsp;", "&nbsp;", $("<i/>").attr("class","fa fa-chevron-right"), "&nbsp;", "&nbsp;" );
+	$(this).on("click",hideList);
+}
+
+function hideList() {
+	
+	$(this).parent().parent().parent().find("span.item_list").show();
+	$(this).children("*").remove();
+	$(this).text("");
+	$(this).append( "&nbsp;", "&nbsp;", $("<i/>").attr("class","fa fa-chevron-down"), "&nbsp;", "&nbsp;" );
+	$(this).on("click",expandList);
+}
+
+
 function groupInventoryEntries() {
 	let list_entries = [];
 	var i, item_name, item_count, item_line;
@@ -632,7 +654,34 @@ function groupInventoryEntries() {
 		item_weight = ~~$(this).find("i.fa-solid").parent().html().split(' <i').slice(-2)[0].split(/[|(]+/).slice(-1)[0];
 		item_place = $(this).attr("data-place");
 		// item_place = 
-		if ( item_line.length==1 ) {
+		
+		if ( item_line.length==0 ) {
+			// console.log(item_name + " added");
+			$("#grouped_inventory_table > tbody")
+				.append( $("<tr/>")
+							.attr("data-inv",$(this).attr("data-inv"))
+							.attr("data-place",$(this).attr("data-place"))
+							.append( $(this).children("*").clone() ) );
+
+			if( $("#grouped_inventory_table tr:last span.item_name").find("span[class!=name]").length>0 ) {
+				$("#grouped_inventory_table tr:last td:first")
+					.append( $("<span/>").attr("class","item_list").attr("style","font-size: 0.9em;") // font-weight: bold; color: red"
+								.append( "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;- ",
+											$("#grouped_inventory_table tr:last").find(".enchantement").detach(),
+											$("#grouped_inventory_table tr:last").find(".qualite").detach().show(),
+											$("#grouped_inventory_table tr:last").find(".sertissage").detach(),
+											$("#grouped_inventory_table tr:last").find(".conso").detach(),
+											$("<br/>") ) );
+				$("#grouped_inventory_table tr:last").find(".item_descr").remove();
+				$("#grouped_inventory_table tr:last").find("strong:nth-child(2)").after( $("<span/>").attr("class","item_count").text(" x1") );
+				$("#grouped_inventory_table tr:last span.item_count").after( $("<span/>").attr("class","expand_list").append( "&nbsp;", "&nbsp;", $("<i/>").attr("class","fa fa-chevron-down"), "&nbsp;", "&nbsp;" ) );
+				$("#grouped_inventory_table tr:last td:nth-child(2)").text( item_weight );
+				$("#grouped_inventory_table tr:last td:last").text( item_place );
+				$("span.expand_list").on("click", expandList);
+					
+			}
+		}
+		else if ( item_line.length==1 ) {
 			
 			// .remove();
 			// .remove();
@@ -645,38 +694,42 @@ function groupInventoryEntries() {
 			$(item_line).find("td").eq(1).text(count*item_weight);
 			$(item_line).find("td:last").text( $(item_line).find("td:last").text() + ", " + item_place );
 			
-			if( $(item_line).find("span[class!=name]").length>0 ) {
-				$(item_line).find("td:first").append( 	$(item_line).find(".enchantement").detach(),
-														$(item_line).find(".qualite").show().detach(),
-														$(item_line).find(".sertissage").detach(),
-														$(item_line).find(".conso").detach(),
-														$("<br/>") );
+			if( $(item_line).find("span.item_name").find("span[class!=name]").length>0 ) {
+				$(item_line).find("td:first")
+					.append( $("<span/>").attr("class","item_list").attr("style","font-size: 0.9em;") // font-weight: bold; color: red"
+								.append( "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;- ",
+											$(this).find(".enchantement").clone(), $(this).find(".qualite").clone().show(),
+											$(this).find(".sertissage").clone(), $(this).find(".conso").clone(), $("<br/>") ) );
 			}
 			
-			if( $(this).find(".enchantement").length>0 || $(this).find(".qualite").length>0 || 
-					$(this).find(".sertissage").length>0 || $(this).find(".conso").length>0 ) {
-				$(item_line).find("td:first").append( 	$(this).find(".enchantement").detach(),
-													$(this).find(".qualite").show().detach(),
-													$(this).find(".sertissage").detach(),
-													$(this).find(".conso").detach(),
-													$("<br/>") );
-			}
+			// if( $(this).find(".enchantement").length>0 || $(this).find(".qualite").length>0 || 
+					// $(this).find(".sertissage").length>0 || $(this).find(".conso").length>0 ) {
+				// $(item_line).find("td:first").append( 	$(this).find(".enchantement").detach(),
+													// $(this).find(".qualite").show().detach(),
+													// $(this).find(".sertissage").detach(),
+													// $(this).find(".conso").detach(),
+													// $("<br/>") );
+			// }
 			
 		}
-		else if ( item_line.length==0 ) {
-			// console.log(item_name + " added");
-			$("#grouped_inventory_table > tbody")
-				.append( $("<tr/>")
-							.attr("data-inv",$(this).attr("data-inv"))
-							.attr("data-place",$(this).attr("data-place"))
-							.append( $(this).children("*").clone() ) );
+		// else if ( item_line.length==0 ) {
+			// // console.log(item_name + " added");
+			// $("#grouped_inventory_table > tbody")
+				// .append( $("<tr/>")
+							// .attr("data-inv",$(this).attr("data-inv"))
+							// .attr("data-place",$(this).attr("data-place"))
+							// .append( $(this).children("*").clone() ) );
 							
 			
-			$("#grouped_inventory_table tr:last").find(".item_descr").remove();
-			$("#grouped_inventory_table tr:last").find("strong:nth-child(2)").after( $("<span/>").attr("class","item_count").text(" x1") )
+			// $("#grouped_inventory_table tr:last").find(".enchantement").remove();
+			// $("#grouped_inventory_table tr:last").find(".qualite").remove();
+			// $("#grouped_inventory_table tr:last").find(".sertissage").remove();
+			// $("#grouped_inventory_table tr:last").find(".conso").remove();
+			// $("#grouped_inventory_table tr:last").find(".item_descr").remove();
+			// $("#grouped_inventory_table tr:last").find("strong:nth-child(2)").after( $("<span/>").attr("class","item_count").text(" x1") )
 			
-			$("#grouped_inventory_table tr:last td:last").text( item_place );
-		}
+			// $("#grouped_inventory_table tr:last td:last").text( item_place );
+		// }
 		else {
 			console.log("Ohohohohooooooo");
 		}
