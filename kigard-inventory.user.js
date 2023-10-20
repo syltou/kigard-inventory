@@ -121,7 +121,7 @@ function saveInventory(inv) {
 		$(name).find(".enchantement").remove();
 		$(name).find(".conso").remove();
 		let item = $(name).text().trim();
-		let quali = (inv=="Equipement") ? $("<i/>").append(" ordinaire") : "";
+		let quali = (inv=="Equipement" || inv=="Tenue") ? $("<i/>").append(" ordinaire") : "";
 		if(item.includes("de maître")) {
 			item = item.split("de maître")[0].trim();
 			quali = " de maître ";
@@ -620,19 +620,23 @@ function toggleInventoryGrouping() {
 
 function expandList() {
 	
-	$(this).parent().parent().parent().find("span.item_list").hide();
+	$(this).parent().parent().parent().find("span.item_list").show();
+	$(this).parent().parent().parent().find("span.place_list").show();
+	$(this).parent().parent().parent().find("span.place_count").hide();
 	$(this).children("*").remove();
 	$(this).text("");
-	$(this).append( "&nbsp;", "&nbsp;", $("<i/>").attr("class","fa fa-chevron-right"), "&nbsp;", "&nbsp;" );
+	$(this).append( "&nbsp;", "&nbsp;", $("<i/>").attr("class","fa fa-chevron-down"), "&nbsp;", "&nbsp;" );
 	$(this).on("click",hideList);
 }
 
 function hideList() {
 	
-	$(this).parent().parent().parent().find("span.item_list").show();
+	$(this).parent().parent().parent().find("span.item_list").hide();
+	$(this).parent().parent().parent().find("span.place_list").hide();
+	$(this).parent().parent().parent().find("span.place_count").show();
 	$(this).children("*").remove();
 	$(this).text("");
-	$(this).append( "&nbsp;", "&nbsp;", $("<i/>").attr("class","fa fa-chevron-down"), "&nbsp;", "&nbsp;" );
+	$(this).append( "&nbsp;", "&nbsp;", $("<i/>").attr("class","fa fa-chevron-right"), "&nbsp;", "&nbsp;" );
 	$(this).on("click",expandList);
 }
 
@@ -643,7 +647,6 @@ function groupInventoryEntries() {
 	let places = ["Inventaire","Tenue"]; 
 	mules_id.forEach( function(item) { places.push(item)})
 		
-	$("#grouped_inventory_table").remove();
 	var grouped_table = $("<table/>").attr("id","grouped_inventory_table").attr("width","100%")
 					.append( $("<tbody/>").append( $("#inventory_table tr:first").clone() ) )
 					.insertAfter( $("#inventory_table") );
@@ -674,11 +677,16 @@ function groupInventoryEntries() {
 											$("<br/>") ) );
 				$("#grouped_inventory_table tr:last").find(".item_descr").remove();
 				$("#grouped_inventory_table tr:last").find("strong:nth-child(2)").after( $("<span/>").attr("class","item_count").text(" x1") );
-				$("#grouped_inventory_table tr:last span.item_count").after( $("<span/>").attr("class","expand_list").append( "&nbsp;", "&nbsp;", $("<i/>").attr("class","fa fa-chevron-down"), "&nbsp;", "&nbsp;" ) );
+				$("#grouped_inventory_table tr:last span.item_count").after( $("<span/>").attr("class","expand_list").append( "&nbsp;", "&nbsp;", $("<i/>").attr("class","fa fa-chevron-right"), "&nbsp;", "&nbsp;" ) );
 				$("#grouped_inventory_table tr:last td:nth-child(2)").text( item_weight );
 				$("#grouped_inventory_table tr:last td:last").text( item_place );
-				$("span.expand_list").on("click", expandList);
-					
+				$("span.expand_list").on("click", expandList);				
+			}
+			else {
+				$("#grouped_inventory_table tr:last").find(".item_descr").remove();
+				$("#grouped_inventory_table tr:last").find("strong:nth-child(2)").after( $("<span/>").attr("class","item_count").text(" x1") );
+				$("#grouped_inventory_table tr:last td:nth-child(2)").text( item_weight );
+				$("#grouped_inventory_table tr:last td:last").text( item_place );
 			}
 		}
 		else if ( item_line.length==1 ) {
@@ -700,6 +708,7 @@ function groupInventoryEntries() {
 								.append( "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;- ",
 											$(this).find(".enchantement").clone(), $(this).find(".qualite").clone().show(),
 											$(this).find(".sertissage").clone(), $(this).find(".conso").clone(), $("<br/>") ) );
+				
 			}
 			
 			// if( $(this).find(".enchantement").length>0 || $(this).find(".qualite").length>0 || 
@@ -759,15 +768,23 @@ function groupInventoryEntries() {
 	$("#grouped_inventory_table tr[data-inv!=fixe] td:last-child").each( function() {
 		let countPlaces = {};
 		let arrayPlaces = $(this).text().split(", ");
-		console.log(arrayPlaces)
+		// console.log(arrayPlaces)
 		$(this).text("");
+		$(this).children("*").remove();
 		arrayPlaces.forEach(function (x) { countPlaces[x] = (countPlaces[x] || 0) + 1; });
-		console.log(countPlaces)
+		// console.log(countPlaces)
+		$(this).append( $("<span/>").attr("class","place_count") );
 		for( var i=0;i<places.length;i++) {
-			if( countPlaces[places[i]]!=undefined )	$(this).append( $("a[data-place="+places[i]+"]").parent().find("img.item").clone() , "x"+countPlaces[places[i]], "&nbsp;" );
+			if( countPlaces[places[i]]!=undefined )	$(this).find("span.place_count").append( $("a[data-place="+places[i]+"]").parent().find("img.item").clone() , "x"+countPlaces[places[i]], "&nbsp;" );
+		}
+		$(this).append( $("<span/>").attr("class","place_list") );
+		for( var i=0;i<arrayPlaces.length;i++) {
+			$(this).find("span.place_list").append( $("<br/>"), $("a[data-place="+arrayPlaces[i]+"]").parent().find("img.item").clone().attr("height",".6em") );
 		}
 	});
 	
+	$("span.item_list").hide();
+	$("span.place_list").hide();
 	$("#group_entries").val("Dégrouper les entrées similaires");
 	
 	// $(".item_descr").hide();
@@ -793,7 +810,7 @@ function ungroupInventoryEntries() {
 		// $("tr[grouped_hidden=true]").show();
 		// $("tr[grouped_hidden=true]").removeAttr('grouped_hidden');
 		$("#group_entries").val("Grouper les entrées similaires");
-		$("#grouped_inventory_table").hide();
+		$("#grouped_inventory_table").remove();
 		$("#inventory_table").show();
 	}
 }
