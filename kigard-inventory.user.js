@@ -306,7 +306,7 @@ function createInventoryPage() {
 	$("#bloc").children("*").remove();
 	$("#bloc").append( $("<h3/>").text("Inventaire complet") );
 	$("#bloc").append( $("<p/>").attr("id","last_update").attr("style","font-style: italic; font-size: 0.8em")
-		.text("Dernière visite - Tenue : " + formatTime(ts_te) + ", Equipements : " + formatTime(ts_eq) 
+		.text("Dernière update - Tenue : " + formatTime(ts_te) + ", Equipements : " + formatTime(ts_eq) 
 					+ ", Consommables : " + formatTime(ts_co) + ", Ressources : " + formatTime(ts_re) ) );
 	for(i=0; i<mules_id.length; i++) {
 		$("#last_update").text( $("#last_update").text() + ", " + mules_name[i] + " : " + formatTime((new Date()).getTime() - localStorage.getItem(mules_id[i]+"_ts")) )
@@ -368,10 +368,7 @@ function createInventoryPage() {
 	$("#inventory_table").appendTo( $("#bloc") );
 	// Apply filters and update table title line
 	applyInventoryFilters();
-	updateInventoryTableTitle();
-	sortInventory();
-	
-	
+	// sortInventory();
 
 	//---------------------------------------------
 	// ADD BUTTONS TO THE PAGE
@@ -386,27 +383,197 @@ function createInventoryPage() {
 	});
 	$("#group_entries").on("click", toggleInventoryGrouping);
 	$("#show_details").on("click", toggleDetails);
-
-
 }
+
 
 function sortTableByName() {
 	
-	let c = $(this).find("span.sort").attr("type");
+	let c = $(this).find("span.sortByName").attr("type");
+	
+	$("span.sortByWeight").attr("type","none");
+	$("span.sortByWeight i").attr("class","");
+	$("span.sortByPlace").attr("type","none");
+	$("span.sortByPlace i").attr("class","");
+	
 	if( c=="none" ) {
-		$(this).find("span.sort").attr("type","asc");
-		$(this).find("span.sort i").attr("class","fa fa-caret-up");
+		$(this).find("span.sortByName").attr("type","asc");
+		$(this).find("span.sortByName i").attr("class","fa fa-caret-up");
 	}
 	else if( c=="asc" ) {
-		$(this).find("span.sort").attr("type","desc");
-		$(this).find("span.sort i").attr("class","fa fa-caret-down");
+		$(this).find("span.sortByName").attr("type","desc");
+		$(this).find("span.sortByName i").attr("class","fa fa-caret-down");
 	}
 	else if( c=="desc" ) {
-		$(this).find("span.sort").attr("type","none");
-		$(this).find("span.sort i").attr("class","");
+		$(this).find("span.sortByName").attr("type","none");
+		$(this).find("span.sortByName i").attr("class","");
 	}
-}
 	
+	c = $(this).find("span.sortByName").attr("type");
+	
+	let rows = $("#inventory_table tr[data-inv!=fixe]:visible").detach().get();
+	
+	if( c=="none" ) {
+		rows.sort(function (a, b) {
+			let inv_a = $(a).data("inv");
+			let inv_b = $(b).data("inv");
+
+			if ( inv_a == inv_b ) {
+				let $a = $(a).find(".name").text().trim();
+				let $b = $(b).find(".name").text().trim();
+				return $a > $b;
+			}
+			else {
+				if( inv_a == "Equipement" ) {
+					return -1;
+				}
+				else if( inv_a == "Consommable" ) {
+					if (inv_b == "Equipement") return 1;
+					else return -1;
+				}
+				else {
+					return 1;
+				}
+			}
+		});
+	}
+	else {
+		rows.sort(function (a, b) {
+			let $a = $(a).find(".name").text().trim();
+			let $b = $(b).find(".name").text().trim();
+			return $a > $b;
+		});
+		if( c=="desc" ) rows.reverse();
+	}
+
+	$("#inventory_table tr[data-inv=fixe]").after(rows);
+	
+}
+
+function sortTableByWeight() {
+	
+	let c = $(this).find("span.sortByWeight").attr("type");
+	
+	$("span.sortByName").attr("type","none");
+	$("span.sortByName i").attr("class","");
+	$("span.sortByPlace").attr("type","none");
+	$("span.sortByPlace i").attr("class","");
+	
+	if( c=="none" ) {
+		$(this).find("span.sortByWeight").attr("type","desc");
+		$(this).find("span.sortByWeight i").attr("class","fa fa-caret-down");
+	}
+	else if( c=="desc" ) {
+		$(this).find("span.sortByWeight").attr("type","asc");
+		$(this).find("span.sortByWeight i").attr("class","fa fa-caret-up");
+	}
+	else if( c=="asc" ) {
+		$(this).find("span.sortByWeight").attr("type","none");
+		$(this).find("span.sortByWeight i").attr("class","");
+	}
+	
+	c = $(this).find("span.sortByWeight").attr("type");
+	
+	let rows = $("#inventory_table tr[data-inv!=fixe]:visible").detach().get();
+	
+	if( c=="none" ) {
+		rows.sort(function (a, b) {
+			let inv_a = $(a).data("inv");
+			let inv_b = $(b).data("inv");
+
+			if ( inv_a == inv_b ) {
+				let $a = $(a).find(".name").text().trim();
+				let $b = $(b).find(".name").text().trim();
+				return $a > $b;
+			}
+			else {
+				if( inv_a == "Equipement" ) {
+					return -1;
+				}
+				else if( inv_a == "Consommable" ) {
+					if (inv_b == "Equipement") return 1;
+					else return -1;
+				}
+				else {
+					return 1;
+				}
+			}
+		});
+	}
+	else {
+		rows.sort(function (a, b) {
+			let $a = $(a).find("td").eq(1).text().trim();
+			let $b = $(b).find("td").eq(1).text().trim();
+			return $a > $b;
+		});
+		if( c=="desc" ) rows.reverse();
+	}
+
+	$("#inventory_table tr[data-inv=fixe]").after(rows);
+
+}
+
+function sortTableByPlace() {
+	
+	let c = $(this).find("span.sortByPlace").attr("type");
+
+	$("span.sortByWeight").attr("type","none");
+	$("span.sortByWeight i").attr("class","");
+	$("span.sortByName").attr("type","none");
+	$("span.sortByName i").attr("class","");
+
+	if( c=="none" ) {
+		$(this).find("span.sortByPlace").attr("type","asc");
+		$(this).find("span.sortByPlace i").attr("class","fa fa-caret-up");
+	}
+	else if( c=="asc" ) {
+		$(this).find("span.sortByPlace").attr("type","desc");
+		$(this).find("span.sortByPlace i").attr("class","fa fa-caret-down");
+	}
+	else if( c=="desc" ) {
+		$(this).find("span.sortByPlace").attr("type","none");
+		$(this).find("span.sortByPlace i").attr("class","");
+	}
+	
+	c = $(this).find("span.sortByPlace").attr("type");
+	
+	let rows = $("#inventory_table tr[data-inv!=fixe]:visible").detach().get();
+	
+	if( c=="none" ) {
+		rows.sort(function (a, b) {
+			let inv_a = $(a).data("inv");
+			let inv_b = $(b).data("inv");
+
+			if ( inv_a == inv_b ) {
+				let $a = $(a).find(".name").text().trim();
+				let $b = $(b).find(".name").text().trim();
+				return $a > $b;
+			}
+			else {
+				if( inv_a == "Equipement" ) {
+					return -1;
+				}
+				else if( inv_a == "Consommable" ) {
+					if (inv_b == "Equipement") return 1;
+					else return -1;
+				}
+				else {
+					return 1;
+				}
+			}
+		});
+	}
+	else {
+		rows.sort(function (a, b) {
+			let $a = $(a).find("td:nth-child(3) img").attr("title");
+			let $b = $(b).find("td:nth-child(3) img").attr("title");
+			return $a > $b;
+		});
+		if( c=="desc" ) rows.reverse();
+	}
+
+	$("#inventory_table tr[data-inv=fixe]").after(rows);
+}
+
 
 function sortInventory() {
 
@@ -421,44 +588,8 @@ function sortInventory() {
 	// var tbody = $("#inventory_table").find("tbody")
 	// var rows = tbody.children().detach().get();
 	
-	let rows = $("#inventory_table tr[data-inv!=fixe]").detach().get();
-
-	rows.sort(function (a, b) {
-		let inv_a = $(a).data("inv");
-		let inv_b = $(b).data("inv");
-
-		if ( inv_a == inv_b ) {
-			let $a = $(a).find(".name").text().trim();
-			let $b = $(b).find(".name").text().trim();
-			return $a > $b;
-		}
-		else {
-			if( inv_a == "Equipement" ) {
-				return -1;
-			}
-			else if( inv_a == "Consommable" ) {
-				if (inv_b == "Equipement") return 1;
-				else return -1;
-			}
-			else {
-				return 1;
-			}
-		}
-	});
-
-	// for( var i=0; i<lines.length; i++) {
-		// new_tbody.innerHTML += lines[i].outerHTML;
-	// }
-
-	$("#inventory_table tr[data-inv=fixe]").after(rows);
-
-	// let table = document.getElementById("inventory_table");
-	// let tbody = table.getElementsByTagName("tbody")[0];
-	// table.removeChild(tbody);
-	// table.appendChild(new_tbody);
+	
 }
-
-
 
 
 function selectInventoryCategory() {
@@ -501,10 +632,8 @@ function selectInventoryCategory() {
 	console.log($(this).attr('class'));
 
 	applyInventoryFilters();
-	updateInventoryTableTitle();
 	
 	return false;
-
 }
 
 
@@ -521,8 +650,6 @@ function selectInventoryPlace() {
 			$('a[data-place]').attr("style","opacity:0.4");
 			$(this).text('Tous');
 		}
-
-
 	}
 	else {
 		if($(this).attr('class')=='select'){
@@ -548,13 +675,37 @@ function selectInventoryPlace() {
 	console.log($(this).attr('class'));
 
 	applyInventoryFilters();
-	updateInventoryTableTitle();
 	
 	return false;
 }
 
-function updateInventoryTableTitle() {
+
+function applyInventoryFilters() {
+
+	ungroupInventoryEntries();
+
+	let selected_places = [];
+	$("a[data-place][class=select]").each(function () {  selected_places.push($(this).data('place')) });
+	if( $.inArray("Tenue", selected_places) != -1 ) selected_places.push("Ceinture");
+	// selected_places.push('Inventaire');
+	let selected_inv = [];
+	$("a[data-inv][class=select]").each(function () {  selected_inv.push($(this).data('inv')) });
+
+	// console.log(selected_inv);
+	// console.log(selected_places);
+
+	$("#inventory_table tr[data-inv!=fixe][data-place!=fixe]").hide();
+	// $("table:last").find("tr[data-inv=" + selected_inv + "][data-place=" + selected_places + "]").show();
+
+	$("#inventory_table tr[data-inv!=fixe][data-place!=fixe]").each( function () {
+		if( ($.inArray($(this).data('inv'), selected_inv) != -1) && ($.inArray($(this).data('place'), selected_places) != -1) ) {
+			$(this).show();
+		}
+	});
 	
+	
+	//------------------------------------------------------------------------------------------
+	// UPDATE TABLE FIRST LINE WITH NUMBER AND WEIGHT OF VISIBLE ITEMS
 	// $("span.weight").remove();
 	let nombre = $("tr[data-place]:visible").length;
 	let s = (nombre<2) ? "" : "s";
@@ -565,15 +716,20 @@ function updateInventoryTableTitle() {
 	$("#inventory_table tr[data-inv=fixe] > td").eq(0)
 		.text( (nombre==0) ? "Aucun item" : nombre + " item" + s + ", " + weight + " ")
 		.append( (nombre==0) ? null : $("<span/>").attr("class","weight").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) )
-		.append( $("<span/>").attr("class","sort").attr("type","none").append( $("<i/>") ) )
+		.append( "&nbsp;", $("<span/>").attr("class","sortByName").attr("type","none").append( $("<i/>") ) )
 		.on("click", sortTableByName);
 	$("#inventory_table tr[data-inv=fixe] > td").eq(1).text("")
-		.append( $("<span/>").attr("class","weight").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) );
+		.append( $("<span/>").attr("class","weight").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) )
+		.append( "&nbsp;", $("<span/>").attr("class","sortByWeight").attr("type","none").append( $("<i/>") ) )
+		.on("click", sortTableByWeight);
+	$("#inventory_table tr[data-inv=fixe] > td").eq(2).text("Emplacement")
+		.append( "&nbsp;", $("<span/>").attr("class","sortByPlace").attr("type","none").append( $("<i/>") ) )
+		.on("click", sortTableByPlace);
 	$("#inventory_table tr[data-inv!=fixe] td").removeAttr("class");
 	$("#inventory_table tr[data-inv!=fixe]:visible:odd > td").attr("class","info_objet");
 	$("#inventory_table tr[data-inv!=fixe]:visible:even > td").attr("class","info_objet clair");
 	
-	// //---------------------------------------------
+	// //------------------------------------------------------------------------------------------
 	// // UPDATE FILTER NAMES WITH WEIGHT OF ITEMS
 	// $("a[data-inv] span.weight").remove();
 	// let invs = ["Tenue","Equipement","Consommable","Ressource"];
@@ -601,32 +757,6 @@ function updateInventoryTableTitle() {
 	// }
 	
 	
-	
-}
-
-
-function applyInventoryFilters() {
-
-	ungroupInventoryEntries();
-
-	let selected_places = [];
-	$("a[data-place][class=select]").each(function () {  selected_places.push($(this).data('place')) });
-	if( $.inArray("Tenue", selected_places) != -1 ) selected_places.push("Ceinture");
-	// selected_places.push('Inventaire');
-	let selected_inv = [];
-	$("a[data-inv][class=select]").each(function () {  selected_inv.push($(this).data('inv')) });
-
-	// console.log(selected_inv);
-	// console.log(selected_places);
-
-	$("#inventory_table tr[data-inv!=fixe][data-place!=fixe]").hide();
-	// $("table:last").find("tr[data-inv=" + selected_inv + "][data-place=" + selected_places + "]").show();
-
-	$("#inventory_table tr[data-inv!=fixe][data-place!=fixe]").each( function () {
-		if( ($.inArray($(this).data('inv'), selected_inv) != -1) && ($.inArray($(this).data('place'), selected_places) != -1) ) {
-			$(this).show();
-		}
-	});
 
 	// sortInventory();
 
