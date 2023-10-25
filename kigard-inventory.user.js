@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  0.1
+// @version	  1.0
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -25,7 +25,9 @@ let ts_eq = (t=localStorage.getItem("Equipement_ts")) ? (new Date()).getTime() -
 let ts_co = (t=localStorage.getItem("Consommable_ts")) ? (new Date()).getTime() - t : null;
 let ts_re = (t=localStorage.getItem("Ressource_ts")) ? (new Date()).getTime() - t : null;
 
-
+var members = [];
+var mypos = parsePositionPerso( $(".margin_position").text() );
+var myname = $(".inline span[class!='margin_pa'] strong").text().split(" ")[0]
 
 
 var id_equip = [1,2,7,8,9,10,11,14,16,17,18,19,20,21,22,23,24,25,27,28,29,30,31,32,33,
@@ -84,10 +86,20 @@ if (page == "gestion_stock") {
 	addCopyButton( $("#bloc table:first"),"inventory");
 }
 
+if (page == "arene") {
+	renameArenas();
+}
+
+if (page == "clan" && subp == "membres") {
+	listNames = getNames();
+	getPositions();
+	localStorage.setItem("members",members);
+	localStorage.setItem("fetched",1);
+}
 
 
 //---------------------------------------------------------------------------------------
-// PART OF SCRIPT RUNNING FOR INVENTORY
+// INVENTORY
 //---------------------------------------------------------------------------------------
 
 function saveInventory(inv) {
@@ -223,8 +235,6 @@ function saveMulet(mule) {
 			.append(serti)
 			.append(conso);
 
-
-
 		$(this).attr("data-inv", inv);
 		$(this).append( $("<td/>").attr("style","text-align:center;").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) )
 		// $(this).append( $("<td/>").attr("style","text-align:center;").text( inv ) );
@@ -340,8 +350,8 @@ function createInventoryPage() {
 	$("#places > blockquote.bloc").append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", $("<img>").attr("src", myskin).attr("class","item"), linkPlace("Tenue/Ceinture")) );
 
 	// add click events to the filters entries
-	$('a[data-inv]').click(selectInventoryCategory);
-	$('a[data-place]').click(selectInventoryPlace);
+	$('a[data-inv]').on("click",selectInventoryCategory);
+	$('a[data-place]').on("click",selectInventoryPlace);
 
 	//---------------------------------------------
 	// CREATE TABLE AND MERGE ENTRIES SAVED FROM OTHER PAGES
@@ -410,7 +420,7 @@ function sortTableByName() {
 	
 	c = $(this).find("span.sortByName").attr("type");
 	
-	let rows = $("#inventory_table tr[data-inv!=fixe]:visible").detach().get();
+	let rows = $("table:visible tr[data-inv!=fixe]:visible").detach().get();
 	
 	if( c=="none" ) {
 		rows.sort(function (a, b) {
@@ -445,8 +455,9 @@ function sortTableByName() {
 		if( c=="desc" ) rows.reverse();
 	}
 
-	$("#inventory_table tr[data-inv=fixe]").after(rows);
-	
+	$("table:visible tr[data-inv=fixe]").after(rows);
+
+	return false;
 }
 
 function sortTableByWeight() {
@@ -473,7 +484,7 @@ function sortTableByWeight() {
 	
 	c = $(this).find("span.sortByWeight").attr("type");
 	
-	let rows = $("#inventory_table tr[data-inv!=fixe]:visible").detach().get();
+	let rows = $("table:visible tr[data-inv!=fixe]:visible").detach().get();
 	
 	if( c=="none" ) {
 		rows.sort(function (a, b) {
@@ -508,8 +519,9 @@ function sortTableByWeight() {
 		if( c=="desc" ) rows.reverse();
 	}
 
-	$("#inventory_table tr[data-inv=fixe]").after(rows);
+	$("table:visible tr[data-inv=fixe]").after(rows);
 
+	return false;
 }
 
 function sortTableByPlace() {
@@ -536,7 +548,7 @@ function sortTableByPlace() {
 	
 	c = $(this).find("span.sortByPlace").attr("type");
 	
-	let rows = $("#inventory_table tr[data-inv!=fixe]:visible").detach().get();
+	let rows = $("table:visible tr[data-inv!=fixe]:visible").detach().get();
 	
 	if( c=="none" ) {
 		rows.sort(function (a, b) {
@@ -571,25 +583,11 @@ function sortTableByPlace() {
 		if( c=="desc" ) rows.reverse();
 	}
 
-	$("#inventory_table tr[data-inv=fixe]").after(rows);
+	$("table:visible tr[data-inv=fixe]").after(rows);
+	
+	return false;
 }
 
-
-function sortInventory() {
-
-	// let new_tbody = document.createElement("tbody");
-	// new_tbody.id = "sorted_table";
-	// new_tbody.innerHTML = "";
-
-	// let lines = $("table[id=inventory_table] > tbody > tr:visible").sort(function (a, b) {
-		// return a.getElementsByTagName("strong")[0].innerText > b.getElementsByTagName("strong")[0].innerText;
-	// });
-
-	// var tbody = $("#inventory_table").find("tbody")
-	// var rows = tbody.children().detach().get();
-	
-	
-}
 
 
 function selectInventoryCategory() {
@@ -837,6 +835,10 @@ function groupInventoryEntries() {
 	var grouped_table = $("<table/>").attr("id","grouped_inventory_table").attr("width","100%")
 					.append( $("<tbody/>").append( $("#inventory_table tr:first").clone() ) )
 					.insertAfter( $("#inventory_table") );
+					
+	$("#grouped_inventory_table tr:first > td").eq(0).on("click", sortTableByName);
+	$("#grouped_inventory_table tr:first > td").eq(1).on("click", sortTableByWeight);
+	$("#grouped_inventory_table tr:first > td").eq(2).on("click", sortTableByPlace);
 	
 	$("#inventory_table tr:visible:has(.name)").each( function() {
 		item_name = $(this).find(".name").text().trim();
@@ -1001,6 +1003,14 @@ function groupInventoryEntries() {
 	
 	$("#show_details").show();
 	
+	// $("#grouped_inventory_table span.sortByWeight").attr("type","none");
+	// $("#grouped_inventory_table span.sortByWeight i").attr("class","");
+	// $("#grouped_inventory_table span.sortByPlace").attr("type","none");
+	// $("#grouped_inventory_table span.sortByPlace i").attr("class","");
+	// $("#grouped_inventory_table span.sortByName").attr("type","none");
+	// $("#grouped_inventory_table span.sortByName i").attr("class","");
+	
+	
 	// $(".item_descr").hide();
 	// $(".qualite").hide();
 	// $(".sertissage").hide();
@@ -1138,6 +1148,112 @@ function saveSkin() {
 	$(document).ready( function() {
 		localStorage.setItem('myskin', $("div.infoline:contains(Race)").find("img").attr("src")); //.replace("_cheval",""));
 	});
+}
+
+
+
+function renameArenas() {
+	$("span.ddTitleText").each( function() {
+		let parse = $(this).text().split(":");
+		let x = parse[1].split(' ')[0].trim();
+		let y = parse[2].split(']')[0].trim();
+		// let arenapos = Array(~~x,~~y);
+		let arenapos = parsePositionArena( $(this).text().split('[')[1] );
+		$(this).text( $(this).text() + " (" + distance(arenapos,mypos) + " " + direction(angle(arenapos,mypos),1) + ")");
+	});
+}
+
+
+// get members name from page clan->membres
+function getNames() {
+	// in the 1th column
+	let xpath = '//tbody/tr[*]/td[2]';
+	let lines = document.evaluate(xpath, document.documentElement, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+	let listNames = Array();
+	for (var i=0;i < lines.snapshotLength;i++) {
+		let line = lines.snapshotItem(i);
+		listNames[i] = line.textContent.trim();
+	}
+	return listNames;
+}
+
+
+function getPositions() {
+  // in the 8th column
+  let xpath = '//tbody/tr[*]/td[8]';
+  let lines = document.evaluate(xpath, document.documentElement, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+  for (var i=0;i < lines.snapshotLength;i++) {
+	  let line = lines.snapshotItem(i);
+	  let pos = parsePositionPerso(line.textContent.trim());
+	  let dis = distance(pos,mypos);
+	  let ang = angle(pos,mypos);
+	  let dir = direction(ang);
+	  //console.log(ang);
+	  let prevHTML = line.innerHTML;
+	  if(listNames[i] != myname) {
+		  line.innerHTML = "<div class='grille-membres'><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+						 + "<img src='https://raw.githubusercontent.com/syltou/kigard-clan-gps/main/compass2.png' style='transform:rotate(" + (-1*ang) + "deg);'></div><div>"
+						 + prevHTML + "</div><div>&nbsp;[" + dis + " cases " + dir + "]&nbsp;</div></div>";//.format(distance(pos,mypos));
+	  }
+	  else {
+		  line.innerHTML = "<div class='grille-membres'><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
+						 + "<img src='https://raw.githubusercontent.com/syltou/kigard-clan-gps/main/compass2.gif'></div><div>"
+						 + prevHTML + "</div><div>&nbsp;[Vous êtes ici]&nbsp;</div></div>";
+	  }
+	  members.push([listNames[i],pos]);
+  }
+}
+
+function parsePositionArena(str){
+	let x = ~~str.split(':')[1].split(' ')[0].trim();
+	let y = ~~str.split(':')[2].split(']')[0].trim();
+	return Array(x,y);
+}
+
+function parsePositionPerso(str){
+	let x = ~~str.split(':')[1].split('|')[0].trim();
+	let y = ~~str.split(':')[2].split(' ')[0].trim();
+	return Array(x,y);
+}
+
+function distance(vec1, vec2){
+	let dx = Math.abs(vec1[0]-vec2[0]);
+	let dy = Math.abs(vec1[1]-vec2[1]);
+	return Math.max(dx,dy);
+}
+
+function angle(vec1, vec2){
+	let dx = (vec1[0]-vec2[0]);
+	let dy = (vec1[1]-vec2[1]);
+	return (Math.atan2(dy, dx) * 180) / Math.PI;
+}
+
+function direction(angle,short=0){
+	if (angle<=22.5 && angle>-22.5){
+		if(short) return "E";
+		else return "à l'Est";
+	} else if (angle<=67.5 && angle>22.5){
+		if(short) return "NE";
+		else return "au Nord-Est";
+	} else if (angle<=112.5 && angle>67.5){
+		if(short) return "N";
+		else return "au Nord";
+	} else if (angle<=157.5 && angle>112.5){
+		if(short) return "NO";
+		else return "au Nord-Ouest";
+	} else if (angle<=-157.5 || angle>157.5){
+		if(short) return "O";
+		else return "à l'Ouest";
+	} else if (angle<=-112.5 && angle>-157.5){
+		if(short) return "SO";
+		else return "au Sud-Ouest";
+	} else if (angle<=-67.5 && angle>-112.5){
+		if(short) return "S";
+		else return "au Sud";
+	} else if (angle<=-22.5 && angle>-67.5){
+		if(short) return "SE";
+		else return "au Sud-Est";
+	}
 }
 
 
