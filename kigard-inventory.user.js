@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.0
+// @version	  1.0.1
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -842,7 +842,9 @@ function groupInventoryEntries() {
 	
 	$("#inventory_table tr:visible:has(.name)").each( function() {
 		item_name = $(this).find(".name").text().trim();
-		item_line = $("#grouped_inventory_table tr:contains("+item_name+")");
+		item_line = $("#grouped_inventory_table tr").filter(function() {
+			return $(this).find("span.name").text() === item_name;
+		});
 		item_weight = ~~$(this).find("i.fa-solid").parent().html().split(' <i').slice(-2)[0].split(/[|(]+/).slice(-1)[0];
 		item_place = $(this).attr("data-place");
 		// item_place = 
@@ -1153,13 +1155,15 @@ function saveSkin() {
 
 
 function renameArenas() {
-	$("span.ddTitleText").each( function() {
+	$("span.ddTitleText").each( function(i,val) {
 		let parse = $(this).text().split(":");
 		let x = parse[1].split(' ')[0].trim();
 		let y = parse[2].split(']')[0].trim();
 		// let arenapos = Array(~~x,~~y);
 		let arenapos = parsePositionArena( $(this).text().split('[')[1] );
-		$(this).text( $(this).text() + " (" + distance(arenapos,mypos) + " " + direction(angle(arenapos,mypos),1) + ")");
+		let arenaname = getArenaName( arenapos );
+		let postext = $(this).text().split("rène")[1];
+		$(this).text( arenaname + postext ); //+ " (" + distance(arenapos,mypos) + " " + direction(angle(arenapos,mypos),1) + ")");
 	});
 }
 
@@ -1208,6 +1212,18 @@ function parsePositionArena(str){
 	let x = ~~str.split(':')[1].split(' ')[0].trim();
 	let y = ~~str.split(':')[2].split(']')[0].trim();
 	return Array(x,y);
+}
+
+function getArenaName( arenapos ) {
+	let dic = { "-13,-13":"Sud-Ouest", "13,13":"Nord-Est", "-44,44":"des Marais", "-41,-41":"des Plaines", "41,-41":"des Neiges", "41,42":"de la Nécrose", "-13,13":"Nord-Ouest", "0,0":"du Centre", "13,-13":"Sud-Est"};
+	let positions = Object.keys(dic);
+	let arenaname = "Arène inconnue";
+	positions.forEach( (pos) => {
+		if( pos==arenapos.toString() ) {
+			arenaname = "Arène "+dic[pos];
+		}
+	});
+	return arenaname;
 }
 
 function parsePositionPerso(str){
