@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.0.1
+// @version	  1.0.2
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -59,6 +59,10 @@ var id_left = [37,50,88,94,99,120,128,130,132,133,134,135,139,158,169,170,201,20
 
 changeMenu();
 
+if (page == "vue") {
+	addMonsterIDs();
+}
+
 if (page == "empathie") {
 	findMules();
 	duplicateButtonEmpathie();
@@ -91,7 +95,7 @@ if (page == "arene") {
 }
 
 if (page == "clan" && subp == "membres") {
-	listNames = getNames();
+	var listNames = getNames();
 	getPositions();
 	localStorage.setItem("members",members);
 	localStorage.setItem("fetched",1);
@@ -1111,6 +1115,15 @@ function copyListInventory() {
 //---------------------------------------------------------------------------------------
 // PART OF SCRIPT RUNNING SOME EXTRAS
 //---------------------------------------------------------------------------------------
+
+function addMonsterIDs() {
+	$("a.profil_popin").each( function() {
+		let link = $(this).attr("href");
+		if(link.includes("monstre")) {
+			$(this).text( $(this).text() + " (" + link.split("id=")[1].split("&type")[0] +")");
+		}
+	});
+}
 
 function addCopyButton(table,type) {
 
