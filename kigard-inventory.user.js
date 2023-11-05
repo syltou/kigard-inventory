@@ -1124,7 +1124,7 @@ function getNotifOnMobile() {
 		let t = $(this).text();
 		if(t.slice(t.length-1)==')') count+=~~t.split('(')[1].split(')')[0];
 	});
-	$("#menu a.toggleMenu").text("Menu("+count+")");
+	if (count>0) $("#menu a.toggleMenu").text("Menu("+count+")");
 }
 
 function addMonsterIDs() {
