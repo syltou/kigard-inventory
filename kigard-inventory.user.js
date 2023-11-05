@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.0.2
+// @version	  1.0.3
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -56,8 +56,9 @@ var id_left = [37,50,88,94,99,120,128,130,132,133,134,135,139,158,169,170,201,20
 				325,332,345,346,347,348,349,351,352,353,354,355,356,357,358,359,360,
 				361,362,363,364,365,366,367,368,369,370];
 
-
+getNotifOnMobile();
 changeMenu();
+
 
 if (page == "vue") {
 	addMonsterIDs();
@@ -1069,7 +1070,7 @@ function addGroupButton(table) {
 
 // add some entries in the inventory menu
 function changeMenu() {
-	// one direct link till every mule
+	// one direct link to every mule
 	for(j=0;j<mules_id.length;j++) {
 		let name = mules_name[j];
 		if(name=="Mulet") name += " " + mules_id[j];
@@ -1115,6 +1116,16 @@ function copyListInventory() {
 //---------------------------------------------------------------------------------------
 // PART OF SCRIPT RUNNING SOME EXTRAS
 //---------------------------------------------------------------------------------------
+
+
+function getNotifOnMobile() {
+	var count=0;
+	$("#menu > ul > li > a").each( function() {
+		let t = $(this).text();
+		if(t.slice(t.length-1)==')') count+=~~t.split('(')[1].split(')')[0];
+	});
+	$("#menu a.toggleMenu").text("Menu("+count+")");
+}
 
 function addMonsterIDs() {
 	$("a.profil_popin").each( function() {
