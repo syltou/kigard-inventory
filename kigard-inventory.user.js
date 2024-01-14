@@ -62,6 +62,7 @@ changeMenu();
 
 if (page == "vue") {
 	addMonsterIDs();
+	hideUnavailableCraft();
 }
 
 if (page == "empathie") {
@@ -93,6 +94,7 @@ if (page == "gestion_stock") {
 
 if (page == "arene") {
 	renameArenas();
+	addMonsterIDs();
 }
 
 if (page == "clan" && subp == "membres") {
@@ -1116,6 +1118,17 @@ function copyListInventory() {
 //---------------------------------------------------------------------------------------
 // PART OF SCRIPT RUNNING SOME EXTRAS
 //---------------------------------------------------------------------------------------
+
+
+function hideUnavailableCraft() {
+  $("table>tbody>tr").each( function() {
+  if( $(this).find('td[style="opacity:0.6;text-align:left;"]').length > 0) {
+    $(this).hide();
+        return true;
+  }
+}) 
+	
+}
 
 
 function getNotifOnMobile() {
