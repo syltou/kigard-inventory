@@ -62,7 +62,7 @@ changeMenu();
 
 if (page == "vue") {
 	addMonsterIDs();
-	hideUnavailableCraft();
+	addHideButton();
 }
 
 if (page == "empathie") {
@@ -1119,15 +1119,32 @@ function copyListInventory() {
 // PART OF SCRIPT RUNNING SOME EXTRAS
 //---------------------------------------------------------------------------------------
 
+function addHideButton() {
+	if ( $("blockquote").eq(0).text().includes("Choisissez") ) {
+		var table = $("table")[0];
+		$("<br/>").insertBefore(table);
+		$("<div/>").attr("class","filtres").attr("style","text-align:center;")
+					.append( $("<a/>").attr("id","hide-craft").attr("state","hide").attr('href','#').text("Cacher les recettes indisponibles") )
+					.insertBefore(table);
+		$("#hide-craft").on("click",hideUnavailableCraft);
+	}
+}
 
 function hideUnavailableCraft() {
-  $("table>tbody>tr").each( function() {
-  if( $(this).find('td[style="opacity:0.6;text-align:left;"]').length > 0) {
-    $(this).hide();
-        return true;
-  }
-}) 
-	
+	if( $("#hide-craft").attr("state")=="hide" ) {
+		$("span.rouge").each( function() {
+			$(this).parent().parent().attr("state","hidden").hide();
+		});
+		$("#hide-craft").attr("state","show")
+		$("#hide-craft").text("Afficher les recettes indisponibles");
+	}
+	else {
+		$("[state=hidden]").each( function() {
+			$(this).removeAttr("state").show();
+		});
+		$("#hide-craft").attr("state","hide");
+		$("#hide-craft").text("Cacher les recettes indisponibles");
+	}
 }
 
 
