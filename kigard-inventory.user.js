@@ -59,6 +59,7 @@ var id_left = [37,50,88,94,99,120,128,130,132,133,134,135,139,158,169,170,201,20
 getNotifOnMobile();
 changeMenu();
 
+//dfdfldkfdjfldfjdlkjflk
 
 if (page == "vue") {
 	addMonsterIDs();
