@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.0.3
+// @version	  1.1.0
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -89,8 +89,10 @@ if (page == "inventaire") {
 }
 
 if (page == "gestion_stock") {
-	saveMulet(urlParams.get('id_monstre'));
+	var id = urlParams.get('id_monstre');
+	saveMulet(id);
 	addCopyButton( $("#bloc table:first"),"inventory");
+	renameMuletPage(id);
 }
 
 if (page == "arene") {
@@ -139,6 +141,13 @@ function saveInventory(inv) {
 		$(conso).text( " "+$(conso).text().trim() );
 		$(this).find("span.item_descr").attr("weight", $(this).find("td").html().split(" <i class=\"fa")[0].split(/[|(]+/).slice(-1)[0] );
 		
+		let textem = $(this).find("em");
+		let title = "";
+		if( $(textem).length>0 && $(textem).find("img").length==0 ) { // ignore statuts
+			title = " "+$(textem).text().trim();
+			$(textem).remove();
+		}
+		
 		$(name).find(".sertissage").remove();
 		$(name).find(".enchantement").remove();
 		$(name).find(".conso").remove();
@@ -157,7 +166,8 @@ function saveInventory(inv) {
 			.append( $("<span></span>").addClass("name").text(item) )
 			.append( (quali!="") ? $("<span></span>").addClass("qualite").attr("style","color:#B18A17").append(quali) : null )
 			.append( $(serti).text()!="" ? serti : null)
-			.append( $(conso).text()!="" ? conso : null);
+			.append( $(conso).text()!="" ? conso : null)
+			.after( (title!="") ? $("<span></span>").addClass("title").attr("style","font-style:italic").append(title) : null );
 	}
 	
 	var lines, extra_line;
@@ -223,6 +233,13 @@ function saveMulet(mule) {
 		let conso = $(name).find(".conso");
 		$(this).find("span.item_descr").attr("weight", $(this).find("td").html().split(" <i class=\"fa")[0].split(/[|(]+/).slice(-1)[0] );
 		
+		let textem = $(this).find("em");
+		let title = "";
+		if( $(textem).length>0 && $(textem).find("img").length==0 ) { // ignore statuts
+			title = " "+$(textem).text().trim();
+			$(textem).remove();
+		}		
+		
 		$(name).find(".sertissage").remove();
 		$(name).find(".enchantement").remove();
 		$(name).find(".conso").remove();
@@ -237,11 +254,12 @@ function saveMulet(mule) {
 			quali = " de qualité ";
 		}
 		$(name).text("")
-			.append(enchant)
+			.append( $(enchant).text()!="" ? enchant : null)
 			.append( $("<span></span>").addClass("name").text(item) )
 			.append( (quali!="") ? $("<span></span>").addClass("qualite").attr("style","color:#B18A17").append(quali) : null )
-			.append(serti)
-			.append(conso);
+			.append( $(serti).text()!="" ? serti : null)
+			.append( $(conso).text()!="" ? conso : null)
+			.after( (title!="") ? $("<span></span>").addClass("title").attr("style","font-style:italic").append(title) : null );
 
 		$(this).attr("data-inv", inv);
 		$(this).append( $("<td/>").attr("style","text-align:center;").append( $("<i/>").addClass("fa-solid fa-weight-hanging") ) )
@@ -267,6 +285,14 @@ function saveMulet(mule) {
 	});
 	localStorage.setItem(mule, $("#temp").html());
 	localStorage.setItem(mule+'_ts', (new Date()).getTime());
+}
+
+
+function renameMuletPage(id) {
+	var name = mules_name[mules_id.indexOf(id)];
+	if(name=="Mulet") name = id;
+	$("h3").append(" "+name);
+	
 }
 
 function createInventoryPage() {
@@ -873,6 +899,7 @@ function groupInventoryEntries() {
 											$("#grouped_inventory_table tr:last").find(".qualite").detach().show(),
 											$("#grouped_inventory_table tr:last").find(".sertissage").detach(),
 											$("#grouped_inventory_table tr:last").find(".conso").detach(),
+											$("#grouped_inventory_table tr:last").find(".title").detach(),
 											$("<br/>") ) );
 				$("#grouped_inventory_table tr:last").find(".item_descr").remove();
 				$("#grouped_inventory_table tr:last").find("strong:nth-child(2)").after( $("<span/>").attr("class","item_count").text(" x1") );
@@ -910,7 +937,7 @@ function groupInventoryEntries() {
 					.append( $("<span/>").attr("class","item_list").attr("style","font-size: 0.9em;") // font-weight: bold; color: red"
 								.append( "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;", "&nbsp;- ",
 											$(this).find(".enchantement").clone(), $(this).find(".qualite").clone().show(),
-											$(this).find(".sertissage").clone(), $(this).find(".conso").clone(), $("<br/>") ) );
+											$(this).find(".sertissage").clone(), $(this).find(".conso").clone(), $(this).find(".title").clone(), $("<br/>") ) );
 				
 			}
 			
@@ -1187,7 +1214,7 @@ function addCopyButton(table,type) {
 
 		case 'inventory':
 			$("#copy_list").click( function () {
-				navigator.clipboard.writeText($("tbody tr:visible td[class!=fonce] strong:nth-child(2)").clone().each(function(){$(this).text($(this).text().trim()+'\n')}).text());
+				navigator.clipboard.writeText("*" + $("h3").text().trim() + "*:\n" + $("tbody tr:visible td[class!=fonce] strong:nth-child(2)").clone().each(function(){$(this).text($(this).text().trim()+'\n')}).text());
 			});
 			break;
 
@@ -1251,12 +1278,12 @@ function getPositions() {
 	  let prevHTML = line.innerHTML;
 	  if(listNames[i] != myname) {
 		  line.innerHTML = "<div class='grille-membres'><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-						 + "<img src='https://raw.githubusercontent.com/syltou/kigard-clan-gps/main/compass2.png' style='transform:rotate(" + (-1*ang) + "deg);'></div><div>"
+						 + "<img src='https://raw.githubusercontent.com/syltou/kigard-inventory/main/compass2.png' style='transform:rotate(" + (-1*ang) + "deg);'></div><div>"
 						 + prevHTML + "</div><div>&nbsp;[" + dis + " cases " + dir + "]&nbsp;</div></div>";//.format(distance(pos,mypos));
 	  }
 	  else {
 		  line.innerHTML = "<div class='grille-membres'><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
-						 + "<img src='https://raw.githubusercontent.com/syltou/kigard-clan-gps/main/compass2.gif'></div><div>"
+						 + "<img src='https://raw.githubusercontent.com/syltou/kigard-inventory/main/compass2.gif'></div><div>"
 						 + prevHTML + "</div><div>&nbsp;[Vous êtes ici]&nbsp;</div></div>";
 	  }
 	  members.push([listNames[i],pos]);
