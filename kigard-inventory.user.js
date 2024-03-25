@@ -64,6 +64,7 @@ changeMenu();
 if (page == "vue") {
 	addMonsterIDs();
 	addHideButton();
+    addGrid();
 }
 
 if (page == "empathie") {
@@ -300,7 +301,7 @@ function createInventoryPage() {
 	//---------------------------------------------
 	// LOCAL FUNCTIONS
 	function formatTime(time) {
-		if(typeof(time)!="number") return -1;
+		if(typeof(time)!="number") return "Jamais!";
 		time /= 1000; // time in sec
 		let list_divid = [60,60,24];
 		let list_units = ['s','m','h','j'];
@@ -350,7 +351,7 @@ function createInventoryPage() {
 	$("#bloc").children("*").remove();
 	$("#bloc").append( $("<h3/>").text("Inventaire complet") );
 	$("#bloc").append( $("<p/>").attr("id","last_update").attr("style","font-style: italic; font-size: 0.8em")
-		.text("Dernière update - Tenue : " + formatTime(ts_te) + ", Equipements : " + formatTime(ts_eq) 
+		.text("Dernière visite - Tenue : " + formatTime(ts_te) + ", Equipements : " + formatTime(ts_eq)
 					+ ", Consommables : " + formatTime(ts_co) + ", Ressources : " + formatTime(ts_re) ) );
 	for(i=0; i<mules_id.length; i++) {
 		$("#last_update").text( $("#last_update").text() + ", " + mules_name[i] + " : " + formatTime((new Date()).getTime() - localStorage.getItem(mules_id[i]+"_ts")) )
@@ -1146,6 +1147,10 @@ function copyListInventory() {
 //---------------------------------------------------------------------------------------
 // PART OF SCRIPT RUNNING SOME EXTRAS
 //---------------------------------------------------------------------------------------
+
+function addGrid() {
+    $("td.vue>a.bulle").append($("<img/>").attr("src","https://raw.githubusercontent.com/syltou/kigard-inventory/main/grid.png" ).attr("class","cellule grid"));
+}
 
 function addHideButton() {
 	if ( $("blockquote").eq(0).text().includes("Choisissez") ) {
