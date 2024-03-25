@@ -64,7 +64,7 @@ changeMenu();
 if (page == "vue") {
 	addMonsterIDs();
 	addHideButton();
-    addGrid();
+	//addGrid();
 }
 
 if (page == "empathie") {
