@@ -1153,56 +1153,88 @@ function copyListInventory() {
 
 function parseMonsterLogs() {
 
-    let time_array = [];
-    let tour_array = [];
 
-    let id = $("div.description>i").first().text()
 
-    if ( id.includes("Animal") || id.includes("Monstre") )
+    let object = $("div.description>a").first();
+    let name = object.text().split(' (')[0];
+    let temp = object.attr("href").split('id=')[1].split('&type=');
+    let id = temp[0];
+    let type = temp[1];
+
+    if ( type == "monstre" )
     {
-        let name = $("div.description>a").first().text().split(' (')[0];
-        $("table[id=historique]>tbody>tr").each( function() {
-            let date = $(this).find("td").eq(0).text()
-            let time = convertDate(date);
-            let log = $(this).find("td").eq(1).text()
+        let list_monsters = (t=localStorage.getItem("list_monsters")) ? t.split(',').map(Number) : [];
+        let time_array = (list_monsters.includes(id)) ? localStorage.getItem(id).split(',').map(Number) : [];
+        console.log( name, id, type)
+
+        $($("table[id=historique]>tbody>tr>td.date_historique").get().reverse()).each( function() {
+
+            let timeString = $(this).text();
+            let time = convertDate(timeString);
+            let log = $(this).next().text();
+
+
             if( log.split(' (')[0] == name ) {
-                if ( time_array[time_array.length - 1] != date ) {
-                    time_array.push(time);
-                    if ( time_array.length> 1 ) {
-                        let time1 = time_array[time_array.length-2];
-                        let time0 = time_array[time_array.length-1];
-                        if ( time1 < time0 ) time1 += 24*60;
-                        tour_array.push(time1-time0);
-                    }
+             //   console.log(timeString,time, log);
+                if (time_array.length==0) time_array.push(time);
+                else {
+                    if( !time_array.includes(time) ) time_array.push(time);
                 }
             }
         })
 
-        console.log(name)
-        for (let i=0;i<tour_array.length;i++){
-            console.log(tour_array[tour_array.length-1-i])
+        console.log(time_array);
+        localStorage.setItem(id,time_array);
+        if( !(list_monsters.includes(id)) ) list_monsters.push(id);
+        localStorage.setItem("list_monsters",list_monsters);
+
+        let tour_array = [];
+        tour_array[0] = NaN;
+        for (var i=1;i<time_array.length;i++){
+            tour_array.push( (time_array[i]-time_array[i-1])/(1000*60*60) );
+            console.log(time_array[i],tour_array[i]);
         }
     }
-
-
 }
 
 
-
 function convertDate(date) {
+    let y,m,d;
     let parse = date.split(' ');
     let time = parse[parse.length-1];
     let h = Number(time.split('h')[0]);
-    let m = Number(time.split('h')[1]);
+    let mm = Number(time.split('h')[1]);
 
-    if(parse[0]=="Aujourd'hui") {
+    if(parse[0]=="aujourd'hui") {
         let date = new Date();
+        y = date.getFullYear();
+        m = date.getMonth();
+        d = date.getDate();
     }
     else {
+        d = Number(parse[1]);
+        switch(parse[2]) {
+            case 'janvier': m=0; break;
+            case 'février': m=1; break;
+            case 'mars': m=2; break;
+            case 'avril': m=3; break;
+            case 'mai': m=4; break;
+            case 'juin': m=5; break;
+            case 'juillet': m=6; break;
+            case 'août': m=7; break;
+            case 'septembre': m=8; break;
+            case 'octobre': m=9; break;
+            case 'novembre': m=10; break;
+            case 'décembre': m=11; break;
+        }
+        y = Number(parse[3]);
 
     }
 
-    return h*60+m;
+    //console.log(y,m,d,h,mm);
+    let res = new Date(y,m,d,h,mm);
+
+    return res.valueOf();
 
 }
 
