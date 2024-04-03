@@ -64,7 +64,8 @@ changeMenu();
 if (page == "vue") {
 	addMonsterIDs();
 	addHideButton();
-	//addGrid();
+    parseMonsterLogs();
+    //addGrid();
 }
 
 if (page == "empathie") {
@@ -99,6 +100,7 @@ if (page == "gestion_stock") {
 if (page == "arene") {
 	renameArenas();
 	addMonsterIDs();
+    parseMonsterLogs();
 }
 
 if (page == "clan" && subp == "membres") {
@@ -1147,6 +1149,64 @@ function copyListInventory() {
 //---------------------------------------------------------------------------------------
 // PART OF SCRIPT RUNNING SOME EXTRAS
 //---------------------------------------------------------------------------------------
+
+
+function parseMonsterLogs() {
+
+    let time_array = [];
+    let tour_array = [];
+
+    let id = $("div.description>i").first().text()
+
+    if ( id.includes("Animal") || id.includes("Monstre") )
+    {
+        let name = $("div.description>a").first().text().split(' (')[0];
+        $("table[id=historique]>tbody>tr").each( function() {
+            let date = $(this).find("td").eq(0).text()
+            let time = convertDate(date);
+            let log = $(this).find("td").eq(1).text()
+            if( log.split(' (')[0] == name ) {
+                if ( time_array[time_array.length - 1] != date ) {
+                    time_array.push(time);
+                    if ( time_array.length> 1 ) {
+                        let time1 = time_array[time_array.length-2];
+                        let time0 = time_array[time_array.length-1];
+                        if ( time1 < time0 ) time1 += 24*60;
+                        tour_array.push(time1-time0);
+                    }
+                }
+            }
+        })
+
+        console.log(name)
+        for (let i=0;i<tour_array.length;i++){
+            console.log(tour_array[tour_array.length-1-i])
+        }
+    }
+
+
+}
+
+
+
+function convertDate(date) {
+    let parse = date.split(' ');
+    let time = parse[parse.length-1];
+    let h = Number(time.split('h')[0]);
+    let m = Number(time.split('h')[1]);
+
+    if(parse[0]=="Aujourd'hui") {
+        let date = new Date();
+    }
+    else {
+
+    }
+
+    return h*60+m;
+
+}
+
+
 
 function addGrid() {
     $("td.vue>a.bulle").append($("<img/>").attr("src","https://raw.githubusercontent.com/syltou/kigard-inventory/main/grid.png" ).attr("class","cellule grid"));
