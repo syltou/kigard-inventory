@@ -110,6 +110,9 @@ if (page == "clan" && subp == "membres") {
 	localStorage.setItem("fetched",1);
 }
 
+if (page == "clan" && subp == "batiments") {
+    showStats();
+}
 
 //---------------------------------------------------------------------------------------
 // INVENTORY
@@ -1237,6 +1240,33 @@ function convertDate(date) {
     return res.valueOf();
 
 }
+
+// temporary !!!
+function showStats() {
+
+    let list_monsters = (t=localStorage.getItem("list_monsters")) ? t.split(',').map(Number) : [];
+
+    let temp=[];
+    for(var i=0; i<list_monsters.length; i++) {
+        let id = list_monsters[i];
+        if( !(temp.includes(id)) ) temp.push(id);
+    }
+
+    let a = $("div[id=bloc]>i");
+
+    for(var k=0; k<temp.length; k++) {
+        let id = temp[k];
+        let time_array = localStorage.getItem(id).split(',').map(Number);
+        a=$("<p>"+String(id)+"</p>").insertAfter(a);
+
+        for (var j=1;j<time_array.length;j++){
+            let tour = (time_array[j]-time_array[j-1])/(1000*60*60);
+            a=$("<p>"+String(tour)+"</p>").insertAfter(a);
+        }
+        a=$("<p>......................</p>").insertAfter(a);
+    }
+}
+
 
 
 
