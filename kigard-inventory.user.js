@@ -64,7 +64,7 @@ changeMenu();
 if (page == "vue") {
 	addMonsterIDs();
 	addHideButton();
-    parseHisto();
+    if(!window.mobileCheck()) parseHisto();
     //parseMonsterLogs();
     //addGrid();
 }
@@ -101,7 +101,7 @@ if (page == "gestion_stock") {
 if (page == "arene") {
 	renameArenas();
 	addMonsterIDs();
-    parseHisto();
+    if(!window.mobileCheck()) parseHisto();
     //parseMonsterLogs();
 }
 
