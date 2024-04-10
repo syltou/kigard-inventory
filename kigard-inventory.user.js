@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.3.0
+// @version	  1.3.1
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -1163,78 +1163,77 @@ function copyListInventory() {
 
 
 function parseHisto() {
-    let thename = $("div.description").find("a").eq(0).text().split(" ")[0];
-    let histo = $("table[id=historique]").get();
-    let h = window.innerHeight - 800;
-    let d = $("<section/>").attr("id","histo").attr("style","height:"+ h +"px;overflow:auto;").append(histo).insertAfter($("h3").last());  //scroll-padding-top:100px
-    //$("table[id=historique]>tbody").attr("style","height:"+ h +"px;overflow:auto;");
+    let h3 = $("h3");
+    if( h3.length>1 ) {
 
-    $("#header").css({"height":"0px"});
+        let thename = $("div.description").find("a").eq(0).text().split(" ")[0];
+        let histo = $("table[id=historique]").get();
+        let h = window.innerHeight - 800;
+        let d = $("<section/>").attr("id","histo").attr("style","height:"+ h +"px;overflow:auto;").append(histo).insertAfter($("h3").last());  //scroll-padding-top:100px
+        //$("table[id=historique]>tbody").attr("style","height:"+ h +"px;overflow:auto;");
 
-
-    let pj_list=[];
-    let monster_list=[];
-
-    $("table[id=historique]>tbody>tr").each(function() {
-        let a = $(this).find("td").eq(1);
-        let b = $(a).find("a");
-
-        let test = 0;
-        b.each(function() {
-            let name = $(this).text();
-            if( !name.includes(thename) ) {
-                if( $(this).attr("href").split("type=")[1] == "pj" && !pj_list.includes(name) ) pj_list.push(name);
-                if( !name.includes("Cheval") && !name.includes("Mulet") ) {
-                    test = 1;
-                    if( $(this).attr("href").split("type=")[1] == "monstre" && !monster_list.includes(name) ) monster_list.push(name);
-                }
-            }
-        });
-        if (test==1) $(this).attr("style","background-color:#AABBDD");
-        if (!(b.eq(0).text().includes(thename)) ) $(this).attr("style","background-color:#DDAABB");
-    });
-
-    let interactionsMonstres = $("<div/>").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Monstres croisés récemment : ") );
-    for(var i=0; i<monster_list.length; i++) {
-        interactionsMonstres.append( $("<a/>").attr("href","#").text(monster_list[i]).on("click",scrollTo) );
-        if(i<monster_list.length-1) interactionsMonstres.append(", ");
-    }
-    if(monster_list.length==0) interactionsMonstres.append( "<aucun>" );
-    interactionsMonstres.insertAfter($("h3").eq(1));
-
-    let interactionsPJ = $("<div/>").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Interactions récentes avec : ") );
-    for(i=0; i<pj_list.length; i++) {
-        interactionsPJ.append( $("<a/>").attr("href","#").text(pj_list[i]).on("click",scrollTo) );
-        if(i<pj_list.length-1) interactionsPJ.append(", ");
-    }
-    if(pj_list.length==0) interactionsPJ.append( "<personne>" );
-    interactionsPJ.insertAfter($("h3").eq(1));
+        $("#header").css({"height":"0px"});
 
 
-    function scrollTo() {
-        let line_to_scroll_to;
-        let text = $(this).text();
+        let pj_list=[];
+        let monster_list=[];
+
         $("table[id=historique]>tbody>tr").each(function() {
             let a = $(this).find("td").eq(1);
-            if ( a.text().includes(text) ) {
-                line_to_scroll_to = a;
-                return false;
-            }
-        });
-        let container = document.getElementById("histo");
-        container.scrollTop = line_to_scroll_to[0].offsetTop;
-    };
+            let b = $(a).find("a");
 
-  //  $("<table/>").attr("id","histo_head").attr("width","100%")//.attr("style","padding-bottom:-30px")
-  //      .append(
-            $("<tbody/>")//.attr("width","100%")
-                .append( $("<tr/>")
-                        .append( $("<td/>").attr("width","275px").attr("class","fonce").text("Date") )
-                        .append( $("<td/>").attr("width","705px").attr("class","fonce").text("Evénement") ) ) //)
-    .insertBefore( $("#histo") );
-    $("table[id=historique]").find("tr").eq(0).remove();
-    let oldstyle = $("table[id=historique]").attr("style");
-    $("table[id=historique]").attr("style",oldstyle+";margin:0");
+            let test = 0;
+            b.each(function() {
+                let name = $(this).text();
+                if( !name.includes(thename) ) {
+                    if( $(this).attr("href").split("type=")[1] == "pj" && !pj_list.includes(name) ) pj_list.push(name);
+                    if( !name.includes("Cheval") && !name.includes("Mulet") ) {
+                        test = 1;
+                        if( $(this).attr("href").split("type=")[1] == "monstre" && !monster_list.includes(name) ) monster_list.push(name);
+                    }
+                }
+            });
+            if (test==1) $(this).attr("style","background-color:#AABBDD");
+            if (!(b.eq(0).text().includes(thename)) ) $(this).attr("style","background-color:#DDAABB");
+        });
+
+        let interactionsMonstres = $("<div/>").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Monstres croisés récemment : ") );
+        for(var i=0; i<monster_list.length; i++) {
+            interactionsMonstres.append( $("<a/>").attr("href","#").text(monster_list[i]).on("click",scrollTo) );
+            if(i<monster_list.length-1) interactionsMonstres.append(", ");
+        }
+        if(monster_list.length==0) interactionsMonstres.append( "<aucun>" );
+        interactionsMonstres.insertAfter($("h3").eq(1));
+
+        let interactionsPJ = $("<div/>").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Interactions récentes avec : ") );
+        for(i=0; i<pj_list.length; i++) {
+            interactionsPJ.append( $("<a/>").attr("href","#").text(pj_list[i]).on("click",scrollTo) );
+            if(i<pj_list.length-1) interactionsPJ.append(", ");
+        }
+        if(pj_list.length==0) interactionsPJ.append( "<personne>" );
+        interactionsPJ.insertAfter($("h3").eq(1));
+
+        function scrollTo() {
+            let line_to_scroll_to;
+            let text = $(this).text();
+            $("table[id=historique]>tbody>tr").each(function() {
+                let a = $(this).find("td").eq(1);
+                if ( a.text().includes(text) ) {
+                    line_to_scroll_to = a;
+                    return false;
+                }
+            });
+            let container = document.getElementById("histo");
+            container.scrollTop = line_to_scroll_to[0].offsetTop;
+        };
+
+        $("<tbody/>").append( $("<tr/>").append( $("<td/>").attr("width","275px").attr("class","fonce").text("Date") )
+                                        .append( $("<td/>").attr("width","705px").attr("class","fonce").text("Evénement") ) )
+            .insertBefore( $("#histo") );
+        $("table[id=historique]").find("tr").eq(0).remove();
+        let oldstyle = $("table[id=historique]").attr("style");
+        $("table[id=historique]").attr("style",oldstyle+";margin:0");
+    }
 }
 
 function parseMonsterLogs() {
