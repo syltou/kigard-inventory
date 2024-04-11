@@ -1,12 +1,14 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.3.1
+// @version	  1.3.2
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
 // @icon		 https://tournoi.kigard.fr/images/items/37.gif
 // @grant		none
 // ==/UserScript==
+
+$("#header").remove();
 
 window.mobileCheck = function() {
   let check = false;
@@ -1167,14 +1169,6 @@ function parseHisto() {
     if( h3.length>1 ) {
 
         let thename = $("div.description").find("a").eq(0).text().split(" ")[0];
-        let histo = $("table[id=historique]").get();
-        let h = window.innerHeight - 800;
-        let d = $("<section/>").attr("id","histo").attr("style","height:"+ h +"px;overflow:auto;").append(histo).insertAfter($("h3").last());  //scroll-padding-top:100px
-        //$("table[id=historique]>tbody").attr("style","height:"+ h +"px;overflow:auto;");
-
-        $("#header").css({"height":"0px"});
-
-
         let pj_list=[];
         let monster_list=[];
 
@@ -1197,42 +1191,51 @@ function parseHisto() {
             if (!(b.eq(0).text().includes(thename)) ) $(this).attr("style","background-color:#DDAABB");
         });
 
-        let interactionsMonstres = $("<div/>").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Monstres croisés récemment : ") );
-        for(var i=0; i<monster_list.length; i++) {
-            interactionsMonstres.append( $("<a/>").attr("href","#").text(monster_list[i]).on("click",scrollTo) );
-            if(i<monster_list.length-1) interactionsMonstres.append(", ");
+        if(!window.mobileCheck()) {
+
+            let interactionsPJ = $("<div/>").attr("id","lstPJs").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Interactions récentes avec : ") );
+            for(i=0; i<pj_list.length; i++) {
+                interactionsPJ.append( $("<a/>").attr("href","#").text(pj_list[i]).on("click",scrollTo) );
+                if(i<pj_list.length-1) interactionsPJ.append(", ");
+            }
+            if(pj_list.length==0) interactionsPJ.append( "<personne>" );
+            interactionsPJ.insertAfter($("h3").eq(1));
+
+            let interactionsMonstres = $("<div/>").attr("id","lstMonstres").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Monstres croisés récemment : ") );
+            for(var i=0; i<monster_list.length; i++) {
+                interactionsMonstres.append( $("<a/>").attr("href","#").text(monster_list[i]).on("click",scrollTo) );
+                if(i<monster_list.length-1) interactionsMonstres.append(", ");
+            }
+            if(monster_list.length==0) interactionsMonstres.append( "<aucun>" );
+            interactionsMonstres.insertAfter($("#lstPJs"));
+
+            function scrollTo() {
+                let line_to_scroll_to;
+                let text = $(this).text();
+                $("table[id=historique]>tbody>tr").each(function() {
+                    let a = $(this).find("td").eq(1);
+                    if ( a.text().includes(text) ) {
+                        line_to_scroll_to = a;
+                        return false;
+                    }
+                });
+                let container = document.getElementById("histo");
+                container.scrollTop = line_to_scroll_to[0].offsetTop;
+            };
+
+
+            let histo = $("table[id=historique]").get();
+            let h = Math.max(window.innerHeight-800,400);
+            $("<section/>").attr("id","histo").attr("style","height:"+ h +"px;overflow:auto;").append(histo).insertAfter($("#lstMonstres"));  //scroll-padding-top:100px
+            //$("table[id=historique]>tbody").attr("style","height:"+ h +"px;overflow:auto;");
+
+            $("<tbody/>").append( $("<tr/>").append( $("<td/>").attr("width","275px").attr("class","fonce").text("Date") )
+                                 .append( $("<td/>").attr("width","705px").attr("class","fonce").text("Evénement") ) )
+                .insertBefore( $("#histo") );
+            $("table[id=historique]").find("tr").eq(0).remove();
+            let oldstyle = $("table[id=historique]").attr("style");
+            $("table[id=historique]").attr("style",oldstyle+";margin:0");
         }
-        if(monster_list.length==0) interactionsMonstres.append( "<aucun>" );
-        interactionsMonstres.insertAfter($("h3").eq(1));
-
-        let interactionsPJ = $("<div/>").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Interactions récentes avec : ") );
-        for(i=0; i<pj_list.length; i++) {
-            interactionsPJ.append( $("<a/>").attr("href","#").text(pj_list[i]).on("click",scrollTo) );
-            if(i<pj_list.length-1) interactionsPJ.append(", ");
-        }
-        if(pj_list.length==0) interactionsPJ.append( "<personne>" );
-        interactionsPJ.insertAfter($("h3").eq(1));
-
-        function scrollTo() {
-            let line_to_scroll_to;
-            let text = $(this).text();
-            $("table[id=historique]>tbody>tr").each(function() {
-                let a = $(this).find("td").eq(1);
-                if ( a.text().includes(text) ) {
-                    line_to_scroll_to = a;
-                    return false;
-                }
-            });
-            let container = document.getElementById("histo");
-            container.scrollTop = line_to_scroll_to[0].offsetTop;
-        };
-
-        $("<tbody/>").append( $("<tr/>").append( $("<td/>").attr("width","275px").attr("class","fonce").text("Date") )
-                                        .append( $("<td/>").attr("width","705px").attr("class","fonce").text("Evénement") ) )
-            .insertBefore( $("#histo") );
-        $("table[id=historique]").find("tr").eq(0).remove();
-        let oldstyle = $("table[id=historique]").attr("style");
-        $("table[id=historique]").attr("style",oldstyle+";margin:0");
     }
 }
 
