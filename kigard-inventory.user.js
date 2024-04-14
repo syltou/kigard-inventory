@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.3.3
+// @version	  1.3.4
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -110,6 +110,7 @@ if (page == "arene") {
 	renameArenas();
 	addMonsterIDs();
     parseHisto();
+    radarArenas();
     //parseMonsterLogs();
 }
 
@@ -1225,7 +1226,7 @@ function parseHisto() {
 
 
             let histo = $("table[id=historique]").get();
-            let h = Math.max(window.innerHeight-800,400);
+            let h = Math.max(window.innerHeight-800,380);
             $("<section/>").attr("id","histo").attr("style","height:"+ h +"px;overflow:auto;").append(histo).insertAfter($("#lstMonstres"));  //scroll-padding-top:100px
             //$("table[id=historique]>tbody").attr("style","height:"+ h +"px;overflow:auto;");
 
@@ -1280,6 +1281,34 @@ function parseMonsterLogs() {
             console.log(time_array[i],tour_array[i]);
         }
     }
+}
+
+
+function radarArenas() {
+    $("<div/>").attr("id","listPJs").attr("style","margin-top:-10px;margin-bottom:15px").insertBefore($("div.vue-wrap"))
+    $("#listPJs").append( $("<span/>").attr("style","font-style:italic;").text("Personnages : ") );
+    $("table.vue>tbody>tr>td>a>img[src*='pj']").each( function() {
+        let name = $(this).parent().find("span.titre").eq(0);
+        let clan = name.next().text();
+        //console.log(clan);
+        let lien = $(this).parent().clone();
+        lien.removeAttr("class").text("")
+        if( clan!="" ) lien.append(clan).append("&nbsp;")
+        lien.append(name.text());
+        $("#listPJs").append(lien).append(", ");
+    });
+    $("<div/>").attr("id","listMonstres").attr("style","margin-top:-10px;margin-bottom:15px").insertBefore($("div.vue-wrap"))
+    $("#listMonstres").append( $("<span/>").attr("style","font-style:italic;").text("Monstres : ") );
+    $("table.vue>tbody>tr>td>a>img[src*='monstre']").each( function() {
+        let a = $(this).parent().find("span.titre").eq(0);
+        let b = $(this).parent().clone();
+        b.removeAttr("class").text(a.text());
+        if( a.text()!="Cheval " && a.text()!="Mulet " ) $("#listMonstres").append(b).append(", ");
+    });
+
+  //  $("<input/>").attr("name","prev").attr("type","submit").attr("value","<").on("click", function() { location.href='index.php?p=arene&id_arene=1155'; }).insertAfter($("input[name=validation]"));
+  //  $("<input/>").attr("name","next").attr("type","submit").attr("value",">").on("click", function() { location.href='index.php?p=arene&id_arene=1153'; }).insertAfter($("input[name=prev]"));
+
 }
 
 
