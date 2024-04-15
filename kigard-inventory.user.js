@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.3.5
+// @version	  1.3.6
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -1290,12 +1290,11 @@ function parseMonsterLogs() {
 
 function radarArenas() {
 
-    $("input[name=validation]").parent().attr("id","parent")
     let persos = $("table.vue>tbody>tr>td>a>img[src*='pj']");
     let sp = (persos.length>1) ? "s" : ""
     let monstres = $("table.vue>tbody>tr>td>a>img[src*='monstre']");
     let sm = (monstres.length>1) ? "s" : ""
-    $("#parent").append( $("<div/>").attr("style","font-style:italic;margin-left:350px;margin-top:-20px")
+    $("div.selection_arene").append( $("<div/>").attr("style","font-style:italic;margin-top:-10px;margin-bottom:15px")
                               .append( $("<span/>").text("Dans cette arène: ") )
                               .append( $("<a/>").attr("href","#").on("click",toggleListPersos).text(persos.length + " personnage" + sp) )
                               .append( $("<span/>").text(" et ") )
