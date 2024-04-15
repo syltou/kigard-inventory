@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.3.6
+// @version	  1.3.7
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -33,8 +33,7 @@ let ts_eq = (t=localStorage.getItem("Equipement_ts")) ? (new Date()).getTime() -
 let ts_co = (t=localStorage.getItem("Consommable_ts")) ? (new Date()).getTime() - t : null;
 let ts_re = (t=localStorage.getItem("Ressource_ts")) ? (new Date()).getTime() - t : null;
 
-let persos_shown = JSON.parse(localStorage.getItem("persos_shown"));
-let monstres_shown = JSON.parse(localStorage.getItem("monstres_shown"));
+let details_arenes_shown = JSON.parse(localStorage.getItem("details_arenes_shown"));
 
 var members = [];
 var mypos = parsePositionPerso( $(".margin_position").text() );
@@ -1292,69 +1291,63 @@ function radarArenas() {
 
     let persos = $("table.vue>tbody>tr>td>a>img[src*='pj']");
     let sp = (persos.length>1) ? "s" : ""
-    let monstres = $("table.vue>tbody>tr>td>a>img[src*='monstre']");
+    let monstres = $("table.vue>tbody>tr>td>a>img[src*='monstre']").filter(function(index){
+        return ( !$(this).attr("src").includes("/17.gif") && !$(this).attr("src").includes("/37.gif") );
+    });
     let sm = (monstres.length>1) ? "s" : ""
-    $("div.selection_arene").append( $("<div/>").attr("style","font-style:italic;margin-top:-10px;margin-bottom:15px")
-                              .append( $("<span/>").text("Dans cette arène: ") )
-                              .append( $("<a/>").attr("href","#").on("click",toggleListPersos).text(persos.length + " personnage" + sp) )
-                              .append( $("<span/>").text(" et ") )
-                              .append( $("<a/>").attr("href","#").on("click",toggleListMonstres).text(monstres.length + " monstre" + sm) ) )
-
-
-    function toggleListPersos() {
-        if($("#listPersos").is(":visible")) {
-            $("#listPersos").hide();
-            localStorage.setItem('persos_shown',false);
-        }
-        else {
-            if(persos.length>0) $("#listPersos").show();
-            localStorage.setItem('persos_shown',true);
-
-        }
-    }
-    function toggleListMonstres() {
-        if($("#listMonstres").is(":visible")) {
-            $("#listMonstres").hide();
-            localStorage.setItem('monstres_shown',false);
-        }
-        else {
-            if(monstres.length>0) $("#listMonstres").show();
-            localStorage.setItem('monstres_shown',true);
-        }
-    }
-
     $("div.selection_arene").append(
-        $("<div/>").attr("id","listPersos").attr("style","margin-top:-10px;margin-bottom:15px") );
-    if(!persos_shown) $("#listPersos").hide();
-    $("#listPersos").append( $("<span/>").attr("style","font-style:italic;").text(persos.length + " personnage" + sp + " : ") );
-    persos.each( function() {
+        $("<div/>").attr("id","listeArenes").attr("style","margin-top:-10px;margin-bottom:15px")
+        .append( $("<div/>").attr("id","listHeader").attr("style","font-style:italic;margin-bottom:3px")
+                .append( $("<span/>").text("Dans cette arène: " + persos.length + " personnage" + sp + " et " + monstres.length + " monstre" + sm + ". "))));
+    if( (persos.length+monstres.length)>0 ) {
+        $("#listHeader").append( $("<a/>").attr("id","toggleLink").attr("href","#")
+                                .text( details_arenes_shown ? "Masquer les détails" : "Montrer les détails")
+                                .on("click",toggleDetails) )
+        .append( $("<span/>").text(".") );
+    }
+
+    function toggleDetails() {
+        if($("#listDetails").is(":visible")) {
+            $("#listDetails").hide();
+            $("#toggleLink").text("Montrer les détails");
+            details_arenes_shown = false;
+            localStorage.setItem('details_arenes_shown',false);
+        }
+        else {
+            $("#listDetails").show();
+            $("#toggleLink").text("Masquer les détails");
+            details_arenes_shown = true;
+            localStorage.setItem('details_arenes_shown',true);
+
+        }
+    }
+
+    $("#listeArenes").append(
+        $("<div/>").attr("id","listDetails").attr("style","font-style:normal;margin-bottom:8px"));
+    if(!details_arenes_shown) $("#listDetails").hide();
+    $.each( persos, function(index, value) {
         let name = $(this).parent().find("span.titre").eq(0);
         let clan = name.next().text();
         //console.log(clan);
         let lien = $(this).parent().clone();
         lien.removeAttr("class").text("")
-        if( clan!="" ) lien.append(clan).append("&nbsp;")
+        if( clan!="" ) lien.append(clan)//.append("&nbsp;")
         lien.append(name.text());
-        $("#listPersos").append(lien).append(", ");
+        $("#listDetails").append(lien)
+        if(index==persos.length-1) {
+            if( monstres.length>0 ) $("#listDetails").append(", ");
+            else $("#listDetails").append(".");
+        }
+        else $("#listDetails").append(", ");
     });
-
-    $("div.selection_arene")
-        .append( $("<div/>").attr("id","listMonstres").attr("style","margin-top:-10px;margin-bottom:15px") );
-    if(!monstres_shown) $("#listMonstres").hide();
-    $("#listMonstres").append( $("<span/>").attr("style","font-style:italic;").text(monstres.length + " monstre" + sm + " : ") );
-    monstres.each( function() {
-        let a = $(this).parent().find("span.titre").eq(0);
-        let b = $(this).parent().clone();
-        b.removeAttr("class").text(a.text());
-        if( a.text()!="Cheval " && a.text()!="Mulet " ) $("#listMonstres").append(b).append(", ");
+    $.each( monstres, function(index, value) {
+        let name = $(this).parent().find("span.titre").eq(0);
+        let lien = $(this).parent().clone();
+        lien.removeAttr("class").text(name.text());
+        $("#listDetails").append(lien)
+        if(index==monstres.length-1) $("#listDetails").append(".");
+        else $("#listDetails").append(", ");
     });
-
-  //  $("<input/>").attr("name","prev").attr("type","submit").attr("value","<").on("click", function() { location.href='index.php?p=arene&id_arene=1155'; }).insertAfter($("input[name=validation]"));
-  //  $("<input/>").attr("name","next").attr("type","submit").attr("value",">").on("click", function() { location.href='index.php?p=arene&id_arene=1153'; }).insertAfter($("input[name=prev]"));
-
-    localStorage.setItem('monstres_shown',monstres_shown);
-    localStorage.setItem('persos_shown',persos_shown);
-
 }
 
 
