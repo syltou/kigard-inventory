@@ -1296,8 +1296,8 @@ function radarArenas() {
     });
     let sm = (monstres.length>1) ? "s" : ""
     $("div.selection_arene").append(
-        $("<div/>").attr("id","listeArenes").attr("style","margin-top:-10px;margin-bottom:15px")
-        .append( $("<div/>").attr("id","listHeader").attr("style","font-style:italic;margin-bottom:3px")
+        $("<div/>").attr("id","listeArenes").attr("style","margin-top: -10px; margin-bottom: 15px")
+        .append( $("<div/>").attr("id","listHeader").attr("style","text-align: left; font-style:italic;margin-bottom:3px")
                 .append( $("<span/>").text("Dans cette arène: " + persos.length + " personnage" + sp + " et " + monstres.length + " monstre" + sm + ". "))));
     if( (persos.length+monstres.length)>0 ) {
         $("#listHeader").append( $("<a/>").attr("id","toggleLink").attr("href","#")
@@ -1323,7 +1323,7 @@ function radarArenas() {
     }
 
     $("#listeArenes").append(
-        $("<div/>").attr("id","listDetails").attr("style","font-style:normal;margin-bottom:8px"));
+        $("<div/>").attr("id","listDetails").attr("style","text-align: left; font-style:normal;margin-bottom:8px"));
     if(!details_arenes_shown) $("#listDetails").hide();
     $.each( persos, function(index, value) {
         let name = $(this).parent().find("span.titre").eq(0);
