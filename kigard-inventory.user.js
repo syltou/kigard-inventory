@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.3.4
+// @version	  1.3.5
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -8,7 +8,7 @@
 // @grant		none
 // ==/UserScript==
 
-$("#header").remove();
+//$("#header").remove();
 
 window.mobileCheck = function() {
   let check = false;
@@ -33,10 +33,12 @@ let ts_eq = (t=localStorage.getItem("Equipement_ts")) ? (new Date()).getTime() -
 let ts_co = (t=localStorage.getItem("Consommable_ts")) ? (new Date()).getTime() - t : null;
 let ts_re = (t=localStorage.getItem("Ressource_ts")) ? (new Date()).getTime() - t : null;
 
+let persos_shown = JSON.parse(localStorage.getItem("persos_shown"));
+let monstres_shown = JSON.parse(localStorage.getItem("monstres_shown"));
+
 var members = [];
 var mypos = parsePositionPerso( $(".margin_position").text() );
 var myname = $(".inline span[class!='margin_pa'] strong").text().split(" ")[0]
-
 
 var id_equip = [1,2,7,8,9,10,11,14,16,17,18,19,20,21,22,23,24,25,27,28,29,30,31,32,33,
 				34,39,47,48,49,51,52,53,54,55,56,57,58,59,60,62,64,74,75,76,77,78,
@@ -63,6 +65,8 @@ var id_left = [37,50,88,94,99,120,128,130,132,133,134,135,139,158,169,170,201,20
 				234,235,238,240,247,248,251,263,264,265,266,288,320,321,322,323,324,
 				325,332,345,346,347,348,349,351,352,353,354,355,356,357,358,359,360,
 				361,362,363,364,365,366,367,368,369,370];
+
+
 
 getNotifOnMobile();
 changeMenu();
@@ -1285,9 +1289,46 @@ function parseMonsterLogs() {
 
 
 function radarArenas() {
-    $("<div/>").attr("id","listPJs").attr("style","margin-top:-10px;margin-bottom:15px").insertBefore($("div.vue-wrap"))
-    $("#listPJs").append( $("<span/>").attr("style","font-style:italic;").text("Personnages : ") );
-    $("table.vue>tbody>tr>td>a>img[src*='pj']").each( function() {
+
+    $("input[name=validation]").parent().attr("id","parent")
+    let persos = $("table.vue>tbody>tr>td>a>img[src*='pj']");
+    let sp = (persos.length>1) ? "s" : ""
+    let monstres = $("table.vue>tbody>tr>td>a>img[src*='monstre']");
+    let sm = (monstres.length>1) ? "s" : ""
+    $("#parent").append( $("<div/>").attr("style","font-style:italic;margin-left:350px;margin-top:-20px")
+                              .append( $("<span/>").text("Dans cette arène: ") )
+                              .append( $("<a/>").attr("href","#").on("click",toggleListPersos).text(persos.length + " personnage" + sp) )
+                              .append( $("<span/>").text(" et ") )
+                              .append( $("<a/>").attr("href","#").on("click",toggleListMonstres).text(monstres.length + " monstre" + sm) ) )
+
+
+    function toggleListPersos() {
+        if($("#listPersos").is(":visible")) {
+            $("#listPersos").hide();
+            localStorage.setItem('persos_shown',false);
+        }
+        else {
+            if(persos.length>0) $("#listPersos").show();
+            localStorage.setItem('persos_shown',true);
+
+        }
+    }
+    function toggleListMonstres() {
+        if($("#listMonstres").is(":visible")) {
+            $("#listMonstres").hide();
+            localStorage.setItem('monstres_shown',false);
+        }
+        else {
+            if(monstres.length>0) $("#listMonstres").show();
+            localStorage.setItem('monstres_shown',true);
+        }
+    }
+
+    $("div.selection_arene").append(
+        $("<div/>").attr("id","listPersos").attr("style","margin-top:-10px;margin-bottom:15px") );
+    if(!persos_shown) $("#listPersos").hide();
+    $("#listPersos").append( $("<span/>").attr("style","font-style:italic;").text(persos.length + " personnage" + sp + " : ") );
+    persos.each( function() {
         let name = $(this).parent().find("span.titre").eq(0);
         let clan = name.next().text();
         //console.log(clan);
@@ -1295,11 +1336,14 @@ function radarArenas() {
         lien.removeAttr("class").text("")
         if( clan!="" ) lien.append(clan).append("&nbsp;")
         lien.append(name.text());
-        $("#listPJs").append(lien).append(", ");
+        $("#listPersos").append(lien).append(", ");
     });
-    $("<div/>").attr("id","listMonstres").attr("style","margin-top:-10px;margin-bottom:15px").insertBefore($("div.vue-wrap"))
-    $("#listMonstres").append( $("<span/>").attr("style","font-style:italic;").text("Monstres : ") );
-    $("table.vue>tbody>tr>td>a>img[src*='monstre']").each( function() {
+
+    $("div.selection_arene")
+        .append( $("<div/>").attr("id","listMonstres").attr("style","margin-top:-10px;margin-bottom:15px") );
+    if(!monstres_shown) $("#listMonstres").hide();
+    $("#listMonstres").append( $("<span/>").attr("style","font-style:italic;").text(monstres.length + " monstre" + sm + " : ") );
+    monstres.each( function() {
         let a = $(this).parent().find("span.titre").eq(0);
         let b = $(this).parent().clone();
         b.removeAttr("class").text(a.text());
@@ -1308,6 +1352,9 @@ function radarArenas() {
 
   //  $("<input/>").attr("name","prev").attr("type","submit").attr("value","<").on("click", function() { location.href='index.php?p=arene&id_arene=1155'; }).insertAfter($("input[name=validation]"));
   //  $("<input/>").attr("name","next").attr("type","submit").attr("value",">").on("click", function() { location.href='index.php?p=arene&id_arene=1153'; }).insertAfter($("input[name=prev]"));
+
+    localStorage.setItem('monstres_shown',monstres_shown);
+    localStorage.setItem('persos_shown',persos_shown);
 
 }
 
