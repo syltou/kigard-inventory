@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.3.7
+// @version	  1.4.0
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -76,6 +76,7 @@ if (page == "vue") {
 	addMonsterIDs();
 	addHideButton();
     parseHisto();
+    if(!window.mobileCheck()) radarVue();
     //parseMonsterLogs();
     //addGrid();
 }
@@ -113,7 +114,7 @@ if (page == "arene") {
 	renameArenas();
 	addMonsterIDs();
     parseHisto();
-    radarArenas();
+    if(!window.mobileCheck()) radarVue();
     //parseMonsterLogs();
 }
 
@@ -1287,67 +1288,114 @@ function parseMonsterLogs() {
 }
 
 
-function radarArenas() {
+function radarVue() {
 
-    let persos = $("table.vue>tbody>tr>td>a>img[src*='pj']");
+    let text = "";
+    if( $("h3").first().text().includes("vue") ) text = "Dans votre vue: ";
+    else text = "Dans cette arène: ";
+
+    let top = $("table.vue>tbody>tr").first().find("td").first().text()
+    let left = $("table.vue>tbody>tr").last().find("td").eq(1).text()
+
+    let persos = $("table.vue>tbody>tr>td>a>img[src*='pj']").filter(function(index){
+        return ( !$(this).parent().find("span.titre").eq(0).text().includes(myname) );
+    });
     let sp = (persos.length>1) ? "s" : ""
     let monstres = $("table.vue>tbody>tr>td>a>img[src*='monstre']").filter(function(index){
         return ( !$(this).attr("src").includes("/17.gif") && !$(this).attr("src").includes("/37.gif") );
     });
     let sm = (monstres.length>1) ? "s" : ""
-    $("div.selection_arene").append(
-        $("<div/>").attr("id","listeArenes").attr("style","margin-top: -10px; margin-bottom: 15px")
-        .append( $("<div/>").attr("id","listHeader").attr("style","text-align: left; font-style:italic;margin-bottom:3px")
-                .append( $("<span/>").text("Dans cette arène: " + persos.length + " personnage" + sp + " et " + monstres.length + " monstre" + sm + ". "))));
+    $("<div/>").attr("id","blocRadar").attr("style","margin-top: 0px; margin-bottom: 15px;z-index:0")
+        .append( $("<div/>").attr("id","textRadar").attr("style","text-align: left; font-style:italic;margin-bottom:3px")
+                .append( $("<span/>").text(text + persos.length + " personnage" + sp + " et " + monstres.length + " monstre" + sm + ". ")))
+        .insertBefore( $("div.vue-wrap") )
     if( (persos.length+monstres.length)>0 ) {
-        $("#listHeader").append( $("<a/>").attr("id","toggleLink").attr("href","#")
-                                .text( details_arenes_shown ? "Masquer les détails" : "Montrer les détails")
-                                .on("click",toggleDetails) )
-        .append( $("<span/>").text(".") );
+        $("#textRadar")
+            .append( $("<a/>").attr("id","toggleLink").attr("href","#")
+                    .text( details_arenes_shown ? "Masquer les détails" : "Montrer les détails")
+                    .on("click",toggleDetails) )
+            .append( $("<span/>").text(".") );
     }
 
-    function toggleDetails() {
-        if($("#listDetails").is(":visible")) {
-            $("#listDetails").hide();
-            $("#toggleLink").text("Montrer les détails");
-            details_arenes_shown = false;
-            localStorage.setItem('details_arenes_shown',false);
-        }
-        else {
-            $("#listDetails").show();
-            $("#toggleLink").text("Masquer les détails");
-            details_arenes_shown = true;
-            localStorage.setItem('details_arenes_shown',true);
+    $("div.vue-wrap").prepend(
+        $("<div/>").attr("id","listRadar"));
 
-        }
-    }
-
-    $("#listeArenes").append(
-        $("<div/>").attr("id","listDetails").attr("style","text-align: left; font-style:normal;margin-bottom:8px"));
-    if(!details_arenes_shown) $("#listDetails").hide();
     $.each( persos, function(index, value) {
         let name = $(this).parent().find("span.titre").eq(0);
         let clan = name.next().text();
-        //console.log(clan);
         let lien = $(this).parent().clone();
-        lien.removeAttr("class").text("")
-        if( clan!="" ) lien.append(clan)//.append("&nbsp;")
-        lien.append(name.text());
-        $("#listDetails").append(lien)
-        if(index==persos.length-1) {
-            if( monstres.length>0 ) $("#listDetails").append(", ");
-            else $("#listDetails").append(".");
-        }
-        else $("#listDetails").append(", ");
+        lien.removeAttr("class").text(clan + " " + name.text())
+        lien.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
+        $("#listRadar").append(lien)
+        $("#listRadar").append($("<br/>"));
     });
+    $("#listRadar").append($("<br/>"));
     $.each( monstres, function(index, value) {
         let name = $(this).parent().find("span.titre").eq(0);
         let lien = $(this).parent().clone();
         lien.removeAttr("class").text(name.text());
-        $("#listDetails").append(lien)
-        if(index==monstres.length-1) $("#listDetails").append(".");
-        else $("#listDetails").append(", ");
+        lien.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
+        $("#listRadar").append(lien)
+        $("#listRadar").append($("<br/>"))
     });
+
+    let max_width = 0;
+    $("#listRadar>a").each( function() {
+        if($(this).width()>max_width) max_width=$(this).width();
+    });
+    let list_width = Math.min(max_width,130);
+    $("#listRadar>a").each( function() {
+        let trunk = Math.ceil($(this).text().length * ($(this).width()/list_width-1) );
+        if( trunk>0 ) $(this).text( $(this).text().slice(0,-trunk)+"..." );
+    });
+    $("#listRadar").attr("style","float:left;width:"+String(list_width+20)+"px;overflow-x:clip; white-space: nowrap;overflow-y:scroll;text-align: left; font-style:normal;margin-bottom:8px");
+    $("div.vue").css("float","center")
+    if(!details_arenes_shown) $("#listRadar").hide();
+    else $("div.description_vue").css("left",String(list_width+20+346)+"px");
+
+    function highlightCase() {
+        let href = $(this).attr("href");
+        let x = href.split("x=")[1].split("&")[0];
+        let y = href.split("y=")[1].split("&")[0];
+        let i = top-y;
+        let j = x-left+1;
+        //$("table.vue>tbody>tr").eq(i).find("td").eq(j).find("div.'cellule filtre'").eq(0).attr("style","background-color: rgba(255,0,0,0.2)");
+        //$("table.vue>tbody>tr").eq(i).find("td").eq(j).find("span.infobulle").show();
+        //$("table.vue>tbody>tr").eq(i).find("td").eq(j).find("span.infobulle").children().show();
+        let back = $("<div/>").attr("id","pastille").attr("style","z-index: 2; width: 18px; height: 18px; text-align: center; position: absolute; font-size: 1em; background: #FF000088;"+
+                                                          "color: gold; border-radius: 0px; bottom: -18px; pointer-events: none; border: 0px solid red; font-family: monospace;").text(" ");
+        $("table.vue>tbody>tr").eq(i).find("td").eq(j).find("a").first().append( back );
+    }
+
+    function unhighlightCase() {
+        let href = $(this).attr("href");
+        let x = href.split("x=")[1].split("&")[0];
+        let y = href.split("y=")[1].split("&")[0];
+        let i = top-y;
+        let j = x-left+1;
+        //$("table.vue>tbody>tr").eq(i).find("td").eq(j).find("div.'cellule filtre'").eq(0).attr("style","background-color: rgba(255,255,255,0.2)");
+        //$("table.vue>tbody>tr").eq(i).find("td").eq(j).find("span.infobulle").children().hide();
+        //$("table.vue>tbody>tr").eq(i).find("td").eq(j).find("span.infobulle").hide();
+        $("#pastille").remove();
+    }
+
+    function toggleDetails() {
+        if($("#listRadar").is(":visible")) {
+            $("#listRadar").hide();
+            $("#toggleLink").text("Montrer les détails");
+            details_arenes_shown = false;
+            localStorage.setItem('details_arenes_shown',false);
+            $("div.description_vue").css("left","346px")
+        }
+        else {
+            $("#listRadar").show();
+            $("#toggleLink").text("Masquer les détails");
+            details_arenes_shown = true;
+            localStorage.setItem('details_arenes_shown',true);
+            $("div.description_vue").css("left",String(list_width+20+346)+"px")
+        }
+    }
+
 }
 
 
