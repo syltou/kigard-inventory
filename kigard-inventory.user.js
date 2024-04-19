@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.5.1
+// @version	  1.5.2
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -1266,11 +1266,6 @@ function parseHisto() {
                 }
             }
         });
-
-        console.log(techs_list)
-        console.log(sorts_list)
-
-
         $("table[id=historique]>tbody>tr").each( function() {
             let a = $(this).find("td").eq(1);
             let b = $(a).find("a");
@@ -1474,7 +1469,7 @@ function radarVue() {
     let taille_liste = ((persos.length+monstres.length)>55) ? "xx-small" : "normal";
     let interligne = ((persos.length+monstres.length)>55) ? "70%" : "100%";
 
-    $("h3").first()
+    $("h3").first().filter( function() {return ( $(this).text().includes("vue") || $(this).text().includes("Arène") )})
         .append( $("<span/>").attr("style","margin-left:20px;font-size:x-small")
                 .append( $("<a/>").attr("id","toggleLinkVue").attr("href","#")
                         .text( details_vue_shown ? "Masquer les détails" : "Montrer les détails")
