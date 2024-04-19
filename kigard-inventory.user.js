@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.4.1
+// @version	  1.5
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -9,6 +9,7 @@
 // ==/UserScript==
 
 //$("#header").remove();
+$("td.coord").css("font-size","0.585em")
 
 window.mobileCheck = function() {
   let check = false;
@@ -33,7 +34,8 @@ let ts_eq = (t=localStorage.getItem("Equipement_ts")) ? (new Date()).getTime() -
 let ts_co = (t=localStorage.getItem("Consommable_ts")) ? (new Date()).getTime() - t : null;
 let ts_re = (t=localStorage.getItem("Ressource_ts")) ? (new Date()).getTime() - t : null;
 
-let details_arenes_shown = JSON.parse(localStorage.getItem("details_arenes_shown"));
+let details_logs_shown = JSON.parse(localStorage.getItem("details_logs_shown"));
+let details_vue_shown = JSON.parse(localStorage.getItem("details_vue_shown"));
 
 var members = [];
 var mypos = parsePositionPerso( $(".margin_position").text() );
@@ -1170,14 +1172,106 @@ function copyListInventory() {
 
 
 function parseHisto() {
-    let h3 = $("h3");
-    if( h3.length>1 ) {
+
+
+    //Techniques:
+    let dicTechniques = {
+        AHyp: ["attaque hypnotiquement"], // Attaque hypnotique
+        AMys: ["attaque mystiquement"],   // Attaque mystique
+        APui: ["attaque puissamment"],    // Attaque puissante
+        APre: ["attaque précisément"],    // Attaque precise
+        ASou: ["attaque sournoisement"],  // Attaque sournoise
+        CdB: ["coup de bouclier"],        // Coup de bouclier
+        Executer: ["exécute", "tente d'exécuter"], // Exécuter
+        Enchaîner: ["enchaîne"],               // Enchaîner
+        LuP: ["lance un projectile"],     // Lancer un projectile
+        Charger: ["charge"],                  // Charger
+        Disp: ["disparaît "],               // Disparaître
+        Incanter: ["incante"],                 // Incanter
+        LlA: ["lit l'avenir"],            // Lire l'avenir
+        PuP: ["pose un piège"],           // Poser un piège
+        Sacrifice: ["xcxcxcxcx"],               // Sacrifice
+        SMys: ["se renforce mystiquement"], // Subterfuge mystique
+        Protèger: ["protège"],                 // Protéger
+        Riposter: ["riposte"]                 // Riposter
+    }
+
+    //Sorts:
+    let dicSorts = {
+        BdF: ["envoie une boule de feu"], // Boule de feu
+        Congélation: ["congèle","a essayé de congeler"],
+        DdV: ["envoie un drain de vie"],
+        Entrave: ["entrave"],
+        Envoûtement: ["xcxcxcxc"],
+        Foudre: ["xcxcvxcxcx"],
+        Incinération: ["cxcxcxcxc"],
+        Jugement: ["xcxcxcxc"],
+        LdC: ["xcxcxcxc"],
+        Maléfice: ["maudit"],
+        Piqûre: ["xcxcxcxc"],
+        RdG: ["envoie une rafale de givre"],
+        Subversion: ["xcxcxcxcx"],
+        Télékinésie: ["fait léviter"],
+        Téléportation: ["téléporte"],
+        VdM: ["vole la magie", "a essayé de voler la magie"],
+        Dévotion: ["renforce pour le combat"],
+        Exaltation: ["xcxcxcxcx"],
+        Guérison: ["lance une guérison"],
+        Instinct: ["xcxcxcxcxc"],
+        Purification: ["purifie"],
+        MdC: ["xcxcxcxcxc"],
+        MdR: ["xcxcxcxcxc"],
+        Invocation: ["invoque"],
+        RM: ["réveille"] //Réveil morbide
+    }
+
+
+// Autres :
+// - Lien avec XXX : soutient XXX
+// - Chanter : chante pour
+// - Danser : danse pour */
+
+
+
+
+    if( $("table.historique") ) {
 
         let thename = $("div.description").find("a").eq(0).text().split(" ")[0];
+        if( !thename ) thename = myname;
         let pj_list=[];
         let monster_list=[];
 
-        $("table[id=historique]>tbody>tr").each(function() {
+        var i;
+        let techs_list = [];
+        let techs = Object.keys(dicTechniques);
+        $("table[id=historique]>tbody>tr>td:odd").each( function() {
+            let actor = $(this).find("a").first().text()
+            for(i=0;i<techs.length;i++) {
+                let stringToFind = dicTechniques[techs[i]];
+                let match = stringToFind.map(x=>$(this).text().includes(x));
+                if( match.some(Boolean) ) {
+                    if( !techs_list.includes(techs[i]) && actor.includes(thename) ) techs_list.push(techs[i])
+                }
+            }
+        });
+        let sorts_list = [];
+        let sorts = Object.keys(dicSorts);
+        $("table[id=historique]>tbody>tr>td:odd").each( function() {
+            let actor = $(this).find("a").first().text()
+            for(i=0;i<sorts.length;i++) {
+                let stringToFind = dicSorts[sorts[i]];
+                let match = stringToFind.map(x=>$(this).text().includes(x));
+                if( match.some(Boolean) ) {
+                    if( !sorts_list.includes(sorts[i]) && actor.includes(thename) ) sorts_list.push(sorts[i])
+                }
+            }
+        });
+
+        console.log(techs_list)
+        console.log(sorts_list)
+
+
+        $("table[id=historique]>tbody>tr").each( function() {
             let a = $(this).find("td").eq(1);
             let b = $(a).find("a");
 
@@ -1186,7 +1280,7 @@ function parseHisto() {
                 let name = $(this).text();
                 if( !name.includes(thename) ) {
                     if( $(this).attr("href").split("type=")[1] == "pj" && !pj_list.includes(name) ) pj_list.push(name);
-                    if( !name.includes("Cheval") && !name.includes("Mulet") ) {
+                    if( !name.includes("Cheval") && !name.includes("Mulet") &&!a.text().includes("entend") ) {
                         test = 1;
                         if( $(this).attr("href").split("type=")[1] == "monstre" && !monster_list.includes(name) ) monster_list.push(name);
                     }
@@ -1198,29 +1292,55 @@ function parseHisto() {
 
         if(!window.mobileCheck()) {
 
-            let interactionsPJ = $("<div/>").attr("id","lstPJs").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Interactions récentes avec : ") );
+            $("h3").eq(1)
+                .append( $("<span/>").attr("style","margin-left:20px;font-size:x-small")
+                        .append( $("<a/>").attr("id","toggleLinkLogs").attr("href","#")
+                                .text( details_logs_shown ? "Masquer les détails" : "Montrer les détails")
+                                .on("click",toggleDetails) ) );
+
+            $("<div/>").attr("id","detailsLogs").insertAfter($("h3").eq(1));
+
+            let interactionsPJ = $("<div/>").attr("id","lstPJs").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Interactions avec : ") );
             for(i=0; i<pj_list.length; i++) {
-                interactionsPJ.append( $("<a/>").attr("href","#").text(pj_list[i]).on("click",scrollTo) );
+                interactionsPJ.append( $("<a/>").attr("href","#").text(pj_list[i]).on("click",scrollToID) );
                 if(i<pj_list.length-1) interactionsPJ.append(", ");
             }
-            if(pj_list.length==0) interactionsPJ.append( "<personne>" );
-            interactionsPJ.insertAfter($("h3").eq(1));
+            if(pj_list.length==0) interactionsPJ.append( $("<span/>").attr("style","font-weight:bold;").text("-") );
+            $("#detailsLogs").append(interactionsPJ);
 
-            let interactionsMonstres = $("<div/>").attr("id","lstMonstres").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Monstres croisés récemment : ") );
-            for(var i=0; i<monster_list.length; i++) {
-                interactionsMonstres.append( $("<a/>").attr("href","#").text(monster_list[i]).on("click",scrollTo) );
+            let interactionsMonstres = $("<div/>").attr("id","lstMonstres").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Monstres croisés : ") );
+            for(i=0; i<monster_list.length; i++) {
+                interactionsMonstres.append( $("<a/>").attr("href","#").text(monster_list[i]).on("click",scrollToID) );
                 if(i<monster_list.length-1) interactionsMonstres.append(", ");
             }
-            if(monster_list.length==0) interactionsMonstres.append( "<aucun>" );
-            interactionsMonstres.insertAfter($("#lstPJs"));
+            if(monster_list.length==0) interactionsMonstres.append( $("<span/>").attr("style","font-weight:bold;").text("-") );
+            $("#detailsLogs").append(interactionsMonstres);
 
-            function scrollTo() {
+            let techniques = $("<div/>").attr("id","lstTech").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Techniques utilisées : ") );
+            for(i=0; i<techs_list.length; i++) {
+                techniques.append( $("<a/>").attr("href","#").text(techs_list[i]).on("click",scrollToTech) );
+                if(i<techs_list.length-1) techniques.append(", ");
+            }
+            if(techs_list.length==0) techniques.append( $("<span/>").attr("style","font-weight:bold;").text("-") );
+            techniques.append( $("<span/>").attr("style","font-style:italic;margin-left:50px").text("Sorts utilisés : ") );
+            for(i=0; i<sorts_list.length; i++) {
+                techniques.append( $("<a/>").attr("href","#").text(sorts_list[i]).on("click",scrollToSort) );
+                if(i<sorts_list.length-1) techniques.append(", ");
+            }
+            if(sorts_list.length==0) techniques.append( $("<span/>").attr("style","font-weight:bold;").text("-") );
+            $("#detailsLogs").append(techniques);
+
+            if(!details_logs_shown) {
+                $("#detailsLogs").hide();
+            }
+
+            function scrollToID() {
                 let line_to_scroll_to;
-                let text = $(this).text();
+                let id = $(this).text();
                 $("table[id=historique]>tbody>tr").each(function() {
-                    let a = $(this).find("td").eq(1);
-                    if ( a.text().includes(text) ) {
-                        line_to_scroll_to = a;
+                    let log = $(this).find("td").eq(1);
+                    if ( log.text().includes(id) ) {
+                        line_to_scroll_to = log;
                         return false;
                     }
                 });
@@ -1228,10 +1348,57 @@ function parseHisto() {
                 container.scrollTop = line_to_scroll_to[0].offsetTop;
             };
 
+            function scrollToTech() {
+                let line_to_scroll_to;
+                let tech = $(this).text();
+                $("table[id=historique]>tbody>tr").each(function() {
+                    let log = $(this).find("td").eq(1);
+                    let matchTechs = dicTechniques[tech].map(x=>log.text().includes(x));
+                    if ( matchTechs.some(Boolean) ) {
+                        line_to_scroll_to = log;
+                        return false;
+                    }
+                });
+                let container = document.getElementById("histo");
+                container.scrollTop = line_to_scroll_to[0].offsetTop;
+            };
+
+            function scrollToSort() {
+                let line_to_scroll_to;
+                let sort = $(this).text();
+                $("table[id=historique]>tbody>tr").each(function() {
+                    let log = $(this).find("td").eq(1);
+                    let matchSorts = dicSorts[sort].map(x=>log.text().includes(x));
+                    if ( matchSorts.some(Boolean) ) {
+                        line_to_scroll_to = log;
+                        return false;
+                    }
+                });
+                let container = document.getElementById("histo");
+                container.scrollTop = line_to_scroll_to[0].offsetTop;
+            };
+
+            function toggleDetails() {
+                if($("#detailsLogs").is(":visible")) {
+                    $("#detailsLogs").hide();
+                    $("#toggleLinkLogs").text("Montrer les détails");
+                    details_logs_shown = false;
+                    localStorage.setItem('details_logs_shown',false);
+                    $("div.description_vue").css("left","346px")
+                }
+                else {
+                    $("#detailsLogs").show();
+                    $("#toggleLinkLogs").text("Masquer les détails");
+                    details_logs_shown = true;
+                    localStorage.setItem('details_logs_shown',true);
+                    $("div.description_vue").css("left",String(list_width+20+346)+"px")
+                }
+            }
+
 
             let histo = $("table[id=historique]").get();
             let h = Math.max(window.innerHeight-800,380);
-            $("<section/>").attr("id","histo").attr("style","height:"+ h +"px;overflow:auto;").append(histo).insertAfter($("#lstMonstres"));  //scroll-padding-top:100px
+            $("<section/>").attr("id","histo").attr("style","height:"+ h +"px;overflow:auto;").append(histo).insertAfter($("#detailsLogs"));  //scroll-padding-top:100px
             //$("table[id=historique]>tbody").attr("style","height:"+ h +"px;overflow:auto;");
 
             $("<tbody/>").append( $("<tr/>").append( $("<td/>").attr("width","275px").attr("class","fonce").text("Date") )
@@ -1305,20 +1472,20 @@ function radarVue() {
         return ( !$(this).attr("src").includes("/17.gif") && !$(this).attr("src").includes("/37.gif") );
     });
     let sm = (monstres.length>1) ? "s" : ""
-    $("<div/>").attr("id","blocRadar").attr("style","margin-top: 0px; margin-bottom: 15px;z-index:0")
-        .append( $("<div/>").attr("id","textRadar").attr("style","text-align: left; font-style:italic;margin-bottom:3px")
-                .append( $("<span/>").text(text + persos.length + " personnage" + sp + " et " + monstres.length + " monstre" + sm + ". ")))
-        .insertBefore( $("div.vue-wrap") )
-    if( (persos.length+monstres.length)>0 ) {
-        $("#textRadar")
-            .append( $("<a/>").attr("id","toggleLink").attr("href","#")
-                    .text( details_arenes_shown ? "Masquer les détails" : "Montrer les détails")
-                    .on("click",toggleDetails) )
-            .append( $("<span/>").text(".") );
-    }
 
+    let taille_liste = ((persos.length+monstres.length)>55) ? "xx-small" : "normal";
+    let interligne = ((persos.length+monstres.length)>55) ? "70%" : "100%";
+
+    $("h3").first()
+        .append( $("<span/>").attr("style","margin-left:20px;font-size:x-small")
+                .append( $("<a/>").attr("id","toggleLinkVue").attr("href","#")
+                        .text( details_vue_shown ? "Masquer les détails" : "Montrer les détails")
+                        .on("click",toggleDetails) ) );
+    $("<div/>").attr("id","textRadar").attr("style","text-align: left; font-style:italic; margin-top: 0px; margin-bottom: 15px;z-index:0")
+        .append( $("<span/>").text(text + persos.length + " personnage" + sp + " et " + monstres.length + " monstre" + sm + ". "))
+        .insertBefore( $("div.vue-wrap") )
     $("div.vue-wrap").prepend(
-        $("<div/>").attr("id","listRadar"));
+        $("<div/>").attr("id","listRadar") );
 
     $.each( persos, function(index, value) {
         let name = $(this).parent().find("span.titre").eq(0);
@@ -1326,6 +1493,8 @@ function radarVue() {
         let lien = $(this).parent().clone();
         lien.removeAttr("class").text(clan + " " + name.text())
         lien.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
+        lien.css("font-size",taille_liste)
+        lien.css("line-height",interligne)
         $("#listRadar").append(lien)
         $("#listRadar").append($("<br/>"));
     });
@@ -1333,8 +1502,10 @@ function radarVue() {
     $.each( monstres, function(index, value) {
         let name = $(this).parent().find("span.titre").eq(0);
         let lien = $(this).parent().clone();
-        lien.removeAttr("class").text(name.text());
+        lien.removeAttr("class").text( name.text() );
         lien.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
+        lien.css("font-size",taille_liste)
+        lien.css("line-height",interligne)
         $("#listRadar").append(lien)
         $("#listRadar").append($("<br/>"))
     });
@@ -1350,48 +1521,47 @@ function radarVue() {
     });
     $("#listRadar").attr("style","float:left;width:"+String(list_width+20)+"px;text-align: left; font-style:normal;margin-bottom:0px");
     $("div.vue").css("float","center")
-    if(!details_arenes_shown) $("#listRadar").hide();
+    if(!details_vue_shown) {
+        $("#listRadar").hide();
+        $("#textRadar").hide();
+    }
     else $("div.description_vue").css("left",String(list_width+20+346)+"px");
 
     function highlightCase() {
         let href = $(this).attr("href");
-        let x = href.split("x=")[1].split("&")[0];
-        let y = href.split("y=")[1].split("&")[0];
+        let x = Number(href.split("x=")[1].split("&")[0]);
+        let y = Number(href.split("y=")[1].split("&")[0]);
         let i = top-y;
         let j = x-left+1;
-        //$("table.vue>tbody>tr").eq(i).find("td").eq(j).find("div.'cellule filtre'").eq(0).attr("style","background-color: rgba(255,0,0,0.2)");
-        //$("table.vue>tbody>tr").eq(i).find("td").eq(j).find("span.infobulle").show();
-        //$("table.vue>tbody>tr").eq(i).find("td").eq(j).find("span.infobulle").children().show();
-        let back = $("<div/>").attr("id","pastille").attr("style","z-index: 2; width: 18px; height: 18px; text-align: center; position: absolute; font-size: 1em; background: #FF000088;"+
+        // probleme avec kicarte chez Naly ?
+/*         if( $("td.kcOutline").length>0 ) {
+            i++;
+            j++;
+        } */
+        let pastille = $("<div/>").attr("id","pastille").attr("style","z-index: 2; width: 18px; height: 18px; text-align: center; position: absolute; font-size: 1em; background: #FF000088;"+
                                                           "color: gold; border-radius: 0px; bottom: -18px; pointer-events: none; border: 0px solid red; font-family: monospace;").text(" ");
-        $("table.vue>tbody>tr").eq(i).find("td").eq(j).find("a").first().append( back );
+        $("table.vue>tbody>tr").eq(i).find("td").eq(j).find("a").first().append( pastille );
     }
 
     function unhighlightCase() {
-        let href = $(this).attr("href");
-        let x = href.split("x=")[1].split("&")[0];
-        let y = href.split("y=")[1].split("&")[0];
-        let i = top-y;
-        let j = x-left+1;
-        //$("table.vue>tbody>tr").eq(i).find("td").eq(j).find("div.'cellule filtre'").eq(0).attr("style","background-color: rgba(255,255,255,0.2)");
-        //$("table.vue>tbody>tr").eq(i).find("td").eq(j).find("span.infobulle").children().hide();
-        //$("table.vue>tbody>tr").eq(i).find("td").eq(j).find("span.infobulle").hide();
         $("#pastille").remove();
     }
 
     function toggleDetails() {
         if($("#listRadar").is(":visible")) {
             $("#listRadar").hide();
-            $("#toggleLink").text("Montrer les détails");
-            details_arenes_shown = false;
-            localStorage.setItem('details_arenes_shown',false);
+            $("#textRadar").hide();
+            $("#toggleLinkVue").text("Montrer les détails");
+            details_vue_shown = false;
+            localStorage.setItem('details_vue_shown',false);
             $("div.description_vue").css("left","346px")
         }
         else {
             $("#listRadar").show();
-            $("#toggleLink").text("Masquer les détails");
-            details_arenes_shown = true;
-            localStorage.setItem('details_arenes_shown',true);
+            $("#textRadar").show();
+            $("#toggleLinkVue").text("Masquer les détails");
+            details_vue_shown = true;
+            localStorage.setItem('details_vue_shown',true);
             $("div.description_vue").css("left",String(list_width+20+346)+"px")
         }
     }
