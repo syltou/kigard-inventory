@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.5
+// @version	  1.5.1
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -1384,14 +1384,12 @@ function parseHisto() {
                     $("#toggleLinkLogs").text("Montrer les détails");
                     details_logs_shown = false;
                     localStorage.setItem('details_logs_shown',false);
-                    $("div.description_vue").css("left","346px")
                 }
                 else {
                     $("#detailsLogs").show();
                     $("#toggleLinkLogs").text("Masquer les détails");
                     details_logs_shown = true;
                     localStorage.setItem('details_logs_shown',true);
-                    $("div.description_vue").css("left",String(list_width+20+346)+"px")
                 }
             }
 
