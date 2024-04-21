@@ -1237,6 +1237,7 @@ function parseHisto() {
     if( $("table.historique") ) {
 
         let thename = $("div.description").find("a").eq(0).text().split(" ")[0];
+        let thetype = $("div.description").find("a").eq(0).attr("href").split("type=")[1]
         if( !thename ) thename = myname;
         let pj_list=[];
         let monster_list=[];
@@ -1293,7 +1294,7 @@ function parseHisto() {
                                 .text( details_logs_shown ? "Masquer les détails" : "Montrer les détails")
                                 .on("click",toggleDetails) ) );
 
-            $("<div/>").attr("id","detailsLogs").insertAfter($("h3").eq(1));
+            $("<div/>").attr("id","detailsLogs").attr("style","font-size:smaller;line-height:1.1em;").insertAfter($("h3").eq(1));
 
             let interactionsPJ = $("<div/>").attr("id","lstPJs").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Interactions avec : ") );
             for(i=0; i<pj_list.length; i++) {
@@ -1317,16 +1318,21 @@ function parseHisto() {
                 if(i<techs_list.length-1) techniques.append(", ");
             }
             if(techs_list.length==0) techniques.append( $("<span/>").attr("style","font-weight:bold;").text("-") );
-            techniques.append( $("<span/>").attr("style","font-style:italic;margin-left:50px").text("Sorts utilisés : ") );
-            for(i=0; i<sorts_list.length; i++) {
-                techniques.append( $("<a/>").attr("href","#").text(sorts_list[i]).on("click",scrollToSort) );
-                if(i<sorts_list.length-1) techniques.append(", ");
-            }
-            if(sorts_list.length==0) techniques.append( $("<span/>").attr("style","font-weight:bold;").text("-") );
             $("#detailsLogs").append(techniques);
 
-            if(!details_logs_shown) {
+            let sorts = $("<div/>").attr("id","lstTech").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Sorts utilisés : ") );
+            for(i=0; i<sorts_list.length; i++) {
+                sorts.append( $("<a/>").attr("href","#").text(sorts_list[i]).on("click",scrollToSort) );
+                if(i<sorts_list.length-1) sorts.append(", ");
+            }
+            if(sorts_list.length==0) sorts.append( $("<span/>").attr("style","font-weight:bold;").text("-") );
+            $("#detailsLogs").append(sorts);
+
+            if(!details_logs_shown ) $("#detailsLogs").hide();
+            if(thetype=="monstre") $("#lstTech").hide();
+            if(thename==myname) {
                 $("#detailsLogs").hide();
+                $("#toggleLinkLogs").hide();
             }
 
             function scrollToID() {
@@ -1382,6 +1388,7 @@ function parseHisto() {
                 }
                 else {
                     $("#detailsLogs").show();
+                    if(thetype=="monstre") $("#lstTech").hide();
                     $("#toggleLinkLogs").text("Masquer les détails");
                     details_logs_shown = true;
                     localStorage.setItem('details_logs_shown',true);
@@ -1402,6 +1409,8 @@ function parseHisto() {
             $("table[id=historique]").attr("style",oldstyle+";margin:0");
         }
     }
+
+    $("#detailsLogs").insertAfter( $("div.description") )
 }
 
 function parseMonsterLogs() {
@@ -1558,6 +1567,12 @@ function radarVue() {
             $("div.description_vue").css("left",String(list_width+20+346)+"px")
         }
     }
+
+    $("<div/>").attr("id","test").attr("style","float:left").insertAfter($("#listRadar"))
+        .append( $("div.vue").get() )
+        .append( $("<br/>") )
+        .append( $("#kicarteGo").parent().get() );
+
 
 }
 
