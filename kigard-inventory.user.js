@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.5.4
+// @version	  1.5.5
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -1236,9 +1236,17 @@ function parseHisto() {
 
     if( $("table.historique") ) {
 
-        let thename = $("div.description").find("a").eq(0).text().split(" ")[0];
-        let thetype = $("div.description").find("a").eq(0).attr("href").split("type=")[1]
-        if( !thename ) thename = myname;
+        let entite = $("div.description").find("a");
+        let thename, thetype;
+        if( entite.length > 0 ) {
+            thename = entite.eq(0).text().split(" ")[0];
+            thetype = entite.eq(0).attr("href").split("type=")[1];
+        }
+        else {
+            thename = myname;
+            thetype = "autre";
+        }
+
         let pj_list=[];
         let monster_list=[];
 
@@ -1294,9 +1302,10 @@ function parseHisto() {
                 $("div.description")
                     .append( $("<br/>") )
                     .append( $("<img/>").attr("src","images/interface/puce.gif") )
-                    .append( $("<a/>").text( details_logs_shown ? "Masquer les détails" : "Montrer les détails" )
+                    .append( $("<a/>").text( "Informations issues des logs " ) //details_logs_shown ? "Masquer les détails" : "Montrer les détails" )
                                       .attr("href","#").attr("id","toggleLinkLogs")
                                       .on("click",toggleDetails) )
+                    .append( "&nbsp;", $("<i/>").attr("class",details_logs_shown ? "fa fa-chevron-down" : "fa fa-chevron-right") );
             }
 
 //             $("h3").eq(1)
@@ -1323,7 +1332,7 @@ function parseHisto() {
             if(monster_list.length==0) interactionsMonstres.append( $("<span/>").attr("style","font-weight:bold;").text("-") );
             $("#detailsLogs").append(interactionsMonstres);
 
-            let techniques = $("<div/>").attr("id","lstTech").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Techniques utilisées : ") );
+            let techniques = $("<div/>").attr("id","lstTechs").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Techniques utilisées : ") );
             for(i=0; i<techs_list.length; i++) {
                 techniques.append( $("<a/>").attr("href","#").text(techs_list[i]).on("click",scrollToTech) );
                 if(i<techs_list.length-1) techniques.append(", ");
@@ -1331,7 +1340,7 @@ function parseHisto() {
             if(techs_list.length==0) techniques.append( $("<span/>").attr("style","font-weight:bold;").text("-") );
             $("#detailsLogs").append(techniques);
 
-            let sorts = $("<div/>").attr("id","lstTech").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Sorts utilisés : ") );
+            let sorts = $("<div/>").attr("id","lstSorts").attr("style","margin-top:5px;margin-bottom:10px;").append( $("<span/>").attr("style","font-style:italic;").text("Sorts utilisés : ") );
             for(i=0; i<sorts_list.length; i++) {
                 sorts.append( $("<a/>").attr("href","#").text(sorts_list[i]).on("click",scrollToSort) );
                 if(i<sorts_list.length-1) sorts.append(", ");
@@ -1340,7 +1349,12 @@ function parseHisto() {
             $("#detailsLogs").append(sorts);
 
             if(!details_logs_shown ) $("#detailsLogs").hide();
-            if(thetype=="monstre") $("#lstTech").hide();
+            if(thetype=="monstre") {
+                $("#lstTechs").hide();
+                $("#lstSorts").hide();
+                $("#lstMonstres").hide();
+            }
+
             if(thename==myname) {
                 $("#detailsLogs").hide();
                 $("#toggleLinkLogs").hide();
@@ -1391,16 +1405,20 @@ function parseHisto() {
             };
 
             function toggleDetails() {
-                if($("#detailsLogs").is(":visible")) {
+                if( details_logs_shown ) {
                     $("#detailsLogs").hide();
-                    $("#toggleLinkLogs").text("Montrer les détails");
+                    $("#toggleLinkLogs").next().attr("class","fa fa-chevron-right")
                     details_logs_shown = false;
                     localStorage.setItem('details_logs_shown',false);
                 }
                 else {
                     $("#detailsLogs").show();
-                    if(thetype=="monstre") $("#lstTech").hide();
-                    $("#toggleLinkLogs").text("Masquer les détails");
+                    if(thetype!="pj") {
+                        $("#lstTechs").hide();
+                        $("#lstSorts").hide();
+                        $("#lstMonstres").hide();
+                    }
+                    $("#toggleLinkLogs").next().attr("class","fa fa-chevron-down")
                     details_logs_shown = true;
                     localStorage.setItem('details_logs_shown',true);
                 }
@@ -1492,7 +1510,7 @@ function radarVue() {
     $("h3").first().filter( function() {return ( $(this).text().includes("vue") || $(this).text().includes("Arène") )})
         .append( $("<span/>").attr("style","margin-left:20px;font-size:x-small")
                 .append( $("<a/>").attr("id","toggleLinkVue").attr("href","#")
-                        .text( details_vue_shown ? "Masquer les détails" : "Montrer les détails")
+                        .text( details_vue_shown ? "Cacher le radar" : "Montrer le radar")
                         .on("click",toggleDetails) ) );
     $("<div/>").attr("id","textRadar").attr("style","text-align: left; font-style:italic; margin-top: 0px; margin-bottom: 15px;z-index:0")
         .append( $("<span/>").text(text + persos.length + " personnage" + sp + " et " + monstres.length + " monstre" + sm + ". "))
@@ -1542,8 +1560,17 @@ function radarVue() {
 
     function highlightCase() {
         let href = $(this).attr("href");
-        let x = Number(href.split("x=")[1].split("&")[0]);
-        let y = Number(href.split("y=")[1].split("&")[0]);
+        let x,y;
+        if( href=="#" ) { // si case sélectionnée on récupère les coordonnées dans la description
+            let coord = $("div.description").text().split("X:")[1];
+            x = coord.split(" | ")[0];
+            y = coord.split("Y:")[1].split(" ")[0];
+        }
+        else {
+            x = Number(href.split("x=")[1].split("&")[0]);
+            y = Number(href.split("y=")[1].split("&")[0]);
+        }
+
         let i = top-y;
         let j = x-left+1;
         // probleme avec kicarte chez Naly ?
@@ -1564,7 +1591,7 @@ function radarVue() {
         if($("#listRadar").is(":visible")) {
             $("#listRadar").hide();
             $("#textRadar").hide();
-            $("#toggleLinkVue").text("Montrer les détails");
+            $("#toggleLinkVue").text("Montrer le radar");
             details_vue_shown = false;
             localStorage.setItem('details_vue_shown',false);
             $("div.description_vue").css("left","346px")
@@ -1572,7 +1599,7 @@ function radarVue() {
         else {
             $("#listRadar").show();
             $("#textRadar").show();
-            $("#toggleLinkVue").text("Masquer les détails");
+            $("#toggleLinkVue").text("Cacher le radar");
             details_vue_shown = true;
             localStorage.setItem('details_vue_shown',true);
             $("div.description_vue").css("left",String(list_width+20+346)+"px")
