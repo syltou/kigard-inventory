@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.5.3
+// @version	  1.5.4
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -1288,11 +1288,22 @@ function parseHisto() {
 
         if(!window.mobileCheck()) {
 
-            $("h3").eq(1)
-                .append( $("<span/>").attr("style","margin-left:20px;font-size:x-small")
-                        .append( $("<a/>").attr("id","toggleLinkLogs").attr("href","#")
-                                .text( details_logs_shown ? "Masquer les détails" : "Montrer les détails")
-                                .on("click",toggleDetails) ) );
+            if( thename!=myname ) {
+               // $("img.position").prev().remove()
+                $("div.description>a").filter( function() { return $(this).text().includes("Parler") } ).prev().before( $("<br//>") );
+                $("div.description")
+                    .append( $("<br/>") )
+                    .append( $("<img/>").attr("src","images/interface/puce.gif") )
+                    .append( $("<a/>").text( details_logs_shown ? "Masquer les détails" : "Montrer les détails" )
+                                      .attr("href","#").attr("id","toggleLinkLogs")
+                                      .on("click",toggleDetails) )
+            }
+
+//             $("h3").eq(1)
+//                 .append( $("<span/>").attr("style","margin-left:20px;font-size:x-small")
+//                         .append( $("<a/>").attr("id","toggleLinkLogs").attr("href","#")
+//                                 .text( details_logs_shown ? "Masquer les détails" : "Montrer les détails")
+//                                 .on("click",toggleDetails) ) );
 
             $("<div/>").attr("id","detailsLogs").attr("style","font-size:smaller;line-height:1.1em;").insertAfter($("h3").eq(1));
 
@@ -1571,7 +1582,10 @@ function radarVue() {
     $("<div/>").attr("id","test").attr("style","float:left").insertAfter($("#listRadar"))
         .append( $("div.vue").get() )
         .append( $("<br/>") )
-        .append( $("#kicarteGo").parent().get() );
+        .append( $("#kicarteGo").parent().get() )
+        .append( $("#kicarteMessages").parent().get() )
+        .append( $("<br/>") )
+        .append( $("<div/>").append("&nbsp;") );
 
 
 }
