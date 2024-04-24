@@ -1357,8 +1357,8 @@ function parseHisto() {
 
             if(!details_logs_shown ) $("#detailsLogs").hide();
             if(thetype=="monstre") {
-                $("#lstTechs").hide();
-                $("#lstSorts").hide();
+//                 $("#lstTechs").hide();
+//                 $("#lstSorts").hide();
                 $("#lstMonstres").hide();
             }
 
