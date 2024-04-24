@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.5.5
+// @version	  1.5.6
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -8,8 +8,9 @@
 // @grant		none
 // ==/UserScript==
 
-//$("#header").remove();
+$("#header").remove();
 $("td.coord").css("font-size","0.585em")
+
 
 window.mobileCheck = function() {
   let check = false;
@@ -36,6 +37,10 @@ let ts_re = (t=localStorage.getItem("Ressource_ts")) ? (new Date()).getTime() - 
 
 let details_logs_shown = JSON.parse(localStorage.getItem("details_logs_shown"));
 let details_vue_shown = JSON.parse(localStorage.getItem("details_vue_shown"));
+let arena_id = JSON.parse(localStorage.getItem("last_arena"));
+
+let list_arenas = ["1140","1118","1137","1142","1152","1155","1154","1153","1147"];
+$("#menu>ul>li:eq(6)>ul>li:eq(4)>a").attr("href","index.php?p=arene"+ (arena_id ? "&id_arene="+list_arenas[arena_id] : "") )
 
 var members = [];
 var mypos = parsePositionPerso( $(".margin_position").text() );
@@ -114,6 +119,7 @@ if (page == "gestion_stock") {
 
 if (page == "arene") {
 	renameArenas();
+    navigateArenas();
 	addMonsterIDs();
     parseHisto();
     if(!window.mobileCheck()) radarVue();
@@ -1176,53 +1182,54 @@ function parseHisto() {
 
     //Techniques:
     let dicTechniques = {
-        AHyp: ["attaque hypnotiquement"], // Attaque hypnotique
-        AMys: ["attaque mystiquement"],   // Attaque mystique
-        APui: ["attaque puissamment"],    // Attaque puissante
-        APre: ["attaque précisément"],    // Attaque precise
-        ASou: ["attaque sournoisement"],  // Attaque sournoise
-        CdB: ["coup de bouclier"],        // Coup de bouclier
-        Executer: ["exécute", "tente d'exécuter"], // Exécuter
+        "Attaque hypnotique": ["attaque hypnotiquement"], // Attaque hypnotique
+        "Attaque mystique": ["attaque mystiquement"],   // Attaque mystique
+        "Attaque puissante": ["attaque puissamment"],    // Attaque puissante
+        "Attaque précise": ["attaque précisément"],    // Attaque precise
+        "Attaque sournoise": ["attaque sournoisement"],  // Attaque sournoise
+        "Coup de bouclier": ["coup de bouclier"],        // Coup de bouclier
+        Exécuter: ["exécute", "tente d'exécuter"], // Exécuter
         Enchaîner: ["enchaîne"],               // Enchaîner
-        LuP: ["lance un projectile"],     // Lancer un projectile
+        "Lancer un projectile": ["lance un projectile"],     // Lancer un projectile
         Charger: ["charge"],                  // Charger
-        Disp: ["disparaît "],               // Disparaître
+        Disparaître: ["disparaît "],               // Disparaître
         Incanter: ["incante"],                 // Incanter
-        LlA: ["lit l'avenir"],            // Lire l'avenir
-        PuP: ["pose un piège"],           // Poser un piège
-        Sacrifice: ["xcxcxcxcx"],               // Sacrifice
-        SMys: ["se renforce mystiquement"], // Subterfuge mystique
-        Protèger: ["protège"],                 // Protéger
+        "Lire l'avenir": ["lit l'avenir"],            // Lire l'avenir
+        "Poser un piège": ["pose un piège"],           // Poser un piège
+        Sacrifice: ["réalise un sacrifice rituel"],               // Sacrifice
+        "Subterfuge mystique": ["se renforce mystiquement"], // Subterfuge mystique
+        Protéger: ["protège"],                 // Protéger
         Riposter: ["riposte"]                 // Riposter
     }
 
     //Sorts:
     let dicSorts = {
-        BdF: ["envoie une boule de feu"], // Boule de feu
-        Congélation: ["congèle","a essayé de congeler"],
-        DdV: ["envoie un drain de vie"],
-        Entrave: ["entrave"],
+        "Boule de feu": ["envoie une boule de feu"], // Boule de feu
+        Congélation: ["congèle","a essayé de congeler", "bloc de glace"],
+        "Drain de vie": ["envoie un drain de vie"],
+        Entrave: ["entrave"], // ????????????????
         Envoûtement: ["xcxcxcxc"],
-        Foudre: ["xcxcvxcxcx"],
+        Foudre: ["foudre"], // ????????????????
         Incinération: ["cxcxcxcxc"],
         Jugement: ["xcxcxcxc"],
-        LdC: ["xcxcxcxc"],
+        "Lance de cristal": ["xcxcxcxc"],
         Maléfice: ["maudit"],
         Piqûre: ["xcxcxcxc"],
-        RdG: ["envoie une rafale de givre"],
+        "Rafale de givre": ["envoie une rafale de givre"],
         Subversion: ["xcxcxcxcx"],
         Télékinésie: ["fait léviter"],
         Téléportation: ["téléporte"],
-        VdM: ["vole la magie", "a essayé de voler la magie"],
+        "Vol de magie": ["vole la magie", "a essayé de voler la magie"],
         Dévotion: ["renforce pour le combat"],
         Exaltation: ["xcxcxcxcx"],
         Guérison: ["lance une guérison"],
-        Instinct: ["xcxcxcxcxc"],
+        Instinct: ["aiguise l'instinct"],
         Purification: ["purifie"],
-        MdC: ["xcxcxcxcxc"],
-        MdR: ["xcxcxcxcxc"],
+        "Mur de cristal": ["mur de cristal"], // ??????????
+        "Mur de ronces": ["mur de ronces"], // ?????????????
         Invocation: ["invoque"],
-        RM: ["réveille"] //Réveil morbide
+        "Réveil morbide": ["relève"], //Réveil morbide
+        "//": ["échange ses armes"]
     }
 
 
@@ -1618,6 +1625,74 @@ function radarVue() {
 }
 
 
+function navigateArenas() {
+
+
+
+    function test123() {
+        console.log("I'm here")
+        let name = $("#msdrpdd20_titletext").text();
+        let pos = parsePositionArena(name);
+        let id = getArenaID(pos);
+        let coord = getArenaCenter(id);
+        window.location.href = "https://tournoi.kigard.fr/index.php?p=arene&id_arene=" + id + "&clic_x=" + coord[0] + "&clic_y=" + coord[1] + "&clic_z=0";
+        let index = list_arenas.indexOf(id);
+        localStorage.setItem('last_arena',index);
+    }
+
+    let name = $("#msdrpdd20_titletext").text();
+    $("h3").eq(0).text(name.split("[")[0])
+    console.log(name)
+    let pos = parsePositionArena(name);
+    let id = getArenaID(pos);
+    let index = list_arenas.indexOf(id);
+
+
+//     let old_index = ~~localStorage.getItem('last_arena');
+//     let old_id = list_arenas[old_index];
+//     if(old_id != id ) {
+//         let coord = getArenaCenter(old_id);
+//         window.location.href = "https://tournoi.kigard.fr/index.php?p=arene&id_arene=" + old_id + "&clic_x=" + coord[0] + "&clic_y=" + coord[1] + "&clic_z=0";
+//         localStorage.setItem('last_arena',old_index);
+//     }
+
+
+
+
+
+
+    //link = "https://tournoi.kigard.fr/index.php?p=arene&id_arene=" 1147&clic_x=-2&clic_y=3&clic_z=0
+
+    $("#msdrpdd20_msdd").next().remove();
+//     $("#msdrpdd20_msdd").next().attr("type","button");
+//     $("#msdrpdd20_msdd").next().on("click", test123);
+    $("div.selection_arene>form>div")
+        .append( $("<input/>").attr("id","valider").attr("type","button").attr("value","Valider").attr("style","display: inline-block;vertical-align: top;margin-left: 10px;").on("click", test123) )
+        .append( $("<input/>").attr("id","prev").attr("type","button").attr("value","<").attr("style","display: inline-block;vertical-align: top;margin-left: 10px;").on("click", navigatePrev) )
+        .append( $("<input/>").attr("id","next").attr("type","button").attr("value",">").attr("style","display: inline-block;vertical-align: top;").on("click", navigateNext) )
+
+    function navigateNext() {
+        index++
+        if(index==9) index=0;
+        let id = list_arenas[index];
+        let coord = getArenaCenter(id);
+        window.location.href = "https://tournoi.kigard.fr/index.php?p=arene&id_arene=" + id + "&clic_x=" + coord[0] + "&clic_y=" + coord[1] + "&clic_z=0";
+        localStorage.setItem('last_arena',index);
+    }
+
+    function navigatePrev() {
+        index--
+        if(index==-1) index=8;
+        let id = list_arenas[index];
+        let coord = getArenaCenter(id);
+        window.location.href = "https://tournoi.kigard.fr/index.php?p=arene&id_arene=" + id + "&clic_x=" + coord[0] + "&clic_y=" + coord[1] + "&clic_z=0";
+        localStorage.setItem('last_arena',index);
+    }
+
+}
+
+
+
 function convertDate(date) {
     let y,m,d;
     let parse = date.split(' ');
@@ -1850,6 +1925,30 @@ function getArenaName( arenapos ) {
 		}
 	});
 	return arenaname;
+}
+
+function getArenaID( arenapos ) {
+	let dic = { "-13,-13":"1155", "13,13":"1153", "-44,44":"1140", "-41,-41":"1118", "41,-41":"1137", "41,42":"1142", "-13,13":"1152", "0,0":"1147", "13,-13":"1154"};
+	let positions = Object.keys(dic);
+	let arena_id = "0000";
+	positions.forEach( (pos) => {
+		if( pos==arenapos.toString() ) {
+			arena_id = dic[pos];
+		}
+	});
+	return arena_id;
+}
+
+function getArenaCenter( arenaid ) {
+	let dic = { "1155":Array(-13,-13), "1153":Array(13,13), "1140":Array(-44,44), "1118":Array(-41,-41), "1137":Array(41,-41), "1142":Array(41,42), "1152":Array(-13,13), "1147":Array(0,0), "1154":Array(13,-13)};
+	let ids = Object.keys(dic);
+	let coord = Array(0,0);
+	ids.forEach( (id) => {
+		if( id==arenaid.toString() ) {
+			coord = dic[id];
+		}
+	});
+	return coord;
 }
 
 function parsePositionPerso(str){
