@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.5.7
+// @version	  1.5.8
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -1226,9 +1226,9 @@ function parseHisto() {
         Instinct: ["aiguise l'instinct"],
         Purification: ["purifie"],
         "Mur de cristal": ["mur de cristal"], // ??????????
-        "Mur de ronces": ["mur de ronces"], // ?????????????
+        "Mur de ronces": ["sortir des ronces"],
         Invocation: ["invoque"],
-        "Réveil morbide": ["relève"], //Réveil morbide
+        "Réveil morbide": ["relève"],
         "//": ["échange ses armes"]
     }
 
