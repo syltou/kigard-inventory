@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.5.8
-// @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat
+// @version	  1.5.10
+// @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
 // @icon		 https://tournoi.kigard.fr/images/items/37.gif
@@ -84,7 +84,7 @@ if (page == "vue") {
 	addHideButton();
     parseHisto();
     if(!window.mobileCheck()) radarVue();
-    //parseMonsterLogs();
+    parseMonsterLogs();
     //addGrid();
 }
 
@@ -134,8 +134,50 @@ if (page == "clan" && subp == "membres") {
 }
 
 if (page == "clan" && subp == "batiments") {
-    showStats();
+    //showStats();
+    //someTests();
 }
+
+
+
+
+
+
+
+function someTests() {
+
+    let a = $("div[id=bloc]>i");
+
+    a = $("<p>").insertAfter(a);
+
+    for(var k=1; k<180; k++) {
+        a=$("<img>")
+            .attr("src","https://tournoi.kigard.fr/images/vue/monstre/"+k+".gif")
+            .attr("width","100").attr("height","100")
+            .insertAfter(a);
+    }
+
+    a = $("<p>").insertAfter(a);
+
+    for( k=1; k<400; k++) {
+        a=$("<img>")
+            .attr("src","https://tournoi.kigard.fr/images/items/"+k+".gif")
+            .attr("width","100").attr("height","100")
+            .insertAfter(a);
+    }
+
+    a = $("<p>").insertAfter(a);
+
+    for( k=1; k<180; k++) {
+        a=$("<img>")
+            .attr("src","https://tournoi.kigard.fr/images/vue/lieu/"+k+".gif")
+            .attr("width","100").attr("height","100")
+            .insertAfter(a);
+    }
+}
+
+
+
 
 //---------------------------------------------------------------------------------------
 // INVENTORY
@@ -1247,6 +1289,7 @@ function parseHisto() {
         let thename, thetype;
         if( entite.length > 0 ) {
             thename = entite.eq(0).text().split(" ")[0];
+            if( thename == "" ) thename = entite.eq(0).text().split(" ")[1]; // for Itotia :/
             thetype = entite.eq(0).attr("href").split("type=")[1];
         }
         else {
@@ -1285,13 +1328,12 @@ function parseHisto() {
         $("table[id=historique]>tbody>tr").each( function() {
             let a = $(this).find("td").eq(1);
             let b = $(a).find("a");
-
             let test = 0;
             b.each(function() {
                 let name = $(this).text();
                 if( !name.includes(thename) ) {
                     if( $(this).attr("href").split("type=")[1] == "pj" && !pj_list.includes(name) ) pj_list.push(name);
-                    if( !name.includes("Cheval") && !name.includes("Mulet") &&!a.text().includes("entend") ) {
+                    if( !name.includes("Cheval") && !name.includes("Mulet") && !a.text().includes("entend") ) {
                         test = 1;
                         if( $(this).attr("href").split("type=")[1] == "monstre" && !monster_list.includes(name) ) monster_list.push(name);
                     }
@@ -1552,12 +1594,12 @@ function radarVue() {
     $("#listRadar>a").each( function() {
         if($(this).width()>max_width) max_width=$(this).width();
     });
-    let list_width = Math.min(max_width,130);
+    let list_width = Math.min(max_width,150);
     $("#listRadar>a").each( function() {
-        let trunk = Math.ceil($(this).text().length * ($(this).width()/list_width-1) );
-        if( trunk>0 ) $(this).text( $(this).text().slice(0,-trunk)+"..." );
+        let trunk = Math.ceil($(this).text().trim().length * ($(this).width()/list_width-1) );
+        if( trunk>0 ) $(this).text( $(this).text().trim().slice(0,-trunk)+"..." );
     });
-    $("#listRadar").attr("style","float:left;width:"+String(list_width+20)+"px;text-align: left; font-style:normal;margin-bottom:0px");
+    $("#listRadar").attr("style","float:left;width:"+String(list_width+30)+"px;text-align: left; font-style:normal;margin-bottom:0px");
     $("div.vue").css("float","center")
     if(!details_vue_shown) {
         $("#listRadar").hide();
