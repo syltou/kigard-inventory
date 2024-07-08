@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.5.10
+// @version	  1.5.11
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -85,7 +85,7 @@ if (page == "vue") {
     parseHisto();
     if(!window.mobileCheck()) radarVue();
     parseMonsterLogs();
-    //addGrid();
+    addGrid();
 }
 
 if (page == "empathie") {
@@ -135,7 +135,7 @@ if (page == "clan" && subp == "membres") {
 
 if (page == "clan" && subp == "batiments") {
     //showStats();
-    //someTests();
+    someTests();
 }
 
 
@@ -1805,7 +1805,16 @@ function showStats() {
 
 
 function addGrid() {
-    $("td.vue>a.bulle").append($("<img/>").attr("src","https://raw.githubusercontent.com/syltou/kigard-inventory/main/grid.png" ).attr("class","cellule grid"));
+
+    //$("td.vue>a.bulle").append($("<img/>").attr("src","https://raw.githubusercontent.com/syltou/kigard-inventory/main/grid.png" ).attr("class","cellule grid"));
+
+
+    let gridh = $("<div/>").attr("id","pastille").attr("style","z-index: 2; width: 18px; height: 1px; text-align: center; position: absolute; font-size: 1em; background: #FFFFFF50;"+
+                                                          "color: gold; border-radius: 0px; bottom: -18px; pointer-events: none; border: 0px solid white; font-family: monospace;").text(" ");
+    let gridv = $("<div/>").attr("id","pastille").attr("style","z-index: 2; width: 1px; height: 18px; text-align: center; position: absolute; font-size: 1em; background: #FFFFFF50;"+
+                                                          "color: gold; border-radius: 0px; bottom: -18px; pointer-events: none; border: 0px solid white; font-family: monospace;").text(" ");
+    $("table.vue>tbody>tr").find("a").append( gridh, gridv);
+
 }
 
 function addHideButton() {
