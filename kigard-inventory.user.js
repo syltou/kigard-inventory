@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.5.12
+// @version	  1.5.13
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -35,6 +35,7 @@ let ts_eq = (t=localStorage.getItem("Equipement_ts")) ? (new Date()).getTime() -
 let ts_co = (t=localStorage.getItem("Consommable_ts")) ? (new Date()).getTime() - t : null;
 let ts_re = (t=localStorage.getItem("Ressource_ts")) ? (new Date()).getTime() - t : null;
 
+let gridon = JSON.parse(localStorage.getItem("gridon"));
 let details_logs_shown = JSON.parse(localStorage.getItem("details_logs_shown"));
 let details_vue_shown = JSON.parse(localStorage.getItem("details_vue_shown"));
 let arena_id = JSON.parse(localStorage.getItem("last_arena"));
@@ -85,7 +86,7 @@ if (page == "vue") {
     parseHisto();
     if(!window.mobileCheck()) radarVue();
     parseMonsterLogs();
-    //addGrid();
+    addGrid();
 }
 
 if (page == "empathie") {
@@ -1806,15 +1807,28 @@ function showStats() {
 
 function addGrid() {
 
-    //$("td.vue>a.bulle").append($("<img/>").attr("src","https://raw.githubusercontent.com/syltou/kigard-inventory/main/grid.png" ).attr("class","cellule grid"));
 
 
-    let gridh = $("<div/>").attr("id","pastille").attr("style","z-index: 2; width: 18px; height: 1px; text-align: center; position: absolute; font-size: 1em; background: #FFFFFF50;"+
+    let gridh = $("<div/>").attr("class","grid").attr("style","display: none; z-index: 2; width: 18px; height: 1px; text-align: center; position: absolute; font-size: 1em; background: #FFFFFF50;"+
                                                           "color: gold; border-radius: 0px; bottom: -18px; pointer-events: none; border: 0px solid white; font-family: monospace;").text(" ");
-    let gridv = $("<div/>").attr("id","pastille").attr("style","z-index: 2; width: 1px; height: 18px; text-align: center; position: absolute; font-size: 1em; background: #FFFFFF50;"+
+    let gridv = $("<div/>").attr("class","grid").attr("style","display: none; z-index: 2; width: 1px; height: 18px; text-align: center; position: absolute; font-size: 1em; background: #FFFFFF50;"+
                                                           "color: gold; border-radius: 0px; bottom: -18px; pointer-events: none; border: 0px solid white; font-family: monospace;").text(" ");
+
     $("table.vue>tbody>tr").find("a").append( gridh, gridv);
+    gridon?$(".grid").show():$(".grid").hide();
 
+    $("table.vue>tbody>tr").last().find("td").first()
+        .append( $("<input/>").attr("type","checkbox").attr("id","gridon").attr("checked",gridon?true:false) );
+    $("#gridon").on( "click", function() {
+        $(".grid").toggle()
+        gridon = !gridon;
+        localStorage.setItem('gridon',gridon);
+    });
+
+}
+
+function toggleGrid() {
+    console.log("je clique");
 }
 
 function addHideButton() {
