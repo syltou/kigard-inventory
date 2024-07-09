@@ -8,8 +8,8 @@
 // @grant		none
 // ==/UserScript==
 
-$("#header").remove();
-$("td.coord").css("font-size","0.585em")
+//$("#header").remove();
+//$("td.coord").css("font-size","0.585em")
 
 
 window.mobileCheck = function() {
