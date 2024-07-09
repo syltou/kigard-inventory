@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.5.11
+// @version	  1.5.12
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -85,7 +85,7 @@ if (page == "vue") {
     parseHisto();
     if(!window.mobileCheck()) radarVue();
     parseMonsterLogs();
-    addGrid();
+    //addGrid();
 }
 
 if (page == "empathie") {
