@@ -121,7 +121,7 @@ if(page == "formules") {
 // }
 
 if (page == "arene") {
-    if vue_x2 $("div.bloc-vue").attr("class","bloc-vue vue_x2");
+    if( vue_x2 ) $("div.bloc-vue").attr("class","bloc-vue vue_x2");
 	renameArenas();
     navigateArenas();
 	addMonsterIDs();
