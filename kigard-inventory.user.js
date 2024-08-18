@@ -9,7 +9,7 @@
 // ==/UserScript==
 
 //$("#header").remove();
-//$("td.coord").css("font-size","0.585em")
+
 
 
 window.mobileCheck = function() {
@@ -45,7 +45,8 @@ $("#menu>ul>li:eq(6)>ul>li:eq(4)>a").attr("href","index.php?p=arene"+ (arena_id 
 
 var members = [];
 var mypos = parsePositionPerso( $(".margin_position").text() );
-var myname = $(".inline span[class!='margin_pa'] strong").text().split(" ")[0]
+var myname = $(".inline span[class!='margin_pa'] b").text().split(" ")[0]
+var vue_x2 = null;
 
 var id_equip = [1,2,7,8,9,10,11,14,16,17,18,19,20,21,22,23,24,25,27,28,29,30,31,32,33,
 				34,39,47,48,49,51,52,53,54,55,56,57,58,59,60,62,64,74,75,76,77,78,
@@ -58,7 +59,7 @@ var id_equip = [1,2,7,8,9,10,11,14,16,17,18,19,20,21,22,23,24,25,27,28,29,30,31,
 				236,237,239,241,242,243,244,245,246,249,250,252,256,257,260,261,267,
 				268,269,270,271,275,284,285,286,287,289,290,291,292,294,296,297,
 				306,307,308,309,311,312,313,316,317,318,319,326,327,328,329,331,333,
-				334,335,336,337,344,350];
+				334,335,336,337,344,350,364];
 
 var id_conso = [3,4,15,26,36,38,40,41,42,43,44,45,46,61,63,96,97,113,131,153,154,159,
 				164,165,178,179,180,208,211,213,214,215,217,218,219,221,222,253,258,259,
@@ -74,56 +75,58 @@ var id_left = [37,50,88,94,99,120,128,130,132,133,134,135,139,158,169,170,201,20
 				361,362,363,364,365,366,367,368,369,370];
 
 
-
 getNotifOnMobile();
 changeMenu();
 
 //dfdfldkfdjfldfjdlkjflk
 
 if (page == "vue") {
+    if( $("div.bloc-vue").attr("class") == "bloc-vue vue_x2" ) vue_x2 = true;
+    console.log("Type de vue: ", (vue_x2 ? "double" : "simple") );
 	addMonsterIDs();
 	addHideButton();
-    parseHisto();
-    if(!window.mobileCheck()) radarVue();
-    parseMonsterLogs();
+    //parseHisto();
+    //if(!window.mobileCheck()) radarVue();
+    //parseMonsterLogs();
     addGrid();
 }
 
-if (page == "empathie") {
-	findMules();
-	duplicateButtonEmpathie();
-}
+// if (page == "empathie") {
+// 	findMules();
+// 	duplicateButtonEmpathie();
+// }
 
-if (page == "profil"){
-	saveSkin();
-}
+// if (page == "profil"){
+// 	saveSkin();
+// }
 
 if(page == "formules") {
 	improveFormulasPage();
 }
 
-if (page == 'InventaireComplet') {
-	createInventoryPage();
-}
+// if (page == 'InventaireComplet') {
+// 	createInventoryPage();
+// }
 
-if (page == "inventaire") {
-	saveInventory(inv);
-	addCopyButton( $("#bloc table:first"),"inventory");
-}
+// if (page == "inventaire") {
+// 	saveInventory(inv);
+// 	addCopyButton( $("#bloc table:first"),"inventory");
+// }
 
-if (page == "gestion_stock") {
-	var id = urlParams.get('id_monstre');
-	saveMulet(id);
-	addCopyButton( $("#bloc table:first"),"inventory");
-	renameMuletPage(id);
-}
+// if (page == "gestion_stock") {
+// 	var id = urlParams.get('id_monstre');
+// 	saveMulet(id);
+// 	addCopyButton( $("#bloc table:first"),"inventory");
+// 	renameMuletPage(id);
+// }
 
 if (page == "arene") {
+    $("div.bloc-vue").attr("class","bloc-vue vue_x2");
 	renameArenas();
     navigateArenas();
 	addMonsterIDs();
-    parseHisto();
-    if(!window.mobileCheck()) radarVue();
+    //parseHisto();
+    //if(!window.mobileCheck()) radarVue();
     //parseMonsterLogs();
     addGrid();
 }
@@ -1545,7 +1548,6 @@ function radarVue() {
 
     let top = $("table.vue>tbody>tr").first().find("td").first().text()
     let left = $("table.vue>tbody>tr").last().find("td").eq(1).text()
-
     let persos = $("table.vue>tbody>tr>td>a>img[src*='pj']").filter(function(index){
         return ( !$(this).parent().find("span.titre").eq(0).text().includes(myname) );
     });
@@ -1565,9 +1567,9 @@ function radarVue() {
                         .on("click",toggleDetails) ) );
     $("<div/>").attr("id","textRadar").attr("style","text-align: left; font-style:italic; margin-top: 0px; margin-bottom: 15px;z-index:0")
         .append( $("<span/>").text(text + persos.length + " personnage" + sp + " et " + monstres.length + " monstre" + sm + ". "))
-        .insertBefore( $("div.vue-wrap") )
-    $("div.vue-wrap").prepend(
-        $("<div/>").attr("id","listRadar") );
+        .insertBefore( $("div.vue ") )
+    //.apppend(
+        $("<div/>").attr("id","listRadar").insertBefore( $("#textRadar") );
 
     $.each( persos, function(index, value) {
         let name = $(this).parent().find("span.titre").eq(0);
@@ -1810,10 +1812,10 @@ function addGrid() {
 
 
 
-    let gridh = $("<div/>").attr("class","grid").attr("style","display: none; z-index: 2; width: 18px; height: 1px; text-align: center; position: absolute; font-size: 1em; background: #FFFFFF50;"+
-                                                          "color: gold; border-radius: 0px; bottom: -18px; pointer-events: none; border: 0px solid white; font-family: monospace;").text(" ");
-    let gridv = $("<div/>").attr("class","grid").attr("style","display: none; z-index: 2; width: 1px; height: 18px; text-align: center; position: absolute; font-size: 1em; background: #FFFFFF50;"+
-                                                          "color: gold; border-radius: 0px; bottom: -18px; pointer-events: none; border: 0px solid white; font-family: monospace;").text(" ");
+    let gridh = $("<div/>").attr("class","grid").attr("style","display: none; z-index: 2; width: " + String(vue_x2?36:18) + "px; height: 1px; text-align: center; position: absolute; font-size: 1em; background: #FFFFFF50;"+
+                                                          "color: gold; border-radius: 0px; bottom: -" + String(vue_x2?36:18) + "px; pointer-events: none; border: 0px solid white; font-family: monospace;").text(" ");
+    let gridv = $("<div/>").attr("class","grid").attr("style","display: none; z-index: 2; width: 1px; height: " + String(vue_x2?36:18) + "px; text-align: center; position: absolute; font-size: 1em; background: #FFFFFF50;"+
+                                                          "color: gold; border-radius: 0px; bottom: -" + String(vue_x2?36:18) + "px; pointer-events: none; border: 0px solid white; font-family: monospace;").text(" ");
 
     $("table.vue>tbody>tr").find("a").append( gridh, gridv);
     gridon?$(".grid").show():$(".grid").hide();
@@ -2080,14 +2082,14 @@ function improveFormulasPage() {
 				return 'buste';
 			case 'Pieds':
 				return 'pieds';
-			case 'Main droite':
-				return 'main-droite';
-			case 'Main gauche':
-				return 'main-gauche';
+			case 'Une main':
+				return 'une-main';
 			case 'Deux mains':
-			case 'Deux mains d\'arc':
-			case 'Deux mains de fusil':
 				return 'deux-mains';
+// 			case 'Deux mains':
+// 			case 'Deux mains d\'arc':
+// 			case 'Deux mains de fusil':
+// 				return 'deux-mains';
 			case 'Toutes':
 				return 'Tous';
 			default:
@@ -2112,8 +2114,9 @@ function improveFormulasPage() {
 	//---------------------------------------------
 	// ADD CATEGORY ATTRIBUTES TO EVERY LINE FOR FILTERING
 	$("table:first").attr("id","formulas_table");
-	$("#formulas_table small").each( function() {
+	$("#formulas_table td:first-child small:first-of-type").each( function() {
 		if( $(this).parent().prop("tagName")!='EM' ) {
+            console.log($(this).text())
 			let value = $(this).text().split('-')[1].trim();
 			$(this).parent().parent().attr('data-category', parseCategory(value));
 		}
@@ -2152,8 +2155,8 @@ function improveFormulasPage() {
 		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageCategory(7), linkCategory("Tête")) )
 		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageCategory(48), linkCategory("Buste")) )
 		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageCategory(8), linkCategory("Pieds")) )
-		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageCategory(136), imageCategory(76), linkCategory("Main droite")) )
-		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageCategory(2), imageCategory(24), linkCategory("Main gauche")) )
+		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageCategory(136), imageCategory(76), imageCategory(2), imageCategory(24), linkCategory("Une main")) )
+		//.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageCategory(2), imageCategory(24), linkCategory("Main gauche")) )
 		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", imageCategory(122), imageCategory(17), linkCategory("Deux mains")) )
 		.append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", linkCategory("Autres")) );
 	// add click event for category filter, select Tous by default
