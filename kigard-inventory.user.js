@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.6
+// @version	  1.6.1
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -39,6 +39,7 @@ let gridon = JSON.parse(localStorage.getItem("gridon"));
 let details_logs_shown = JSON.parse(localStorage.getItem("details_logs_shown"));
 let details_vue_shown = JSON.parse(localStorage.getItem("details_vue_shown"));
 let arena_id = JSON.parse(localStorage.getItem("last_arena"));
+let vue_x2 = JSON.parse(localStorage.getItem("vue_x2"));
 
 let list_arenas = ["1140","1118","1137","1142","1152","1155","1154","1153","1147"];
 $("#menu>ul>li:eq(6)>ul>li:eq(4)>a").attr("href","index.php?p=arene"+ (arena_id ? "&id_arene="+list_arenas[arena_id] : "") )
@@ -46,7 +47,6 @@ $("#menu>ul>li:eq(6)>ul>li:eq(4)>a").attr("href","index.php?p=arene"+ (arena_id 
 var members = [];
 var mypos = parsePositionPerso( $(".margin_position").text() );
 var myname = $(".inline span[class!='margin_pa'] b").text().split(" ")[0]
-var vue_x2 = null;
 
 var id_equip = [1,2,7,8,9,10,11,14,16,17,18,19,20,21,22,23,24,25,27,28,29,30,31,32,33,
 				34,39,47,48,49,51,52,53,54,55,56,57,58,59,60,62,64,74,75,76,77,78,
@@ -81,7 +81,8 @@ changeMenu();
 //dfdfldkfdjfldfjdlkjflk
 
 if (page == "vue") {
-    if( $("div.bloc-vue").attr("class") == "bloc-vue vue_x2" ) vue_x2 = true;
+    if( $("div.bloc-vue").attr("class") == "bloc-vue vue_x2" ) localStorage.setItem("vue_x2",1);
+    else localStorage.setItem("vue_x2",0);
     console.log("Type de vue: ", (vue_x2 ? "double" : "simple") );
 	addMonsterIDs();
 	addHideButton();
@@ -121,7 +122,7 @@ if(page == "formules") {
 // }
 
 if (page == "arene") {
-    if( vue_x2 ) $("div.bloc-vue").attr("class","bloc-vue vue_x2");
+    if (vue_x2) $("div.bloc-vue").attr("class","bloc-vue vue_x2");
 	renameArenas();
     navigateArenas();
 	addMonsterIDs();
