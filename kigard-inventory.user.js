@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.6.1
+// @version	  1.6.2
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -92,10 +92,10 @@ if (page == "vue") {
     addGrid();
 }
 
-// if (page == "empathie") {
-// 	findMules();
-// 	duplicateButtonEmpathie();
-// }
+if (page == "empathie") {
+	findMules();
+	duplicateButtonEmpathie();
+}
 
 // if (page == "profil"){
 // 	saveSkin();
@@ -109,17 +109,18 @@ if(page == "formules") {
 // 	createInventoryPage();
 // }
 
-// if (page == "inventaire") {
+if (page == "inventaire") {
+    enhanceInventory();
 // 	saveInventory(inv);
 // 	addCopyButton( $("#bloc table:first"),"inventory");
-// }
+}
 
-// if (page == "gestion_stock") {
-// 	var id = urlParams.get('id_monstre');
-// 	saveMulet(id);
-// 	addCopyButton( $("#bloc table:first"),"inventory");
-// 	renameMuletPage(id);
-// }
+if (page == "gestion_stock") {
+	var id = urlParams.get('id_monstre');
+	saveMulet(id);
+	addCopyButton( $("#bloc table:first"),"inventory");
+	renameMuletPage(id);
+}
 
 if (page == "arene") {
     if (vue_x2) $("div.bloc-vue").attr("class","bloc-vue vue_x2");
@@ -146,9 +147,65 @@ if (page == "clan" && subp == "batiments") {
 
 
 
+function enhanceInventory() {
 
+    let old_html = localStorage.getItem("items_list");
+    let current = $("div.storage:eq(0)")
+    let details;
+    if( old_html == $(current).prop('outerHTML') ) {
+        console.log("Loaded from localstorage")
+        details = localStorage.getItem("items_details");
+        $("div.storage:eq(0) a").remove();
+        $("div.storage:eq(0)").append( $(details) );
+    }
+    else {
+        localStorage.setItem("items_list",current.prop('outerHTML'))
+        console.log("Loaded from server")
+        details = $("<div/>");
+        $("div.storage:eq(0) a").each( function() {
+            displayInfoItem($(this),details);
+        });
+        $("div.storage:eq(0)").append( details );
+        localStorage.setItem("items_details",$("div.storage:eq(0)>div:eq(0)").prop('outerHTML'))
+    }
+    // $("div.storage:eq(0) a").each( function() {
+    //     $(temp).append( $("<div/>").attr("class","label")
+    //                             //.append( $(this).detach() )
+    //                             .text( $(this).find("img").attr("title") ) );
+    // });
 
+}
 
+function displayInfoItem(link,details) {
+    $.get(link.attr("href") , function(data) {
+        let name = $(data).find("div.info-item div.label").text().trim();
+        let ench = $(data).find("span.enchantement").text().trim();
+        let sert = $(data).find("span.sertissage").text().trim();
+        let extra = "";
+        if(ench) {
+            extra += " [" + ench;
+            extra += (!sert)?"]":"";
+        };
+        if(ench && sert) {
+            extra+=" | ";
+        };
+        if(sert) {
+            extra += (!ench)?" [":"";
+            extra += sert + "]";
+        };
+        link.find("img").attr("title", name+extra );
+        let icon = link.find("div.item").detach();
+        details.append( link.append( $("<div/>").attr("class","label")
+                                 .append( icon )
+                                 .append( $("<span/>").append( $("<b/>").text("  "+name) ) )
+                                 .append( $("<strong/>").attr("style","font-size:10px;")
+                                         .append( $("<span/>").attr("class","enchantement").text(" "+ench) )
+                                         .append( $("<span/>").attr("class","sertissage").text(" "+sert) )
+                                         )
+                                 )
+                    );
+    });
+}
 
 function someTests() {
 
@@ -1177,22 +1234,26 @@ function addGroupButton(table) {
 
 // add some entries in the inventory menu
 function changeMenu() {
+
+    //move the inventory back to root
+    $("#menu li:contains(Profil)").after($("#menu li:contains(Profil) li:contains(Inventaire)").detach().addClass("parent"))
+
 	// one direct link to every mule
-	for(j=0;j<mules_id.length;j++) {
-		let name = mules_name[j];
-		if(name=="Mulet") name += " " + mules_id[j];
-		$("#menu a.parent:contains(Inventaire) ~ ul").append(
-			$("<li/>").append(
-				$("<a/>").attr("href","index.php?p=gestion_stock&id_monstre=" + mules_id[j])
-					.append( $("<img/>").attr("src","images/vue/monstre/37.gif").attr("class","elements") )
-					.append( " " + name  ) ) );
-	}
+	// for(var j=0;j<mules_id.length;j++) {
+	// 	let name = mules_name[j];
+	// 	if(name=="Mulet") name += " " + mules_id[j];
+	// 	$("#menu li.parent:contains(Inventaire)").append(
+	// 		$("<ul/>").append(
+	// 			$("<a/>").attr("href","index.php?p=gestion_stock&id_monstre=" + mules_id[j])
+	// 				.append( $("<img/>").attr("src","images/vue/monstre/37.gif").attr("class","elements") )
+	// 				.append( " " + name  ) ) );
+	// }
 	// one link to the complete inventory that will be built
-	$("#menu a.parent:contains(Inventaire) ~ ul").append(
-			$("<li/>").append(
-				$("<a/>").attr("href","index.php?p=InventaireComplet")
-					.append( $("<img/>").attr("src","images/items/37.gif").attr("class","elements") )
-					.append( " Complet " ) ) );
+	// $("#menu a.parent:contains(Inventaire) ~ ul").append(
+	// 		$("<li/>").append(
+	// 			$("<a/>").attr("href","index.php?p=InventaireComplet")
+	// 				.append( $("<img/>").attr("src","images/items/37.gif").attr("class","elements") )
+	// 				.append( " Complet " ) ) );
 }
 
 // find all mules in the page empathie
