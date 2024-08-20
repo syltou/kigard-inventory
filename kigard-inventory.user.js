@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.6.2
+// @version	  1.6.3
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -149,24 +149,39 @@ if (page == "clan" && subp == "batiments") {
 
 function enhanceInventory() {
 
-    let old_html = localStorage.getItem("items_list");
-    let current = $("div.storage:eq(0)")
-    let details;
-    if( old_html == $(current).prop('outerHTML') ) {
+    var current_items_list = $.map( $("div.storage:eq(0) a"), function(i) { return $(i).attr("href").split("item_id=")[1]; });
+    var previous_items_list = localStorage.getItem("items_list");
+    var details;
+
+    if( current_items_list == previous_items_list ) {
         console.log("Loaded from localstorage")
         details = localStorage.getItem("items_details");
         $("div.storage:eq(0) a").remove();
         $("div.storage:eq(0)").append( $(details) );
     }
     else {
-        localStorage.setItem("items_list",current.prop('outerHTML'))
+
         console.log("Loaded from server")
-        details = $("<div/>");
-        $("div.storage:eq(0) a").each( function() {
-            displayInfoItem($(this),details);
-        });
-        $("div.storage:eq(0)").append( details );
-        localStorage.setItem("items_details",$("div.storage:eq(0)>div:eq(0)").prop('outerHTML'))
+
+        details = [];
+        processItem(0);
+
+//         details = $("<div/>");
+//         $("div.storage:eq(0) a").each( function() {
+//             displayInfoItem($(this),details);
+//         });
+//         $("div.storage:eq(0)").append( details );
+
+//         document.addEventListener("DOMContentLoaded", function() {
+//             let data_to_save = $("div.storage:eq(0)>div:eq(0)").prop('outerHTML');
+//             localStorage.setItem("items_details",data_to_save);
+//         });
+
+        // document.addEventListener("DOMContentLoaded", function() {
+        // window.onload = function() {
+
+        // };
+        // });
     }
     // $("div.storage:eq(0) a").each( function() {
     //     $(temp).append( $("<div/>").attr("class","label")
@@ -174,7 +189,56 @@ function enhanceInventory() {
     //                             .text( $(this).find("img").attr("title") ) );
     // });
 
+    function processItem(index) {
+        if (index >= current_items_list.length) {
+            // All items processed, now save details to localStorage
+            var data_to_save = details.join('');
+            localStorage.setItem("items_details", data_to_save);
+            localStorage.setItem("items_list",current_items_list)
+            return;
+        }
+
+        // Get the current item
+        var item = current_items_list[index];
+
+        // Make the $.get request
+        $.get('https://tournoi.kigard.fr/index.php?p=inventaire&item_id=' + item, function(data) {
+            let name = $(data).find("div.info-item div.label").text().trim();
+            let ench = $(data).find("span.enchantement").text().trim();
+            let sert = $(data).find("span.sertissage").text().trim();
+            let extra = "";
+            if(ench) {
+                extra += " [" + ench;
+                extra += (!sert)?"]":"";
+            };
+            if(ench && sert) extra+=" | ";
+            if(sert) {
+                extra += (!ench)?" [":"";
+                extra += sert + "]";
+            };
+
+            let link = $("a[href*="+item+"]");
+            link.find("img").attr("title", name+extra );
+            let icon = link.find("div.item").detach();
+            link.append( $("<div/>").attr("class","label")
+                        .append( icon )
+                        .append( $("<span/>").append( $("<b/>").text("  "+name) ) )
+                        .append( $("<strong/>").attr("style","font-size:10px;")
+                                .append( $("<span/>").attr("class","enchantement").text(" "+ench) )
+                                .append( $("<span/>").attr("class","sertissage").text(" "+sert) ) )
+                        );
+            details.push( $(link).prop("outerHTML") );
+            processItem(index + 1);
+        })
+        .fail(function() {
+            console.error("Error when processing item number ", item);
+            processItem(index + 1); // Proceed even if one request fails
+        });
+    }
+
 }
+
+
 
 function displayInfoItem(link,details) {
     $.get(link.attr("href") , function(data) {
