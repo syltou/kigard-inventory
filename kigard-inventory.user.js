@@ -5,7 +5,7 @@
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
 // @icon		 https://tournoi.kigard.fr/images/items/37.gif
-// @grant		none
+// @grant    GM_addStyle
 // ==/UserScript==
 
 //$("#header").remove();
@@ -81,15 +81,14 @@ changeMenu();
 //dfdfldkfdjfldfjdlkjflk
 
 if (page == "vue") {
-    if( $("div.bloc-vue").attr("class") == "bloc-vue vue_x2" ) localStorage.setItem("vue_x2",1);
-    else localStorage.setItem("vue_x2",0);
-    console.log("Type de vue: ", (vue_x2 ? "double" : "simple") );
+    updateViewSize();
 	addMonsterIDs();
 	addHideButton();
     //parseHisto();
     //if(!window.mobileCheck()) radarVue();
     //parseMonsterLogs();
     addGrid();
+    testTabs();
 }
 
 if (page == "empathie") {
@@ -144,6 +143,125 @@ if (page == "clan" && subp == "batiments") {
     //showStats();
     someTests();
 }
+
+
+function updateViewSize() {
+    //on page Vue
+
+    if( $("div.bloc-vue").attr("class") == "bloc-vue vue_x2" ) {
+        vue_x2 = 1;
+        localStorage.setItem("vue_x2",1);
+    }
+    else {
+        vue_x2 = 0;
+        localStorage.setItem("vue_x2",0);
+    }
+    console.log("Type de vue: ", (vue_x2 ? "double" : "simple") );
+}
+
+
+
+function testTabs() {
+
+    GM_addStyle(`
+
+.tab {
+  display: flex;
+  justify-content: space-evenly; /* Distribute space evenly */
+  width: 100%; /* Ensure the tabs container takes full width */
+  overflow: hidden;
+  border: none; //1px solid #332408;
+  background-color: #332408;
+}
+
+/* Style the buttons inside the tab */
+.tab button {
+  flex: 1;
+  text-align: center;
+  box-sizing: border-box;
+  background-color: #332408;
+  float: left;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 8px 5px 5px 5px;
+  transition: 0.3s;
+  font-weight: bold;
+  color: #f7e7be;
+  font-size: 1.1em;
+  line-height: 20px;
+  font-family: Verdana, Tahoma, Helvetica, sans-serif;
+}
+
+.tab:not(:last-child) {
+            border-right: none; /* Remove right border for all except last tab */
+        }
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+  background-color: #f7e7be;
+  color: #332408;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+  background-color: #f7e7be;
+  color: #332408;
+}
+
+/* Style the tab content */
+.tabcontent {
+  display: none;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-top: none;
+}
+`);
+
+    var tab = $("<div/>").attr("class","tab")
+    .append( $("<button/>").attr("class","tablinks active").on("click",{id: "selection"},tabfunc).text("Sélection") )
+    .append( $("<button/>").attr("class","tablinks").on("click",{id: "radar"},tabfunc).text("Radar") )
+
+    var tab1 = $("<div/>").attr("class","tabcontent").attr("id","selection").attr("style","display: block;")
+    .append( $("blockquote.vue").children().detach() )
+
+     var tab2 = $("<div/>").attr("class","tabcontent").attr("id","radar").attr("style","display: none;")
+    .append( $("<div/>").attr("id","radarContent") )
+
+    $("blockquote.vue").append( tab, tab1, tab2)
+    $("div.vue")
+        .append( $("#kicarteGo").parent().get() )
+        .append( $("#kicarteMessages").parent().get() )
+
+    radarVue()
+
+    function tabfunc(event) {
+
+        console.log(event.data.id)
+        // Declare all variables
+        var i, tabcontent, tablinks;
+
+        // Get all elements with class="tabcontent" and hide them
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+
+        // Get all elements with class="tablinks" and remove the class "active"
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+
+        // Show the current tab, and add an "active" class to the button that opened the tab
+        document.getElementById(event.data.id).style.display = "block";
+        event.currentTarget.className += " active";
+    }
+
+}
+
+
+
 
 
 
@@ -301,9 +419,26 @@ function someTests() {
             .attr("width","100").attr("height","100")
             .insertAfter(a);
     }
+
+
+    var dons = "Rapide, Transport,  Adaptation, Excellence, Sauvagerie, Endurance, Bravoure, Régénération, Alternance, Prudence, Ingéniosité";
+    dons = dons.split(",");
+
+    a = $("<p/>").insertAfter(a);
+    for(k=0;k<dons.length;k++) {
+        let don = dons[k].trim();
+        getDon(don,a);
+    }
 }
 
-
+function getDon(don,a) {
+    $.get("https://tournoi.kigard.fr/aide_public.php?id="+don+"&type=don", function(data) {
+        a=$("<div/>")
+            .append( $("<strong/>").text(don) )
+            .append( $(data).find("div.description") )
+            .insertAfter(a);
+    });
+}
 
 
 //---------------------------------------------------------------------------------------
@@ -1686,16 +1821,17 @@ function radarVue() {
     let taille_liste = ((persos.length+monstres.length)>55) ? "xx-small" : "normal";
     let interligne = ((persos.length+monstres.length)>55) ? "70%" : "100%";
 
-    $("h3").first().filter( function() {return ( $(this).text().includes("vue") || $(this).text().includes("Arène") )})
-        .append( $("<span/>").attr("style","margin-left:20px;font-size:x-small")
-                .append( $("<a/>").attr("id","toggleLinkVue").attr("href","#")
-                        .text( details_vue_shown ? "Cacher le radar" : "Montrer le radar")
-                        .on("click",toggleDetails) ) );
+    // $("h3").first().filter( function() {return ( $(this).text().includes("vue") || $(this).text().includes("Arène") )})
+    //     .append( $("<span/>").attr("style","margin-left:20px;font-size:x-small")
+    //             .append( $("<a/>").attr("id","toggleLinkVue").attr("href","#")
+    //                     .text( details_vue_shown ? "Cacher le radar" : "Montrer le radar")
+    //                     .on("click",toggleDetails) ) );
     $("<div/>").attr("id","textRadar").attr("style","text-align: left; font-style:italic; margin-top: 0px; margin-bottom: 15px;z-index:0")
         .append( $("<span/>").text(text + persos.length + " personnage" + sp + " et " + monstres.length + " monstre" + sm + ". "))
-        .insertBefore( $("div.vue ") )
-    //.apppend(
-        $("<div/>").attr("id","listRadar").insertBefore( $("#textRadar") );
+        .appendTo( $("#radarContent") );
+
+    $("<div/>").attr("id","listRadar").appendTo( $("#radarContent") );
+
 
     $.each( persos, function(index, value) {
         let name = $(this).parent().find("span.titre").eq(0);
@@ -1720,22 +1856,22 @@ function radarVue() {
         $("#listRadar").append($("<br/>"))
     });
 
-    let max_width = 0;
-    $("#listRadar>a").each( function() {
-        if($(this).width()>max_width) max_width=$(this).width();
-    });
-    let list_width = Math.min(max_width,150);
-    $("#listRadar>a").each( function() {
-        let trunk = Math.ceil($(this).text().trim().length * ($(this).width()/list_width-1) );
-        if( trunk>0 ) $(this).text( $(this).text().trim().slice(0,-trunk)+"..." );
-    });
-    $("#listRadar").attr("style","float:left;width:"+String(list_width+30)+"px;text-align: left; font-style:normal;margin-bottom:0px");
-    $("div.vue").css("float","center")
-    if(!details_vue_shown) {
-        $("#listRadar").hide();
-        $("#textRadar").hide();
-    }
-    else $("div.description_vue").css("left",String(list_width+20+346)+"px");
+    // let max_width = 0;
+    // $("#listRadar>a").each( function() {
+    //     if($(this).width()>max_width) max_width=$(this).width();
+    // });
+    // let list_width = Math.min(max_width,290);
+    // $("#listRadar>a").each( function() {
+    //     let trunk = Math.ceil($(this).text().trim().length * ($(this).width()/list_width-1) );
+    //     if( trunk>0 ) $(this).text( $(this).text().trim().slice(0,-trunk)+"..." );
+    // });
+    $("#listRadar").attr("style","float:right;width:300px;text-align: left; font-style:normal;margin-bottom:0px");
+    // $("div.vue").css("float","center")
+    // if(!details_vue_shown) {
+    //     $("#listRadar").hide();
+    //     $("#textRadar").hide();
+    // }
+    // else $("div.description_vue").css("left",String(list_width+20+346)+"px");
 
     function highlightCase() {
         let href = $(this).attr("href");
@@ -1757,8 +1893,8 @@ function radarVue() {
             i++;
             j++;
         } */
-        let pastille = $("<div/>").attr("id","pastille").attr("style","z-index: 2; width: 18px; height: 18px; text-align: center; position: absolute; font-size: 1em; background: #FF000088;"+
-                                                          "color: gold; border-radius: 0px; bottom: -18px; pointer-events: none; border: 0px solid red; font-family: monospace;").text(" ");
+        let pastille = $("<div/>").attr("id","pastille").attr("style","z-index: 2; width: "+String(vue_x2?36:18)+"px; height: "+String(vue_x2?36:18)+"px; text-align: center; position: absolute; font-size: 1em; background: #FF000088;"+
+                                                          "color: gold; border-radius: 0px; bottom: -"+String(vue_x2?36:18)+"px; pointer-events: none; border: 0px solid red; font-family: monospace;").text(" ");
         $("table.vue>tbody>tr").eq(i).find("td").eq(j).find("a").first().append( pastille );
     }
 
@@ -1766,33 +1902,24 @@ function radarVue() {
         $("#pastille").remove();
     }
 
-    function toggleDetails() {
-        if($("#listRadar").is(":visible")) {
-            $("#listRadar").hide();
-            $("#textRadar").hide();
-            $("#toggleLinkVue").text("Montrer le radar");
-            details_vue_shown = false;
-            localStorage.setItem('details_vue_shown',false);
-            $("div.description_vue").css("left","346px")
-        }
-        else {
-            $("#listRadar").show();
-            $("#textRadar").show();
-            $("#toggleLinkVue").text("Cacher le radar");
-            details_vue_shown = true;
-            localStorage.setItem('details_vue_shown',true);
-            $("div.description_vue").css("left",String(list_width+20+346)+"px")
-        }
-    }
-
-    $("<div/>").attr("id","test").attr("style","float:left").insertAfter($("#listRadar"))
-        .append( $("div.vue").get() )
-        .append( $("<br/>") )
-        .append( $("#kicarteGo").parent().get() )
-        .append( $("#kicarteMessages").parent().get() )
-        .append( $("<br/>") )
-        .append( $("<div/>").append("&nbsp;") );
-
+    // function toggleDetails() {
+    //     if($("#listRadar").is(":visible")) {
+    //         $("#listRadar").hide();
+    //         $("#textRadar").hide();
+    //         $("#toggleLinkVue").text("Montrer le radar");
+    //         details_vue_shown = false;
+    //         localStorage.setItem('details_vue_shown',false);
+    //         $("div.description_vue").css("left","346px")
+    //     }
+    //     else {
+    //         $("#listRadar").show();
+    //         $("#textRadar").show();
+    //         $("#toggleLinkVue").text("Cacher le radar");
+    //         details_vue_shown = true;
+    //         localStorage.setItem('details_vue_shown',true);
+    //         $("div.description_vue").css("left",String(list_width+20+346)+"px")
+    //     }
+    // }
 
 }
 
