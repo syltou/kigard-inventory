@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.6.6.1
+// @version	  1.6.6.2
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -9,7 +9,7 @@
 // ==/UserScript==
 
 $("#header").remove();
-
+$("blockquote img").css("height", "");
 
 
 window.mobileCheck = function() {
@@ -1610,20 +1610,18 @@ function statsTirage() {
             sumtotextra = sumtotextra+sumextra;
         }
         if( sumreg>0 ){
-            $(this).find("td:nth-last-child(1)").append( $("<span/>").attr("style","margin-left:5px;")
+            $(this).find("td:nth-last-child(1)").append( $("<span/>").attr("style","margin-left:5px;font-size:0.8em;")
                                                         .append( $("<b/>").append(`${sumreg+sumextra}`) )
-                                                        .append( $("<img/>").attr("src","images/interface/pa.gif").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-left:2px;") ) )
+                                                        .append( $("<img/>").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-left:2px;") ) )
         }
     })
-    console.log("cnt: ", cntreg)
-        console.log("cnt: ", cntextra)
-
-
     if( sumtotreg ) {
         if(cntextra==0) cntextra=1;
         $("div.label").append( $("<div/>").attr("style","margin-left:10px;")
-                              .append( $("<img/>").attr("src","images/interface/pa.gif").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-right:2px;") )
-                              .append( $("<i/>").attr("style","font-size:.7em").append(`${(sumtotreg/cntreg+sumtotextra/cntextra).toFixed(1)} (${(sumtotreg/cntreg).toFixed(1)}+${(sumtotextra/cntextra).toFixed(1)})` ) ) )
+                              .append( $("<b/>").attr("style","font-size:.8em")
+                                      .append(`${(sumtotreg/cntreg+sumtotextra/cntextra).toFixed(1)}`)
+                                      .append( $("<img/>").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-right:3px;margin-left:1px;") )
+                                      .append(`(${(sumtotreg/cntreg).toFixed(1)}+${(sumtotextra/cntextra).toFixed(1)})`) ) )
     }
 
 }
@@ -2001,15 +1999,16 @@ function radarVue() {
         // pv.attr("style","transform: rotate(90deg); left: 8px;")
         // pv.find("img").attr("height","100%")
         $("#listRadar").append(lien)
-        if ( pvtext ) {
-            $("blockquote img").css("height", "");
+        if ( pvtext ) {            
             let pvmax = Number(pvtext.split("/")[1])
             let pv = Number(pvtext.split("/")[0].split(" ")[1])
-            // console.log(pv, pvmax)
+            console.log(name, pv, pvmax)
+            let pvpct = (100.*pv/pvmax).toFixed(0);
+            console.log(pvpct)
             $("#listRadar").append( $("<div/>")
                                    .attr("class","mini_barre_pv").attr("title",pvtext)
-                                   .attr("style","transform: rotate(90deg);left: 8px;bottom: -1px;")
-                                   .append( $("<img/>").attr("src","images/interface/mini_barre_pv.gif").attr("style",`height: ${(100*pv/pvmax).toFixed(0)}%;`) ) )
+                                   .attr("style","transform: rotate(90deg);left: 8px;bottom: -2px;")
+                                   .append( $("<img/>").attr("src","images/interface/mini_barre_pv.gif").attr("style","height:"+String(pvpct)+"%") ) )
         }
         $("#listRadar").append($("<br/>"));
     });
