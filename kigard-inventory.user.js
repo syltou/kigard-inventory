@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.6.6
+// @version	  1.6.6.1
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -1620,6 +1620,7 @@ function statsTirage() {
 
 
     if( sumtotreg ) {
+        if(cntextra==0) cntextra=1;
         $("div.label").append( $("<div/>").attr("style","margin-left:10px;")
                               .append( $("<img/>").attr("src","images/interface/pa.gif").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-right:2px;") )
                               .append( $("<i/>").attr("style","font-size:.7em").append(`${(sumtotreg/cntreg+sumtotextra/cntextra).toFixed(1)} (${(sumtotreg/cntreg).toFixed(1)}+${(sumtotextra/cntextra).toFixed(1)})` ) ) )
