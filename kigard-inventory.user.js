@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.6.6.2
+// @version	  1.6.6.3
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -1546,8 +1546,7 @@ function copyListInventory() {
 //---------------------------------------------------------------------------------------
 
 function statsTirage() {
-    let cntreg=0, sumtotreg=0;
-    let cntextra=0, sumtotextra=0;
+    let cnt=0, sumtotreg=0, sumtotextra=0;
     $("#historique tr").each( function () {
         let sumreg=0, reg=0;
         let sumextra=0, extra=0;
@@ -1577,7 +1576,7 @@ function statsTirage() {
             }
         });
         if(reg) {
-            cntreg = cntreg+1;
+            cnt = cnt+1;
             sumtotreg = sumtotreg+sumreg;
         }
         $(this).find("i[class*='fa-regular fa-dice']").each( function() {
@@ -1606,22 +1605,19 @@ function statsTirage() {
             }
         });
         if(extra) {
-            cntextra = cntextra+1;
             sumtotextra = sumtotextra+sumextra;
         }
         if( sumreg>0 ){
             $(this).find("td:nth-last-child(1)").append( $("<span/>").attr("style","margin-left:5px;font-size:0.8em;")
-                                                        .append( $("<b/>").append(`${sumreg+sumextra}`) )
-                                                        .append( $("<img/>").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-left:2px;") ) )
+                                                        .append( $("<b/>").append(`${sumreg+sumextra}`) )                                   .append( $("<img/>").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-left:2px;") ) )
         }
     })
     if( sumtotreg ) {
-        if(cntextra==0) cntextra=1;
         $("div.label").append( $("<div/>").attr("style","margin-left:10px;")
                               .append( $("<b/>").attr("style","font-size:.8em")
-                                      .append(`${(sumtotreg/cntreg+sumtotextra/cntextra).toFixed(1)}`)
+                                      .append(`${((sumtotreg+sumtotextra)/cnt).toFixed(1)}`)
                                       .append( $("<img/>").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-right:3px;margin-left:1px;") )
-                                      .append(`(${(sumtotreg/cntreg).toFixed(1)}+${(sumtotextra/cntextra).toFixed(1)})`) ) )
+                                      .append(`(${(sumtotreg/cnt).toFixed(1)}+${(sumtotextra/cnt).toFixed(1)})`) ) )
     }
 
 }
