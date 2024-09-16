@@ -2013,18 +2013,20 @@ function logPVMonster( linkDOM, index) {
             $("#"+index+"PVloss").text( String(pvloss)+" " )
             $("#"+index+"PVicon").show()
             if ( $(data).find("#historique tr:last").text().includes("quitte") ) {
-                $("#"+index+"nidicon").show()
+                $("#"+index+"nidicon").hide()
             }
             else {
-                $("#"+index+"nidicon").attr("class","fa-regular fa-house-circle-xmark").attr("style","color:red;")
+                //$("#"+index+"nidicon").attr("class","fa-regular fa-house-circle-xmark").attr("style","color:red;")
                 $("#"+index+"nidicon").show()
             }
         }
         console.log("hours",hour)
         $("#"+index+"time").text( String((hour+9)%24)+"h"+String(min).padStart(2,'0')+"  " )
         $("#"+index+"clock").show()
-        if( now.getHours()+now.getMinutes()/60 > (hour+9)%24 + min/60 ) {
-            $("#"+index+"clock").attr("class","fa-solid fa-clock").attr("style","color:red;")
+        var next_turn = (hour+9)%24 + min/60
+        now = now.getHours()+now.getMinutes()/60
+        if( now>next_turn && (now-next_turn)<15 ) {
+            $("#"+index+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px;color:red;")
         }
 
     });
@@ -2037,8 +2039,11 @@ function radarVue() {
         $(data).find("table tbody tr").each( function() {
             let name = $(this).find("a").text().trim()
             let nbPAs = $(this).find("td[data-title=PA]").text().trim()
+            let tour = $(this).find("td[data-title=Tour]").text().trim()
             $("#"+name+"PAtxt").text( nbPAs )
+            $("#"+name+"time").text( tour )
             $("#"+name+"PAimg").show()
+            $("#"+name+"clock").show()
         });
     });
 
@@ -2046,8 +2051,11 @@ function radarVue() {
         $(data).find("table tbody td.fonce a.profil_popin[href*=pj]").each( function() {
             let name = $(this).text().trim()
             let nbPAs = $(this).parent().parent().parent().next().find("p:contains('PA : ')").text().split(" : ")[1].trim()
+            let tour = $(this).parent().parent().parent().next().find("p:contains('Tour : ')").text().split(" : ")[1].trim()
             $("#"+name+"PAtxt").text( nbPAs )
+            $("#"+name+"time").text( tour )
             $("#"+name+"PAimg").show()
+            $("#"+name+"clock").show()
         });
     });
 
@@ -2103,7 +2111,9 @@ function radarVue() {
         }
         $("#listRadar").append( $("<span/>").attr("style","margin-left:20px;font-size:0.8em;")
                                .append( $("<b/>").attr("id",name+"PAtxt") )
-                               .append( $("<img/>").attr("id",name+"PAimg").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-left:2px;").hide() ) )
+                               .append( $("<img/>").attr("id",name+"PAimg").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-left:2px;").hide() )
+                               .append( $("<i/>").attr("id",name+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px;margin-left:8px").hide() )
+                               .append( $("<b/>").attr("id",name+"time") ) )
         $("#listRadar").append($("<br/>"));
     });
     $("#listRadar").append($("<br/>"));
@@ -2116,11 +2126,11 @@ function radarVue() {
         linkDOM.css("line-height",interligne)
         $("#listRadar").append(linkDOM)
         $("#listRadar").append( $("<span/>").attr("style","margin-left:10px;font-size:0.8em;")
-                               .append( $("<i/>").attr("id",index+"clock").attr("class","fa-regular fa-clock").hide() )
+                               .append( $("<i/>").attr("id",index+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px").hide() )
                                .append( $("<b/>").attr("id",index+"time") )
-                               .append( $("<i/>").attr("id",index+"PVicon").attr("class","fa-solid fa-heart-crack").hide() )
+                               .append( $("<i/>").attr("id",index+"PVicon").attr("class","fa-solid fa-heart-crack").attr("style","margin-right:2px").hide() )
                                .append( $("<b/>").attr("id",index+"PVloss") )
-                               .append( $("<i/>").attr("id",index+"nidicon").attr("class","fa-regular fa-house-circle-check").attr("style","color:green;").hide() ) )
+                               .append( $("<i/>").attr("id",index+"nidicon").attr("class","fa-regular fa-triangle-exclamation").attr("style","margin-left:2px").attr("style","color:orange;").hide() ) )
 
         $("#listRadar").append($("<br/>"))
 
