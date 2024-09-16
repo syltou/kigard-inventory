@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.6.7
+// @version	  1.6.8
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -1976,10 +1976,40 @@ function getClanPAs( dict) {
     });
 }
 
+
+function sum(a) {var sum = 0; for (var i = 0; i < a.length; i++) sum += a[i]; return sum;}
+
+
+function logPVMonster( linkDOM, index) {
+    var link = $(linkDOM).attr("href")
+    var name = $(linkDOM).text()
+    $.get(link).done(function (data) {
+        var list_pv = []
+        var list_id = []
+        $(data).find("#historique tr").each( function(index) {
+            var actor = $(this).find("td:nth-child(2) a:first").text()
+            if( actor ) {
+                var actor_id = $(this).find("td:nth-child(2) a:first").attr("href").split("id=")[1].split("&type")[0]
+                var pv = Number( $(this).find("td:nth-child(3)").text().split(" PV")[0].split(" ")[1] )
+                if( actor!="" && !isNaN(pv) ) {
+                    if( !name.includes(actor) || ( name.includes(actor) && pv>0 ) ) {
+                        list_id.push(actor_id)
+                        list_pv.push(pv)
+                    }
+                }
+            }
+        });
+        console.log(list_pv)
+        console.log(list_id)
+        $("#"+index+"PVloss").text( String(sum(list_pv))+" " )
+        $("#"+index+"PVicon").show()
+    });
+}
+
+
 function radarVue() {
 
-    $.get("https://tournoi.kigard.fr/index.php?p=clan&g=membres")
-        .done( function(data) {
+    $.get("https://tournoi.kigard.fr/index.php?p=clan&g=membres").done( function(data) {
         $(data).find("table tbody tr").each( function() {
             let name = $(this).find("a").text().trim()
             let nbPAs = $(this).find("td[data-title=PA]").text().trim()
@@ -1996,8 +2026,6 @@ function radarVue() {
             $("#"+name+"PAimg").show()
         });
     });
-
-
 
     let text = "";
     if( $("h3").first().text().includes("vue") ) text = "Dans votre vue: ";
@@ -2033,13 +2061,13 @@ function radarVue() {
         let name = $(this).parent().find("span.titre").eq(0);
         let pvtext = $(this).parent().find("div.mini_barre_pv").attr("title");
         let clan = name.next().text();
-        let lien = $(this).parent().clone();
+        let linkDOM = $(this).parent().clone();
         name = name.text().trim()
-        lien.removeAttr("class").text(clan + " " + name)
-        lien.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
-        lien.css("font-size",taille_liste)
-        lien.css("line-height",interligne)
-        $("#listRadar").append(lien)
+        linkDOM.removeAttr("class").text(clan + " " + name)
+        linkDOM.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
+        linkDOM.css("font-size",taille_liste)
+        linkDOM.css("line-height",interligne)
+        $("#listRadar").append(linkDOM)
         if ( pvtext ) {
             let pvmax = Number(pvtext.split("/")[1])
             let pv = Number(pvtext.split("/")[0].split(" ")[1])
@@ -2057,13 +2085,19 @@ function radarVue() {
     $("#listRadar").append($("<br/>"));
     $.each( monstres, function(index, value) {
         let name = $(this).parent().find("span.titre").eq(0);
-        let lien = $(this).parent().clone();
-        lien.removeAttr("class").text( name.text() );
-        lien.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
-        lien.css("font-size",taille_liste)
-        lien.css("line-height",interligne)
-        $("#listRadar").append(lien)
+        let linkDOM = $(this).parent().clone();
+        linkDOM.removeAttr("class").text( name.text() );
+        linkDOM.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
+        linkDOM.css("font-size",taille_liste)
+        linkDOM.css("line-height",interligne)
+        $("#listRadar").append(linkDOM)
+        $("#listRadar").append( $("<span/>").attr("style","margin-left:20px;font-size:0.8em;")
+                               .append( $("<b/>").attr("id",index+"PVloss") )
+                               .append( $("<i/>").attr("id",index+"PVicon").attr("class","fa-solid fa-heart-crack").hide() ) )
         $("#listRadar").append($("<br/>"))
+
+        logPVMonster(linkDOM, index);
+
     });
 
     // let max_width = 0;
