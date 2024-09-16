@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.6.8
+// @version	  1.6.8.1
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -1986,8 +1986,12 @@ function logPVMonster( linkDOM, index) {
     $.get(link).done(function (data) {
         var list_pv = []
         var list_id = []
+        var hour = -1, min;
+        var now = new Date()
         $(data).find("#historique tr").each( function(index) {
-            var actor = $(this).find("td:nth-child(2) a:first").text()
+            var actor = $(this).find("td:nth-child(2) a:nth(0)").text()
+            var target = $(this).find("td:nth-child(2) a:nth(1)").text()
+            console.log(actor,target)
             if( actor ) {
                 var actor_id = $(this).find("td:nth-child(2) a:first").attr("href").split("id=")[1].split("&type")[0]
                 var pv = Number( $(this).find("td:nth-child(3)").text().split(" PV")[0].split(" ")[1] )
@@ -1998,11 +2002,31 @@ function logPVMonster( linkDOM, index) {
                     }
                 }
             }
+            if( actor!="" && name.includes(actor) && hour==-1 ) {
+                let time_txt = $(this).find("td:nth-child(1)").text()
+                hour = Number(time_txt.split("h")[0])
+                min = Number(time_txt.split("h")[1])
+            }
         });
-        console.log(list_pv)
-        console.log(list_id)
-        $("#"+index+"PVloss").text( String(sum(list_pv))+" " )
-        $("#"+index+"PVicon").show()
+        var pvloss = sum(list_pv)
+        if( pvloss < 0 ) {
+            $("#"+index+"PVloss").text( String(pvloss)+" " )
+            $("#"+index+"PVicon").show()
+            if ( $(data).find("#historique tr:last").text().includes("quitte") ) {
+                $("#"+index+"nidicon").show()
+            }
+            else {
+                $("#"+index+"nidicon").attr("class","fa-regular fa-house-circle-xmark").attr("style","color:red;")
+                $("#"+index+"nidicon").show()
+            }
+        }
+        console.log("hours",hour)
+        $("#"+index+"time").text( String((hour+9)%24)+"h"+String(min).padStart(2,'0')+"  " )
+        $("#"+index+"clock").show()
+        if( now.getHours()+now.getMinutes()/60 > (hour+9)%24 + min/60 ) {
+            $("#"+index+"clock").attr("class","fa-solid fa-clock").attr("style","color:red;")
+        }
+
     });
 }
 
@@ -2091,9 +2115,13 @@ function radarVue() {
         linkDOM.css("font-size",taille_liste)
         linkDOM.css("line-height",interligne)
         $("#listRadar").append(linkDOM)
-        $("#listRadar").append( $("<span/>").attr("style","margin-left:20px;font-size:0.8em;")
+        $("#listRadar").append( $("<span/>").attr("style","margin-left:10px;font-size:0.8em;")
+                               .append( $("<i/>").attr("id",index+"clock").attr("class","fa-regular fa-clock").hide() )
+                               .append( $("<b/>").attr("id",index+"time") )
+                               .append( $("<i/>").attr("id",index+"PVicon").attr("class","fa-solid fa-heart-crack").hide() )
                                .append( $("<b/>").attr("id",index+"PVloss") )
-                               .append( $("<i/>").attr("id",index+"PVicon").attr("class","fa-solid fa-heart-crack").hide() ) )
+                               .append( $("<i/>").attr("id",index+"nidicon").attr("class","fa-regular fa-house-circle-check").attr("style","color:green;").hide() ) )
+
         $("#listRadar").append($("<br/>"))
 
         logPVMonster(linkDOM, index);
