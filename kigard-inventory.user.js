@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.6.6.3
+// @version	  1.6.7
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -9,7 +9,7 @@
 // ==/UserScript==
 
 $("#header").remove();
-$("blockquote img").css("height", "");
+
 
 
 window.mobileCheck = function() {
@@ -81,6 +81,7 @@ changeMenu();
 //dfdfldkfdjfldfjdlkjflk
 
 if (page == "vue") {
+    $("blockquote img").css("height", "");
     updateViewSize();
     addMonsterIDs();
     addHideButton();
@@ -165,7 +166,31 @@ function displayListPJs() {
             $(this).remove();
     });
     $("#contenu").append( $("<div/>").attr("id","liste_pj") )
-    $("#liste_pj").load("https://tournoi.kigard.fr/liste_pj.php #page_profil_public > *");
+    $("#liste_pj").load("https://tournoi.kigard.fr/liste_pj.php #page_profil_public > *", function(response, status, xhr) {
+    if (status === "success") {
+        $("#historique tr>td:not([class]):nth-child(2)").attr("width","8%")
+        $("#historique tr").each( function(index) {
+            console.log(index)
+            let newcol = $("<td/>").attr("width","20%")
+            if( index==0 ) {
+                newcol.attr("class","fonce").append( "Diplomatie" )
+            }
+            else {
+                newcol.append( $("<span/>").attr("style","color:#AA7700;font-size:1em")
+                                      .append( $("<i/>").attr("class","fa-solid fa-square-question") )
+                                      .append( $("<input/>").attr("type","checkbox") ) )
+
+            }
+            $(this).append( newcol )
+        });
+        $("#historique tr>td[class=fonce]:nth-child(1)").attr("width","20%")
+        $("#historique tr>td[class=fonce]:nth-child(2)").attr("width","20%")
+        $("#historique tr>td[class=fonce]:nth-child(3)").attr("width","40%")
+    } else if (status === "error") {
+        console.log("An error occurred when loading the characters list: " + xhr.status + " " + xhr.statusText);
+    }
+});
+
 }
 
 function displayListClans() {
@@ -270,8 +295,6 @@ function addTabs() {
     radarVue()
 
     function tabfunc(event) {
-
-        console.log(event.data.id)
         // Declare all variables
         var i, tabcontent, tablinks;
 
@@ -1609,7 +1632,8 @@ function statsTirage() {
         }
         if( sumreg>0 ){
             $(this).find("td:nth-last-child(1)").append( $("<span/>").attr("style","margin-left:5px;font-size:0.8em;")
-                                                        .append( $("<b/>").append(`${sumreg+sumextra}`) )                                   .append( $("<img/>").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-left:2px;") ) )
+                                                        .append( $("<b/>").append(`${sumreg+sumextra}`) )
+                                                        .append( $("<img/>").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-left:2px;") ) )
         }
     })
     if( sumtotreg ) {
@@ -1621,7 +1645,6 @@ function statsTirage() {
     }
 
 }
-
 
 
 function parseHisto() {
@@ -1707,8 +1730,6 @@ function parseHisto() {
         let pj_list=[];
         let monster_list=[];
 
-        console.log(thename,thetype)
-
         var i;
         let techs_list = [];
         let techs = Object.keys(dicTechniques);
@@ -1751,10 +1772,10 @@ function parseHisto() {
             if (test==1) $(this).attr("style","background-color:#AABBDD");
             if (!(b.eq(0).text().includes(thename)) ) $(this).attr("style","background-color:#DDAABB");
         });
-        console.log(pj_list)
-        console.log(monster_list)
-        console.log(sorts_list)
-        console.log(techs_list)
+        // console.log(pj_list)
+        // console.log(monster_list)
+        // console.log(sorts_list)
+        // console.log(techs_list)
 
 /*         if(!window.mobileCheck()) {
 
@@ -1947,8 +1968,36 @@ function parseMonsterLogs() {
     }
 }
 
+function getClanPAs( dict) {
+    $.get("https://tournoi.kigard.fr/index.php?p=clan&g=membres", function(data) {
+        $(data).find("table tbody tr").each( function() {
+            dict[ $(this).find("a").text().trim() ] = $(this).find("td[data-title=PA]").text().trim()
+        });
+    });
+}
 
 function radarVue() {
+
+    $.get("https://tournoi.kigard.fr/index.php?p=clan&g=membres")
+        .done( function(data) {
+        $(data).find("table tbody tr").each( function() {
+            let name = $(this).find("a").text().trim()
+            let nbPAs = $(this).find("td[data-title=PA]").text().trim()
+            $("#"+name+"PAtxt").text( nbPAs )
+            $("#"+name+"PAimg").show()
+        });
+    });
+
+    $.get("https://tournoi.kigard.fr/index.php?p=empathie").done( function(data) {
+        $(data).find("table tbody td.fonce a.profil_popin[href*=pj]").each( function() {
+            let name = $(this).text().trim()
+            let nbPAs = $(this).parent().parent().parent().next().find("p:contains('PA : ')").text().split(" : ")[1].trim()
+            $("#"+name+"PAtxt").text( nbPAs )
+            $("#"+name+"PAimg").show()
+        });
+    });
+
+
 
     let text = "";
     if( $("h3").first().text().includes("vue") ) text = "Dans votre vue: ";
@@ -1983,29 +2032,26 @@ function radarVue() {
     $.each( persos, function(index, value) {
         let name = $(this).parent().find("span.titre").eq(0);
         let pvtext = $(this).parent().find("div.mini_barre_pv").attr("title");
-
-
-
         let clan = name.next().text();
         let lien = $(this).parent().clone();
-        lien.removeAttr("class").text(clan + " " + name.text())
+        name = name.text().trim()
+        lien.removeAttr("class").text(clan + " " + name)
         lien.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
         lien.css("font-size",taille_liste)
         lien.css("line-height",interligne)
-        // pv.attr("style","transform: rotate(90deg); left: 8px;")
-        // pv.find("img").attr("height","100%")
         $("#listRadar").append(lien)
-        if ( pvtext ) {            
+        if ( pvtext ) {
             let pvmax = Number(pvtext.split("/")[1])
             let pv = Number(pvtext.split("/")[0].split(" ")[1])
-            console.log(name, pv, pvmax)
             let pvpct = (100.*pv/pvmax).toFixed(0);
-            console.log(pvpct)
             $("#listRadar").append( $("<div/>")
                                    .attr("class","mini_barre_pv").attr("title",pvtext)
                                    .attr("style","transform: rotate(90deg);left: 8px;bottom: -2px;")
                                    .append( $("<img/>").attr("src","images/interface/mini_barre_pv.gif").attr("style","height:"+String(pvpct)+"%") ) )
         }
+        $("#listRadar").append( $("<span/>").attr("style","margin-left:20px;font-size:0.8em;")
+                               .append( $("<b/>").attr("id",name+"PAtxt") )
+                               .append( $("<img/>").attr("id",name+"PAimg").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-left:2px;").hide() ) )
         $("#listRadar").append($("<br/>"));
     });
     $("#listRadar").append($("<br/>"));
