@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.6.8.1
+// @version	  1.6.9
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -1994,7 +1994,9 @@ function logPVMonster( linkDOM, index) {
             console.log(actor,target)
             if( actor ) {
                 var actor_id = $(this).find("td:nth-child(2) a:first").attr("href").split("id=")[1].split("&type")[0]
-                var pv = Number( $(this).find("td:nth-child(3)").text().split(" PV")[0].split(" ")[1] )
+                var pvtemp = $(this).find("td:nth-child(3)").text().split(" PV")[0].split(" ")
+                var pv = Number(pvtemp[pvtemp.length-1])
+                console.log(pv)
                 if( actor!="" && !isNaN(pv) ) {
                     if( !name.includes(actor) || ( name.includes(actor) && pv>0 ) ) {
                         list_id.push(actor_id)
