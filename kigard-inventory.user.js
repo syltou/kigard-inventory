@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.6.9
+// @version	  1.7.0
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -161,45 +161,204 @@ if (page == "clan" && subp == "batiments") {
 
 
 function displayListPJs() {
+
+    function selectDiplo() {
+        var diplo = JSON.parse(localStorage.getItem("diploPJ"))
+        var id = $(this).attr("id")
+        var pj = 0
+        switch( id[0] ) {
+            case 'a':
+                $(this).removeClass("fa-regular")
+                $(this).addClass("fa-solid")
+                $(this).css("color","green")
+                pj = id.split("ally")[1]
+                $("#neutral"+pj).removeClass("fa-solid")
+                $("#neutral"+pj).addClass("fa-regular")
+                $("#neutral"+pj).css("color","")
+                $("#foe"+pj).removeClass("fa-solid")
+                $("#foe"+pj).addClass("fa-regular")
+                $("#foe"+pj).css("color","")
+                diplo[pj] = 0;
+                break;
+
+            case 'n':
+                $(this).removeClass("fa-regular")
+                $(this).addClass("fa-solid")
+                $(this).css("color","orange")
+                pj = id.split("neutral")[1]
+                $("#ally"+pj).removeClass("fa-solid")
+                $("#ally"+pj).addClass("fa-regular")
+                $("#ally"+pj).css("color","")
+                $("#foe"+pj).removeClass("fa-solid")
+                $("#foe"+pj).addClass("fa-regular")
+                $("#foe"+pj).css("color","")
+                diplo[pj] = 1;
+                break;
+
+            case 'f':
+                $(this).removeClass("fa-regular")
+                $(this).addClass("fa-solid")
+                $(this).css("color","red")
+                pj = id.split("foe")[1]
+                $("#neutral"+pj).removeClass("fa-solid")
+                $("#neutral"+pj).addClass("fa-regular")
+                $("#neutral"+pj).css("color","")
+                $("#ally"+pj).removeClass("fa-solid")
+                $("#ally"+pj).addClass("fa-regular")
+                $("#ally"+pj).css("color","")
+                diplo[pj] = 2;
+                break;
+        }
+        localStorage.setItem("diploPJ",JSON.stringify(diplo));
+    }
+
     $("#contenu").children().each( function() {
         if( $(this).attr("id") != "header" && $(this).attr("id") != "menu" )
             $(this).remove();
     });
     $("#contenu").append( $("<div/>").attr("id","liste_pj") )
     $("#liste_pj").load("https://tournoi.kigard.fr/liste_pj.php #page_profil_public > *", function(response, status, xhr) {
-    if (status === "success") {
-        $("#historique tr>td:not([class]):nth-child(2)").attr("width","8%")
-        $("#historique tr").each( function(index) {
-            console.log(index)
-            let newcol = $("<td/>").attr("width","20%")
-            if( index==0 ) {
-                newcol.attr("class","fonce").append( "Diplomatie" )
+        if (status === "success") {
+            var diplo = (v=localStorage.getItem("diploPJ")) ? JSON.parse(v) : {};
+            if( Object.keys(diplo).length == 0 ) {
+                $("#historique tr:not(:first) td:nth-child(1) a").each( function(index) {
+                    diplo[$(this).attr("href").split("?id=")[1].split("&type")[0]] = 1
+                })
+                localStorage.setItem("diploPJ",JSON.stringify(diplo));
             }
-            else {
-                newcol.append( $("<span/>").attr("style","color:#AA7700;font-size:1em")
-                                      .append( $("<i/>").attr("class","fa-solid fa-square-question") )
-                                      .append( $("<input/>").attr("type","checkbox") ) )
+            $("#historique tr>td:not([class]):nth-child(2)").attr("width","8%")
+            $("#historique tr:first").append( $("<td/>").attr("width","20%").attr("class","fonce").append( "Diplomatie" ) )
+            $("#historique tr:not(:first)").each( function(index) {
+                var id = $(this).find("td:nth-child(1) a").attr("href").split("?id=")[1].split("&type")[0]
+                var code = diplo[id];
+                if(code==undefined) {
+                    code = 1
+                    diplo[id] = 1;
+                }
+                $(this).append( $("<td/>")
+                               .attr("width","20%")
+                               .append( $("<div/>")
+                                       .append( $("<span/>").attr("id","ally"+id).attr("class",diplo[id]==0?"fa-solid fa-circle-check":"fa-regular fa-circle-check").css("color",diplo[id]==0?"green":"").on("click", selectDiplo) )
+                                       .append( "&nbsp;&nbsp;" )
+                                       .append( $("<span/>").attr("id","neutral"+id).attr("class",diplo[id]==1?"fa-solid fa-circle-question":"fa-regular fa-circle-question").css("color",diplo[id]==1?"orange":"").on("click", selectDiplo) )
+                                       .append( "&nbsp;&nbsp;" )
+                                       .append( $("<span/>").attr("id","foe"+id).attr("class",diplo[id]==2?"fa-solid fa-circle-xmark":"fa-regular fa-circle-xmark").css("color",diplo[id]==2?"red":"").on("click", selectDiplo) ) ) )
 
-            }
-            $(this).append( newcol )
-        });
-        $("#historique tr>td[class=fonce]:nth-child(1)").attr("width","20%")
-        $("#historique tr>td[class=fonce]:nth-child(2)").attr("width","20%")
-        $("#historique tr>td[class=fonce]:nth-child(3)").attr("width","40%")
-    } else if (status === "error") {
-        console.log("An error occurred when loading the characters list: " + xhr.status + " " + xhr.statusText);
-    }
-});
+            });
+            $("#historique tr>td[class=fonce]:nth-child(1)").attr("width","20%")
+            $("#historique tr>td[class=fonce]:nth-child(2)").attr("width","20%")
+            $("#historique tr>td[class=fonce]:nth-child(3)").attr("width","40%")
+        } else if (status === "error") {
+            console.log("An error occurred when loading the characters list: " + xhr.status + " " + xhr.statusText);
+        }
+    });
 
 }
 
+
+function updateClanMembersDiplo( clanid, state) {
+    $.get("profil_public.php?id="+clanid+"&type=clan").done( function (data) {
+        var diploM = (v=localStorage.getItem("diploPJ")) ? JSON.parse(v) : {};
+        $(data).find("table tr:not(:first) td:first-child a").each( function() {
+            var id = $(this).attr("href").split("id=")[1].split("&")[0]
+            diploM[id] = state;
+        });
+        localStorage.setItem("diploPJ",JSON.stringify(diploM));
+    });
+}
+
+
 function displayListClans() {
+
+    function selectDiplo() {
+        var diplo = JSON.parse(localStorage.getItem("diploClan"))
+        var id = $(this).attr("id")
+        var clan = 0
+        switch( id[0] ) {
+            case 'a':
+                $(this).removeClass("fa-regular")
+                $(this).addClass("fa-solid")
+                $(this).css("color","green")
+                clan = id.split("ally")[1]
+                $("#neutral"+clan).removeClass("fa-solid")
+                $("#neutral"+clan).addClass("fa-regular")
+                $("#neutral"+clan).css("color","")
+                $("#foe"+clan).removeClass("fa-solid")
+                $("#foe"+clan).addClass("fa-regular")
+                $("#foe"+clan).css("color","")
+                diplo[clan] = 0;
+                updateClanMembersDiplo( clan, 0)
+                break;
+
+            case 'n':
+                $(this).removeClass("fa-regular")
+                $(this).addClass("fa-solid")
+                $(this).css("color","orange")
+                clan = id.split("neutral")[1]
+                $("#ally"+clan).removeClass("fa-solid")
+                $("#ally"+clan).addClass("fa-regular")
+                $("#ally"+clan).css("color","")
+                $("#foe"+clan).removeClass("fa-solid")
+                $("#foe"+clan).addClass("fa-regular")
+                $("#foe"+clan).css("color","")
+                diplo[clan] = 1;
+                updateClanMembersDiplo( clan, 1)
+                break;
+
+            case 'f':
+                $(this).removeClass("fa-regular")
+                $(this).addClass("fa-solid")
+                $(this).css("color","red")
+                clan = id.split("foe")[1]
+                $("#neutral"+clan).removeClass("fa-solid")
+                $("#neutral"+clan).addClass("fa-regular")
+                $("#neutral"+clan).css("color","")
+                $("#ally"+clan).removeClass("fa-solid")
+                $("#ally"+clan).addClass("fa-regular")
+                $("#ally"+clan).css("color","")
+                diplo[clan] = 2;
+                updateClanMembersDiplo( clan, 2)
+                break;
+        }
+        localStorage.setItem("diploClan",JSON.stringify(diplo));
+    }
+
     $("#contenu").children().each( function() {
         if( $(this).attr("id") != "header" && $(this).attr("id") != "menu" )
             $(this).remove();
     });
     $("#contenu").append( $("<div/>").attr("id","liste_clan") )
-    $("#liste_clan").load("https://tournoi.kigard.fr/liste_clan.php #page_profil_public > *");
+    $("#liste_clan").load("https://tournoi.kigard.fr/liste_clan.php #page_profil_public > *", function(response, status, xhr) {
+        if (status === "success") {
+            var diplo = (v=localStorage.getItem("diploClan")) ? JSON.parse(v) : {};
+            if( Object.keys(diplo).length == 0 ) {
+                $("#historique tr:not(:first) td:nth-child(1) a").each( function(index) {
+                    diplo[$(this).attr("href").split("?id=")[1].split("&type")[0]] = 1
+                })
+                localStorage.setItem("diploClan",JSON.stringify(diplo));
+            }
+            $("#historique tr>td:not([class]):nth-child(2)").attr("width","8%")
+            $("#historique tr:first").append( $("<td/>").attr("width","20%").attr("class","fonce").append( "Diplomatie" ) )
+            $("#historique tr:not(:first)").each( function(index) {
+                var id = $(this).find("td:nth-child(1) a").attr("href").split("?id=")[1].split("&type")[0]
+                $(this).append( $("<td/>")
+                               .attr("width","20%")
+                               .append( $("<div/>")
+                                       .append( $("<span/>").attr("id","ally"+id).attr("class",diplo[id]==0?"fa-solid fa-circle-check":"fa-regular fa-circle-check").css("color",diplo[id]==0?"green":"").on("click", selectDiplo) )
+                                       .append( "&nbsp;&nbsp;" )
+                                       .append( $("<span/>").attr("id","neutral"+id).attr("class",diplo[id]==1?"fa-solid fa-circle-question":"fa-regular fa-circle-question").css("color",diplo[id]==1?"orange":"").on("click", selectDiplo) )
+                                       .append( "&nbsp;&nbsp;" )
+                                       .append( $("<span/>").attr("id","foe"+id).attr("class",diplo[id]==2?"fa-solid fa-circle-xmark":"fa-regular fa-circle-xmark").css("color",diplo[id]==2?"red":"").on("click", selectDiplo) ) ) )
+
+            });
+            $("#historique tr>td[class=fonce]:nth-child(1)").attr("width","20%")
+            $("#historique tr>td[class=fonce]:nth-child(2)").attr("width","20%")
+            $("#historique tr>td[class=fonce]:nth-child(3)").attr("width","40%")
+        } else if (status === "error") {
+            console.log("An error occurred when loading the clans list: " + xhr.status + " " + xhr.statusText);
+        }
+    });
+
 }
 
 
@@ -1991,14 +2150,13 @@ function logPVMonster( linkDOM, index) {
         $(data).find("#historique tr").each( function(index) {
             var actor = $(this).find("td:nth-child(2) a:nth(0)").text()
             var target = $(this).find("td:nth-child(2) a:nth(1)").text()
-            console.log(actor,target)
             if( actor ) {
                 var actor_id = $(this).find("td:nth-child(2) a:first").attr("href").split("id=")[1].split("&type")[0]
                 var pvtemp = $(this).find("td:nth-child(3)").text().split(" PV")[0].split(" ")
                 var pv = Number(pvtemp[pvtemp.length-1])
-                console.log(pv)
+                // console.log(pv)
                 if( actor!="" && !isNaN(pv) ) {
-                    if( !name.includes(actor) || ( name.includes(actor) && pv>0 ) ) {
+                    if( !name.includes(actor) || ( name.includes(actor) && target=="" ) ) {
                         list_id.push(actor_id)
                         list_pv.push(pv)
                     }
@@ -2022,7 +2180,7 @@ function logPVMonster( linkDOM, index) {
                 $("#"+index+"nidicon").show()
             }
         }
-        console.log("hours",hour)
+        // console.log("hours",hour)
         $("#"+index+"time").text( String((hour+9)%24)+"h"+String(min).padStart(2,'0')+"  " )
         $("#"+index+"clock").show()
         var next_turn = (hour+9)%24 + min/60
@@ -2031,6 +2189,29 @@ function logPVMonster( linkDOM, index) {
             $("#"+index+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px;color:red;")
         }
 
+    });
+}
+
+function logIDPJ( linkDOM, last) {
+    var link = $(linkDOM).attr("href")
+    $.get(link).done(function (data) {
+        var name = $(data).find("div.description a.profil_popin").text()
+        var id = $(data).find("div.description a.profil_popin").attr("href").split("id=")[1].split("&")[0]
+        $(linkDOM).attr("id",id)
+        if(last) {
+            var diplo = JSON.parse(localStorage.getItem("diploPJ"))
+            $("a.in-radar").each( function() {
+                var code = diplo[$(this).attr("id")]
+                switch(code) {
+                    case 0:
+                        $(this).css("color","green")
+                        break;
+                    case 2:
+                        $(this).css("color","red")
+                        break;
+                }
+            });
+        }
     });
 }
 
@@ -2101,6 +2282,7 @@ function radarVue() {
         linkDOM.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
         linkDOM.css("font-size",taille_liste)
         linkDOM.css("line-height",interligne)
+        linkDOM.attr("class","in-radar")
         $("#listRadar").append(linkDOM)
         if ( pvtext ) {
             let pvmax = Number(pvtext.split("/")[1])
@@ -2117,6 +2299,8 @@ function radarVue() {
                                .append( $("<i/>").attr("id",name+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px;margin-left:8px").hide() )
                                .append( $("<b/>").attr("id",name+"time") ) )
         $("#listRadar").append($("<br/>"));
+
+        logIDPJ(linkDOM, (index==(persos.length-1))?true:false)
     });
     $("#listRadar").append($("<br/>"));
     $.each( monstres, function(index, value) {
@@ -2204,6 +2388,9 @@ function radarVue() {
     //         $("div.description_vue").css("left",String(list_width+20+346)+"px")
     //     }
     // }
+
+
+
 
 }
 
