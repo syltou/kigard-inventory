@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.7.0
+// @version	  1.7.1
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -10,6 +10,11 @@
 
 $("#header").remove();
 
+var myred = "#CC0000"
+var myyellow = "#D4A253"
+var mygreen = "#009900"
+var myrose = "#E8A8B0"//"#CC6677"
+var mylilac = "#C3B3E5" //#7766CC"
 
 
 window.mobileCheck = function() {
@@ -170,7 +175,7 @@ function displayListPJs() {
             case 'a':
                 $(this).removeClass("fa-regular")
                 $(this).addClass("fa-solid")
-                $(this).css("color","green")
+                $(this).css("color",mygreen)
                 pj = id.split("ally")[1]
                 $("#neutral"+pj).removeClass("fa-solid")
                 $("#neutral"+pj).addClass("fa-regular")
@@ -184,7 +189,7 @@ function displayListPJs() {
             case 'n':
                 $(this).removeClass("fa-regular")
                 $(this).addClass("fa-solid")
-                $(this).css("color","orange")
+                $(this).css("color",myyellow)
                 pj = id.split("neutral")[1]
                 $("#ally"+pj).removeClass("fa-solid")
                 $("#ally"+pj).addClass("fa-regular")
@@ -198,7 +203,7 @@ function displayListPJs() {
             case 'f':
                 $(this).removeClass("fa-regular")
                 $(this).addClass("fa-solid")
-                $(this).css("color","red")
+                $(this).css("color",myred)
                 pj = id.split("foe")[1]
                 $("#neutral"+pj).removeClass("fa-solid")
                 $("#neutral"+pj).addClass("fa-regular")
@@ -238,11 +243,11 @@ function displayListPJs() {
                 $(this).append( $("<td/>")
                                .attr("width","20%")
                                .append( $("<div/>")
-                                       .append( $("<span/>").attr("id","ally"+id).attr("class",diplo[id]==0?"fa-solid fa-circle-check":"fa-regular fa-circle-check").css("color",diplo[id]==0?"green":"").on("click", selectDiplo) )
+                                       .append( $("<span/>").attr("id","ally"+id).attr("class",diplo[id]==0?"fa-solid fa-circle-check":"fa-regular fa-circle-check").css("color",diplo[id]==0?mygreen:"").on("click", selectDiplo) )
                                        .append( "&nbsp;&nbsp;" )
-                                       .append( $("<span/>").attr("id","neutral"+id).attr("class",diplo[id]==1?"fa-solid fa-circle-question":"fa-regular fa-circle-question").css("color",diplo[id]==1?"orange":"").on("click", selectDiplo) )
+                                       .append( $("<span/>").attr("id","neutral"+id).attr("class",diplo[id]==1?"fa-solid fa-circle-question":"fa-regular fa-circle-question").css("color",diplo[id]==1?myyellow:"").on("click", selectDiplo) )
                                        .append( "&nbsp;&nbsp;" )
-                                       .append( $("<span/>").attr("id","foe"+id).attr("class",diplo[id]==2?"fa-solid fa-circle-xmark":"fa-regular fa-circle-xmark").css("color",diplo[id]==2?"red":"").on("click", selectDiplo) ) ) )
+                                       .append( $("<span/>").attr("id","foe"+id).attr("class",diplo[id]==2?"fa-solid fa-circle-xmark":"fa-regular fa-circle-xmark").css("color",diplo[id]==2?myred:"").on("click", selectDiplo) ) ) )
 
             });
             $("#historique tr>td[class=fonce]:nth-child(1)").attr("width","20%")
@@ -278,7 +283,7 @@ function displayListClans() {
             case 'a':
                 $(this).removeClass("fa-regular")
                 $(this).addClass("fa-solid")
-                $(this).css("color","green")
+                $(this).css("color",mygreen)
                 clan = id.split("ally")[1]
                 $("#neutral"+clan).removeClass("fa-solid")
                 $("#neutral"+clan).addClass("fa-regular")
@@ -293,7 +298,7 @@ function displayListClans() {
             case 'n':
                 $(this).removeClass("fa-regular")
                 $(this).addClass("fa-solid")
-                $(this).css("color","orange")
+                $(this).css("color",myyellow)
                 clan = id.split("neutral")[1]
                 $("#ally"+clan).removeClass("fa-solid")
                 $("#ally"+clan).addClass("fa-regular")
@@ -308,7 +313,7 @@ function displayListClans() {
             case 'f':
                 $(this).removeClass("fa-regular")
                 $(this).addClass("fa-solid")
-                $(this).css("color","red")
+                $(this).css("color",myred)
                 clan = id.split("foe")[1]
                 $("#neutral"+clan).removeClass("fa-solid")
                 $("#neutral"+clan).addClass("fa-regular")
@@ -344,11 +349,11 @@ function displayListClans() {
                 $(this).append( $("<td/>")
                                .attr("width","20%")
                                .append( $("<div/>")
-                                       .append( $("<span/>").attr("id","ally"+id).attr("class",diplo[id]==0?"fa-solid fa-circle-check":"fa-regular fa-circle-check").css("color",diplo[id]==0?"green":"").on("click", selectDiplo) )
+                                       .append( $("<span/>").attr("id","ally"+id).attr("class",diplo[id]==0?"fa-solid fa-circle-check":"fa-regular fa-circle-check").css("color",diplo[id]==0?mygreen:"").on("click", selectDiplo) )
                                        .append( "&nbsp;&nbsp;" )
-                                       .append( $("<span/>").attr("id","neutral"+id).attr("class",diplo[id]==1?"fa-solid fa-circle-question":"fa-regular fa-circle-question").css("color",diplo[id]==1?"orange":"").on("click", selectDiplo) )
+                                       .append( $("<span/>").attr("id","neutral"+id).attr("class",diplo[id]==1?"fa-solid fa-circle-question":"fa-regular fa-circle-question").css("color",diplo[id]==1?myyellow:"").on("click", selectDiplo) )
                                        .append( "&nbsp;&nbsp;" )
-                                       .append( $("<span/>").attr("id","foe"+id).attr("class",diplo[id]==2?"fa-solid fa-circle-xmark":"fa-regular fa-circle-xmark").css("color",diplo[id]==2?"red":"").on("click", selectDiplo) ) ) )
+                                       .append( $("<span/>").attr("id","foe"+id).attr("class",diplo[id]==2?"fa-solid fa-circle-xmark":"fa-regular fa-circle-xmark").css("color",diplo[id]==2?myred:"").on("click", selectDiplo) ) ) )
 
             });
             $("#historique tr>td[class=fonce]:nth-child(1)").attr("width","20%")
@@ -1928,8 +1933,8 @@ function parseHisto() {
                     }
                 }
             });
-            if (test==1) $(this).attr("style","background-color:#AABBDD");
-            if (!(b.eq(0).text().includes(thename)) ) $(this).attr("style","background-color:#DDAABB");
+            if (test==1) $(this).css("background-color",mylilac) // .attr("style","background-color:#AABBDD");
+            if (!(b.eq(0).text().includes(thename)) ) $(this).css("background-color",myrose) // .attr("style","background-color:#DDAABB");
         });
         // console.log(pj_list)
         // console.log(monster_list)
@@ -2180,13 +2185,15 @@ function logPVMonster( linkDOM, index) {
                 $("#"+index+"nidicon").show()
             }
         }
-        // console.log("hours",hour)
-        $("#"+index+"time").text( String((hour+9)%24)+"h"+String(min).padStart(2,'0')+"  " )
-        $("#"+index+"clock").show()
         var next_turn = (hour+9)%24 + min/60
         now = now.getHours()+now.getMinutes()/60
         if( now>next_turn && (now-next_turn)<15 ) {
-            $("#"+index+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px;color:red;")
+            $("#"+index+"time").text( "av."+String((hour+15)%24).padStart(2,'0')+"h"+String(min).padStart(2,'0') )
+            $("#"+index+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px;color:"+myred).show()
+        }
+        else {
+            $("#"+index+"time").text( "ap."+String((hour+9)%24).padStart(2,'0')+"h"+String(min).padStart(2,'0') )
+            $("#"+index+"clock").show()
         }
 
     });
@@ -2204,10 +2211,10 @@ function logIDPJ( linkDOM, last) {
                 var code = diplo[$(this).attr("id")]
                 switch(code) {
                     case 0:
-                        $(this).css("color","green")
+                        $(this).css("color",mygreen)
                         break;
                     case 2:
-                        $(this).css("color","red")
+                        $(this).css("color",myred)
                         break;
                 }
             });
@@ -2223,10 +2230,16 @@ function radarVue() {
             let name = $(this).find("a").text().trim()
             let nbPAs = $(this).find("td[data-title=PA]").text().trim()
             let tour = $(this).find("td[data-title=Tour]").text().trim()
+            let pvs = $(this).find("div.barre_pv span").text()
+            let pvloss = pvs.split(" /")[0].split(": ")[1] - pvs.split("/ ")[1]
             $("#"+name+"PAtxt").text( nbPAs )
             $("#"+name+"time").text( tour )
             $("#"+name+"PAimg").show()
             $("#"+name+"clock").show()
+            if( pvloss<0 ) {
+                $("#"+name+"PVloss").text( String(pvloss) )
+                $("#"+name+"PVicon").show()
+            }
         });
     });
 
@@ -2235,16 +2248,22 @@ function radarVue() {
             let name = $(this).text().trim()
             let nbPAs = $(this).parent().parent().parent().next().find("p:contains('PA : ')").text().split(" : ")[1].trim()
             let tour = $(this).parent().parent().parent().next().find("p:contains('Tour : ')").text().split(" : ")[1].trim()
+            let pvs = $(this).parent().parent().parent().next().find("div.barre_pv span").text()
+            let pvloss = pvs.split(" /")[0].split(": ")[1] - pvs.split("/ ")[1]
             $("#"+name+"PAtxt").text( nbPAs )
             $("#"+name+"time").text( tour )
             $("#"+name+"PAimg").show()
             $("#"+name+"clock").show()
+            if( pvloss<0 ) {
+                $("#"+name+"PVloss").text( String(pvloss) )
+                $("#"+name+"PVicon").show()
+            }
         });
     });
 
     let text = "";
-    if( $("h3").first().text().includes("vue") ) text = "Dans votre vue: ";
-    else text = "Dans cette arène: ";
+    // if( $("h3").first().text().includes("vue") ) text = "Dans votre vue: ";
+    // else text = "Dans cette arène: ";
 
     let top = $("table.vue>tbody>tr").first().find("td").first().text()
     let left = $("table.vue>tbody>tr").last().find("td").eq(1).text()
@@ -2265,16 +2284,15 @@ function radarVue() {
     //             .append( $("<a/>").attr("id","toggleLinkVue").attr("href","#")
     //                     .text( details_vue_shown ? "Cacher le radar" : "Montrer le radar")
     //                     .on("click",toggleDetails) ) );
-    $("<div/>").attr("id","textRadar").attr("style","text-align: left; font-style:italic; margin-top: 0px; margin-bottom: 15px;z-index:0")
-        .append( $("<span/>").text(text + persos.length + " personnage" + sp + " et " + monstres.length + " monstre" + sm + ". "))
-        .appendTo( $("#radarContent") );
+    // $("<div/>").attr("id","textRadarPJ").attr("style","text-align: left; font-style:italic; margin-top: 0px; margin-bottom: 15px;z-index:0")
+    //     .append( $("<span/>").text(persos.length + " personnage" + sp + " :"))
+    //     .appendTo( $("#radarContent") );
 
-    $("<div/>").attr("id","listRadar").appendTo( $("#radarContent") );
-
-
+    $("<div/>").attr("id","listRadarPJ").appendTo( $("#radarContent") );
+    $("#listRadarPJ").append($("<br/>"));
     $.each( persos, function(index, value) {
         let name = $(this).parent().find("span.titre").eq(0);
-        let pvtext = $(this).parent().find("div.mini_barre_pv").attr("title");
+        // let pvtext = $(this).parent().find("div.mini_barre_pv").attr("title");
         let clan = name.next().text();
         let linkDOM = $(this).parent().clone();
         name = name.text().trim()
@@ -2283,26 +2301,35 @@ function radarVue() {
         linkDOM.css("font-size",taille_liste)
         linkDOM.css("line-height",interligne)
         linkDOM.attr("class","in-radar")
-        $("#listRadar").append(linkDOM)
-        if ( pvtext ) {
-            let pvmax = Number(pvtext.split("/")[1])
-            let pv = Number(pvtext.split("/")[0].split(" ")[1])
-            let pvpct = (100.*pv/pvmax).toFixed(0);
-            $("#listRadar").append( $("<div/>")
-                                   .attr("class","mini_barre_pv").attr("title",pvtext)
-                                   .attr("style","transform: rotate(90deg);left: 8px;bottom: -2px;")
-                                   .append( $("<img/>").attr("src","images/interface/mini_barre_pv.gif").attr("style","height:"+String(pvpct)+"%") ) )
-        }
-        $("#listRadar").append( $("<span/>").attr("style","margin-left:20px;font-size:0.8em;")
+        $("#listRadarPJ").append(linkDOM)
+        // if ( pvtext ) {
+        //     let pvmax = Number(pvtext.split("/")[1])
+        //     let pv = Number(pvtext.split("/")[0].split(" ")[1])
+        //     let pvpct = (100.*pv/pvmax).toFixed(0);
+        //     $("#listRadarPJ").append( $("<div/>")
+        //                            .attr("class","mini_barre_pv").attr("title",pvtext)
+        //                            .attr("style","transform: rotate(90deg);left: 8px;bottom: -2px;")
+        //                            .append( $("<img/>").attr("src","images/interface/mini_barre_pv.gif").css("height",String(pvpct)+"%") ) )
+        // }
+        $("#listRadarPJ").append( $("<span/>").attr("style","margin-left:8px;font-size:0.8em;")
                                .append( $("<b/>").attr("id",name+"PAtxt") )
                                .append( $("<img/>").attr("id",name+"PAimg").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-left:2px;").hide() )
                                .append( $("<i/>").attr("id",name+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px;margin-left:8px").hide() )
-                               .append( $("<b/>").attr("id",name+"time") ) )
-        $("#listRadar").append($("<br/>"));
-
+                               .append( $("<b/>").attr("id",name+"time") )
+                               .append( $("<i/>").attr("id",name+"PVicon").attr("class","fa-solid fa-heart-crack")
+                                       .css("margin-right","2px").css("margin-left","8px").css("color",myred)
+                                       .hide() )
+                               .append( $("<b/>").attr("id",name+"PVloss") ) ) //.css("color",myred) ) )
+        $("#listRadarPJ").append($("<br/>"));
         logIDPJ(linkDOM, (index==(persos.length-1))?true:false)
     });
-    $("#listRadar").append($("<br/>"));
+    $("#listRadarPJ").append($("<br/>"));
+
+    // $("<div/>").attr("id","textRadarMonstre").attr("style","text-align: left; font-style:italic; margin-top: 0px; margin-bottom: 15px;z-index:0")
+    //     .append( $("<span/>").text(monstres.length + " monstre" + sm + " :"))
+    //     .appendTo( $("#radarContent") );
+
+    $("<div/>").attr("id","listRadarMonstre").appendTo( $("#radarContent") );
     $.each( monstres, function(index, value) {
         let name = $(this).parent().find("span.titre").eq(0);
         let linkDOM = $(this).parent().clone();
@@ -2310,19 +2337,19 @@ function radarVue() {
         linkDOM.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
         linkDOM.css("font-size",taille_liste)
         linkDOM.css("line-height",interligne)
-        $("#listRadar").append(linkDOM)
-        $("#listRadar").append( $("<span/>").attr("style","margin-left:10px;font-size:0.8em;")
+        $("#listRadarMonstre").append( linkDOM ) //.css("color","#AA3311") )
+        $("#listRadarMonstre").append( $("<span/>").attr("style","margin-left:10px;font-size:0.8em;")
                                .append( $("<i/>").attr("id",index+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px").hide() )
                                .append( $("<b/>").attr("id",index+"time") )
-                               .append( $("<i/>").attr("id",index+"PVicon").attr("class","fa-solid fa-heart-crack").attr("style","margin-right:2px").hide() )
+                               .append( $("<i/>").attr("id",index+"PVicon").attr("class","fa-solid fa-heart-crack")
+                                       .css("margin-right","2px").css("margin-left","8px").css("color",myred)
+                                       .hide() )
                                .append( $("<b/>").attr("id",index+"PVloss") )
                                .append( $("<i/>").attr("id",index+"nidicon").attr("class","fa-regular fa-triangle-exclamation").attr("style","margin-left:2px").attr("style","color:orange;").hide() ) )
-
-        $("#listRadar").append($("<br/>"))
-
+        $("#listRadarMonstre").append($("<br/>"))
         logPVMonster(linkDOM, index);
-
     });
+    $("#listRadarMonstre").append($("<br/>"))
 
     // let max_width = 0;
     // $("#listRadar>a").each( function() {
@@ -2333,7 +2360,7 @@ function radarVue() {
     //     let trunk = Math.ceil($(this).text().trim().length * ($(this).width()/list_width-1) );
     //     if( trunk>0 ) $(this).text( $(this).text().trim().slice(0,-trunk)+"..." );
     // });
-    $("#listRadar").attr("style","float:right;width:300px;text-align: left; font-style:normal;margin-bottom:0px");
+    // $("#listRadar").attr("style","float:right;width:300px;text-align: left; font-style:normal;margin-bottom:0px");
     // $("div.vue").css("float","center")
     // if(!details_vue_shown) {
     //     $("#listRadar").hide();
@@ -2361,7 +2388,7 @@ function radarVue() {
             i++;
             j++;
         } */
-        let pastille = $("<div/>").attr("id","pastille").attr("style","z-index: 2; width: "+String(vue_x2?36:18)+"px; height: "+String(vue_x2?36:18)+"px; text-align: center; position: absolute; font-size: 1em; background: #FF000088;"+
+        let pastille = $("<div/>").attr("id","pastille").attr("style","z-index: 2; width: "+String(vue_x2?36:18)+"px; height: "+String(vue_x2?36:18)+"px; text-align: center; position: absolute; font-size: 1em; background: "+myred+"88;"+
                                                               "color: gold; border-radius: 0px; bottom: -"+String(vue_x2?36:18)+"px; pointer-events: none; border: 0px solid red; font-family: monospace;").text(" ");
         $("table.vue>tbody>tr").eq(i).find("td").eq(j).find("a").first().append( pastille );
     }
@@ -2536,9 +2563,9 @@ function addGrid() {
 
 
 
-    let gridh = $("<div/>").attr("class","grid").attr("style","display: none; z-index: 2; width: " + String(vue_x2?36:18) + "px; height: 1px; text-align: center; position: absolute; font-size: 1em; background: #FFFFFF50;"+
+    let gridh = $("<div/>").attr("class","grid").attr("style","display: none; z-index: 2; width: " + String(vue_x2?36:18) + "px; height: 1px; text-align: center; position: absolute; font-size: 1em; background: #AAAAAA50;"+
                                                       "color: gold; border-radius: 0px; bottom: -" + String(vue_x2?36:18) + "px; pointer-events: none; border: 0px solid white; font-family: monospace;").text(" ");
-    let gridv = $("<div/>").attr("class","grid").attr("style","display: none; z-index: 2; width: 1px; height: " + String(vue_x2?36:18) + "px; text-align: center; position: absolute; font-size: 1em; background: #FFFFFF50;"+
+    let gridv = $("<div/>").attr("class","grid").attr("style","display: none; z-index: 2; width: 1px; height: " + String(vue_x2?36:18) + "px; text-align: center; position: absolute; font-size: 1em; background: #AAAAAA50;"+
                                                       "color: gold; border-radius: 0px; bottom: -" + String(vue_x2?36:18) + "px; pointer-events: none; border: 0px solid white; font-family: monospace;").text(" ");
 
     $("table.vue>tbody>tr").find("a").append( gridh, gridv);
