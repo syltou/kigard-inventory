@@ -2553,7 +2553,7 @@ function displayAttributsBonus() {
     var list_attr = ["FOR", "DEX", "INT", "CON", "ESP", "CHA",
                      "PRE", "ESQ", "MM", "DM", "OBS", "DIS" ]
 
-    $("div.core-stats > div").css("width", "180px").css("justify-content","left")
+    $("div.core-stats > div").css("width", "200px").css("justify-content","left")
     $("div.core-stats > div > div.value").css("padding-left","10px")
 
     $.get("https://tournoi.kigard.fr/index.php?p=evolution").done( function(data) {
