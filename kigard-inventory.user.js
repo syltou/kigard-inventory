@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.7.1
+// @version	  1.7.2
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -45,9 +45,8 @@ let details_logs_shown = JSON.parse(localStorage.getItem("details_logs_shown"));
 let details_vue_shown = JSON.parse(localStorage.getItem("details_vue_shown"));
 let arena_id = JSON.parse(localStorage.getItem("last_arena"));
 let vue_x2 = JSON.parse(localStorage.getItem("vue_x2"));
-
 let list_arenas = ["1140","1118","1137","1142","1152","1155","1154","1153","1147"];
-$("#menu>ul>li:eq(6)>ul>li:eq(4)>a").attr("href","index.php?p=arene"+ (arena_id ? "&id_arene="+list_arenas[arena_id] : "") )
+let last_tab = localStorage.getItem('vue_tab');
 
 var members = [];
 var mypos = parsePositionPerso( $(".margin_position").text() );
@@ -79,6 +78,8 @@ var id_left = [37,50,88,94,99,120,128,130,132,133,134,135,139,158,169,170,201,20
                325,332,345,346,347,348,349,351,352,353,354,355,356,357,358,359,360,
                361,362,363,364,365,366,367,368,369,370];
 
+var id_nids = [15,19,24,65,80,117,135,137,138];
+
 
 getNotifOnMobile();
 changeMenu();
@@ -95,6 +96,7 @@ if (page == "vue") {
     //parseMonsterLogs();
     addGrid();
     addTabs();
+    // selectTab(last_tab);
     statsTirage();
 }
 
@@ -103,9 +105,9 @@ if (page == "empathie") {
     duplicateButtonEmpathie();
 }
 
-// if (page == "profil"){
-// 	saveSkin();
-// }
+if (page == "profil"){
+	displayAttributsBonus();
+}
 
 if(page == "formules") {
     improveFormulasPage();
@@ -146,6 +148,7 @@ if (page == "arene") {
     navigateArenas();
     addMonsterIDs();
     addTabs();
+    selectTab(last_tab);
     //parseHisto();
     //if(!window.mobileCheck()) radarVue();
     //parseMonsterLogs();
@@ -163,6 +166,9 @@ if (page == "clan" && subp == "batiments") {
     //showStats();
     someTests();
 }
+
+
+$("#menu>ul>li:eq(6)>ul>li:eq(4)>a").attr("href","index.php?p=arene"+ (arena_id ? "&id_arene="+list_arenas[arena_id] : "") )
 
 
 function displayListPJs() {
@@ -441,13 +447,13 @@ function addTabs() {
 `);
 
     var tab = $("<div/>").attr("class","tab")
-    .append( $("<button/>").attr("class","tablinks active").on("click",{id: "selection"},tabfunc).text("Sélection") )
-    .append( $("<button/>").attr("class","tablinks").on("click",{id: "radar"},tabfunc).text("Radar") )
+    .append( $("<button/>").attr("class","tablinks active").attr("id","tab-selection-button").on("click",{id: "tab-selection"},selectTab).text("Sélection") )
+    .append( $("<button/>").attr("class","tablinks").attr("id","tab-radar-button").on("click",{id: "tab-radar"},selectTab).text("Radar") )
 
-    var tab1 = $("<div/>").attr("class","tabcontent").attr("id","selection").attr("style","display: block;")
+    var tab1 = $("<div/>").attr("class","tabcontent").attr("id","tab-selection").attr("style","display: block;")
     .append( $("blockquote.vue").children().detach() )
 
-    var tab2 = $("<div/>").attr("class","tabcontent").attr("id","radar").attr("style","display: none; height: "+String( $("table.vue").height()-45 )+"px;")
+    var tab2 = $("<div/>").attr("class","tabcontent").attr("id","tab-radar").attr("style","display: none; height: "+String( $("table.vue").height()-45 )+"px;")
     .append( $("<div/>").attr("id","radarContent") )//.attr("style","height:"+String( $("table.vue").height() )+";") )
                                                         //+String( $("#selection>div.description").height() + $("#form_action").height() )+";") )
 
@@ -458,9 +464,10 @@ function addTabs() {
 
     radarVue()
 
-    function tabfunc(event) {
+    function selectTab(event) {
         // Declare all variables
         var i, tabcontent, tablinks;
+        localStorage.setItem('vue_tab',event.data.id);
 
         // Get all elements with class="tabcontent" and hide them
         tabcontent = document.getElementsByClassName("tabcontent");
@@ -482,7 +489,24 @@ function addTabs() {
 }
 
 
+function selectTab(id) {
 
+    // hide all tabs and show the one
+    var tabcontent = document.getElementsByClassName("tabcontent");
+    for (var i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+    if( $("#"+id).length ) $("#"+id).css("display","block")
+    else tabcontent[0].style.display = "block";
+
+    // deactivate all tab-buttons and activate the one
+    var tablinks = document.getElementsByClassName("tablinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+    if( $("#"+id+"-button").length ) document.getElementById(id+"-button").className += " active";
+    else tablinks[0].className += " active";
+}
 
 
 
@@ -2222,6 +2246,17 @@ function logIDPJ( linkDOM, last) {
     });
 }
 
+function logPopNid( linkDOM, index) {
+    var link = $(linkDOM).attr("href")
+    $.get(link).done(function (data) {
+        let nbhamm = $(data).find("img.lieu[src*='pc.gif']").length
+        if( nbhamm>0 ) {
+            $("#"+index+"hammimg").show()
+            $("#"+index+"nbhamm").text( String(nbhamm) )
+        }
+    });
+}
+
 
 function radarVue() {
 
@@ -2276,6 +2311,10 @@ function radarVue() {
     });
     let sm = (monstres.length>1) ? "s" : ""
 
+    let nids = $("table.vue>tbody>tr>td>a>img[src*='lieu']").filter(function(index){
+        return ( id_nids.includes( Number($(this).attr("src").split("lieu/")[1].split(".")[0]) ) );
+    });
+
     let taille_liste = ((persos.length+monstres.length)>55) ? "xx-small" : "normal";
     let interligne = ((persos.length+monstres.length)>55) ? "70%" : "100%";
 
@@ -2296,38 +2335,55 @@ function radarVue() {
         let clan = name.next().text();
         let linkDOM = $(this).parent().clone();
         name = name.text().trim()
+        let avatar = $(this).clone().attr("class","vue").attr("id",name).css("width","18px").css("margin-right","2px")
         linkDOM.removeAttr("class").text(clan + " " + name)
         linkDOM.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
         linkDOM.css("font-size",taille_liste)
         linkDOM.css("line-height",interligne)
         linkDOM.attr("class","in-radar")
-        $("#listRadarPJ").append(linkDOM)
-        // if ( pvtext ) {
-        //     let pvmax = Number(pvtext.split("/")[1])
-        //     let pv = Number(pvtext.split("/")[0].split(" ")[1])
-        //     let pvpct = (100.*pv/pvmax).toFixed(0);
-        //     $("#listRadarPJ").append( $("<div/>")
-        //                            .attr("class","mini_barre_pv").attr("title",pvtext)
-        //                            .attr("style","transform: rotate(90deg);left: 8px;bottom: -2px;")
-        //                            .append( $("<img/>").attr("src","images/interface/mini_barre_pv.gif").css("height",String(pvpct)+"%") ) )
-        // }
-        $("#listRadarPJ").append( $("<span/>").attr("style","margin-left:8px;font-size:0.8em;")
-                               .append( $("<b/>").attr("id",name+"PAtxt") )
-                               .append( $("<img/>").attr("id",name+"PAimg").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-left:2px;").hide() )
-                               .append( $("<i/>").attr("id",name+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px;margin-left:8px").hide() )
-                               .append( $("<b/>").attr("id",name+"time") )
-                               .append( $("<i/>").attr("id",name+"PVicon").attr("class","fa-solid fa-heart-crack")
-                                       .css("margin-right","2px").css("margin-left","8px").css("color",myred)
-                                       .hide() )
-                               .append( $("<b/>").attr("id",name+"PVloss") ) ) //.css("color",myred) ) )
-        $("#listRadarPJ").append($("<br/>"));
+        $("#listRadarPJ")
+            .append(avatar)
+            .append(linkDOM)
+            .append( $("<span/>").attr("style","margin-left:8px;font-size:0.8em;")
+                    .append( $("<b/>").attr("id",name+"PAtxt") )
+                    .append( $("<img/>").attr("id",name+"PAimg").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-left:2px;").hide() )
+                    .append( $("<i/>").attr("id",name+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px;margin-left:8px").hide() )
+                    .append( $("<b/>").attr("id",name+"time") )
+                    .append( $("<i/>").attr("id",name+"PVicon").attr("class","fa-solid fa-heart-crack")
+                            .css("margin-right","2px").css("margin-left","8px").css("color",myred)
+                            .hide() )
+                    .append( $("<b/>").attr("id",name+"PVloss") ) ) //.css("color",myred) ) )
+            .append($("<br/>"));
         logIDPJ(linkDOM, (index==(persos.length-1))?true:false)
+        //unsafeWindow.fashionCharacter(name, $("img#"+name).get()[0] );
     });
     $("#listRadarPJ").append($("<br/>"));
 
     // $("<div/>").attr("id","textRadarMonstre").attr("style","text-align: left; font-style:italic; margin-top: 0px; margin-bottom: 15px;z-index:0")
     //     .append( $("<span/>").text(monstres.length + " monstre" + sm + " :"))
     //     .appendTo( $("#radarContent") );
+
+    $("<div/>").attr("id","listRadarNids").appendTo( $("#radarContent") );
+    $.each( nids, function(index, value) {
+        let name = $(this).parent().find("span.titre").eq(0);
+        let linkDOM = $(this).parent().clone();
+        linkDOM.removeAttr("class").text( name.text() );
+        linkDOM.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
+        linkDOM.css("font-size",taille_liste)
+        linkDOM.css("line-height",interligne)
+        $("#listRadarNids")
+            .append( $(this).clone().attr("class","vue").css("width","18px").css("margin-right","2px") )
+            .append( linkDOM )
+            .append( $("<span/>").attr("style","margin-left:8px;font-size:0.8em;")
+                    .append( $("<img/>").attr("id",index+"popimg").attr("src","images/interface/pa.gif").attr("width","12").attr("title","Population").attr("style","margin-left:2px;").hide() ) //.attr("class","pa").attr("alt","PA") )
+                    .append( $("<b/>").attr("id",index+"nidpop") )
+                    .append( $("<img/>").attr("id",index+"hammimg").attr("src","images/interface/pc.gif").attr("width","12").attr("title","Marteaux").attr("style","margin-left:2px;").hide() )
+                    .append( $("<b/>").attr("id",index+"nbhamm") )
+                   )
+            .append($("<br/>"))
+        logPopNid(linkDOM, index)
+    });
+    $("#listRadarNids").append($("<br/>"))
 
     $("<div/>").attr("id","listRadarMonstre").appendTo( $("#radarContent") );
     $.each( monstres, function(index, value) {
@@ -2337,16 +2393,18 @@ function radarVue() {
         linkDOM.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
         linkDOM.css("font-size",taille_liste)
         linkDOM.css("line-height",interligne)
-        $("#listRadarMonstre").append( linkDOM ) //.css("color","#AA3311") )
-        $("#listRadarMonstre").append( $("<span/>").attr("style","margin-left:10px;font-size:0.8em;")
-                               .append( $("<i/>").attr("id",index+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px").hide() )
-                               .append( $("<b/>").attr("id",index+"time") )
-                               .append( $("<i/>").attr("id",index+"PVicon").attr("class","fa-solid fa-heart-crack")
-                                       .css("margin-right","2px").css("margin-left","8px").css("color",myred)
-                                       .hide() )
-                               .append( $("<b/>").attr("id",index+"PVloss") )
-                               .append( $("<i/>").attr("id",index+"nidicon").attr("class","fa-regular fa-triangle-exclamation").attr("style","margin-left:2px").attr("style","color:orange;").hide() ) )
-        $("#listRadarMonstre").append($("<br/>"))
+        $("#listRadarMonstre")
+            .append( $(this).clone().attr("class","vue").css("width","18px").css("margin-right","2px") )
+            .append( linkDOM ) //.css("color","#AA3311") )
+            .append( $("<span/>").attr("style","margin-left:10px;font-size:0.8em;")
+                    .append( $("<i/>").attr("id",index+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px").hide() )
+                    .append( $("<b/>").attr("id",index+"time") )
+                    .append( $("<i/>").attr("id",index+"PVicon").attr("class","fa-solid fa-heart-crack")
+                            .css("margin-right","2px").css("margin-left","8px").css("color",myred)
+                            .hide() )
+                    .append( $("<b/>").attr("id",index+"PVloss") )
+                    .append( $("<i/>").attr("id",index+"nidicon").attr("class","fa-regular fa-triangle-exclamation").attr("style","margin-left:2px").attr("style","color:orange;").hide() ) )
+            .append($("<br/>"))
         logPVMonster(linkDOM, index);
     });
     $("#listRadarMonstre").append($("<br/>"))
@@ -2427,7 +2485,7 @@ function navigateArenas() {
 
 
     function test123() {
-        console.log("I'm here")
+        // console.log("I'm here")
         let name = $("#msdrpdd20_titletext").text();
         let pos = parsePositionArena(name);
         let id = getArenaID(pos);
@@ -2439,7 +2497,7 @@ function navigateArenas() {
 
     let name = $("#msdrpdd20_titletext").text();
     $("h3").eq(0).text(name.split("[")[0])
-    console.log(name)
+    // console.log(name)
     let pos = parsePositionArena(name);
     let id = getArenaID(pos);
     let index = list_arenas.indexOf(id);
@@ -2487,6 +2545,43 @@ function navigateArenas() {
     }
 
 }
+
+
+
+function displayAttributsBonus() {
+
+    var list_attr = ["FOR", "DEX", "INT", "CON", "ESP", "CHA",
+                     "PRE", "ESQ", "MM", "DM", "OBS", "DIS" ]
+
+    $("div.core-stats > div").css("width", "200px").css("justify-content","left")
+    $("div.core-stats > div > div.value").css("padding-left","10px")
+
+    $.get("https://tournoi.kigard.fr/index.php?p=evolution").done( function(data) {
+        $(data).find("table tbody tr").each( function(index) {
+            let base_value = Number($(this).find("td:eq(2)").text())
+            let place = $("div.title:contains('"+list_attr[index]+"')").parent().find("div.value")
+            place.append( $("<span/>").attr("id","bonus"+index).css("margin-left","5px").css("font-size","1em").css("font-weight","normal") )
+            let text = place.text().trim()
+            let percent = text.includes("٪")
+            let total_value = percent?Number(text.slice(0,text.length-1)):Number(text)
+            let bonus = total_value-base_value;
+            let bonus_text = "(" + String(base_value) + " +" + String(bonus) + (percent?"٪":"") + ")" ;
+            console.log(base_value, text, percent, total_value, bonus, bonus_text)
+            if( bonus ) $("#bonus"+index).text( bonus_text )
+
+            // $("#"+name+"PAtxt").text( nbPAs )
+            // $("#"+name+"time").text( tour )
+            // $("#"+name+"PAimg").show()
+            // $("#"+name+"clock").show()
+            // if( pvloss<0 ) {
+            //     $("#"+name+"PVloss").text( String(pvloss) )
+            //     $("#"+name+"PVicon").show()
+            // }
+        });
+    });
+
+}
+
 
 
 
