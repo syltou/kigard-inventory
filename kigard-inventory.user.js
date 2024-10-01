@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.7.2
+// @version	  1.7.3
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -43,10 +43,11 @@ let ts_re = (t=localStorage.getItem("Ressource_ts")) ? (new Date()).getTime() - 
 let gridon = JSON.parse(localStorage.getItem("gridon"));
 let details_logs_shown = JSON.parse(localStorage.getItem("details_logs_shown"));
 let details_vue_shown = JSON.parse(localStorage.getItem("details_vue_shown"));
-let arena_id = JSON.parse(localStorage.getItem("last_arena"));
 let vue_x2 = JSON.parse(localStorage.getItem("vue_x2"));
-let list_arenas = ["1140","1118","1137","1142","1152","1155","1154","1153","1147"];
-let last_tab = localStorage.getItem('vue_tab');
+
+//let arena_id = JSON.parse(localStorage.getItem("last_arena"));
+//let list_arenas = ["1140","1118","1137","1142","1152","1155","1154","1153","1147"];
+//let last_tab = localStorage.getItem('vue_tab');
 
 var members = [];
 var mypos = parsePositionPerso( $(".margin_position").text() );
@@ -144,11 +145,11 @@ if (page == "gestion_stock") {
 
 if (page == "arene") {
     if (vue_x2) $("div.bloc-vue").attr("class","bloc-vue vue_x2");
-    renameArenas();
-    navigateArenas();
+   // renameArenas();
+   // navigateArenas();
     addMonsterIDs();
     addTabs();
-    selectTab(last_tab);
+//    selectTab(last_tab);
     //parseHisto();
     //if(!window.mobileCheck()) radarVue();
     //parseMonsterLogs();
@@ -168,7 +169,7 @@ if (page == "clan" && subp == "batiments") {
 }
 
 
-$("#menu>ul>li:eq(6)>ul>li:eq(4)>a").attr("href","index.php?p=arene"+ (arena_id ? "&id_arene="+list_arenas[arena_id] : "") )
+// $("#menu>ul>li:eq(6)>ul>li:eq(4)>a").attr("href","index.php?p=arene"+ (arena_id ? "&id_arene="+list_arenas[arena_id] : "") )
 
 
 function displayListPJs() {
