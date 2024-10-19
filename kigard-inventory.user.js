@@ -2248,7 +2248,7 @@ function logPVMonster( linkDOM, index) {
             }
             else {
                 //$("#"+index+"warning").attr("class","fa-regular fa-house-circle-xmark").attr("style","color:red;")
-                $("#"+index+"warning").show()
+               // $("#"+index+"warning").show()
             }
         }
         var next_turn = (hour+9)%24 + min/60
