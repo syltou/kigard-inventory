@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.8.1
+// @version	  1.7.3
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -2248,7 +2248,7 @@ function logPVMonster( linkDOM, index) {
             }
             else {
                 //$("#"+index+"warning").attr("class","fa-regular fa-house-circle-xmark").attr("style","color:red;")
-               // $("#"+index+"warning").show()
+                $("#"+index+"warning").show()
             }
         }
         var next_turn = (hour+9)%24 + min/60
@@ -2326,8 +2326,10 @@ function logPopNid( linkDOM, index) {
             $("#"+index+"hammimg").show()
             $("#"+index+"nbhamm").text( String(nbhamm) )
         }
-        let nbpop = Number($(data).find("span.nb").text())
+        let nbpop = Number($(data).find("div.statut span.nb").text())
+        let src = $(data).find("div.statut img.statut").attr("src")
         // if( nbpop>0 ) {
+            $("#"+index+"popimg").attr("src",src)
             $("#"+index+"popimg").show()
             $("#"+index+"nbpop").text( String(nbpop) )
         // }
@@ -2452,9 +2454,9 @@ function radarVue() {
                     )
             .append($("<br/>"));
         logIDPJ(linkDOM, (index==(persos.length-1))?true:false)
-        if( !list_clan.includes(name) && !list_empathie.includes(name) ) {
-            logPVPJ(linkDOM, name);
-        }
+        // if( !list_clan.includes(name) && !list_empathie.includes(name) ) {
+        //     logPVPJ(linkDOM, name);
+        // }
         //unsafeWindow.fashionCharacter(name, $("img#"+name).get()[0] );
     });
     $("#listRadarPJ").append($("<br/>"));
