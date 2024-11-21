@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.8.2
+// @version	  1.8.5
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -82,7 +82,7 @@ var id_left = [37,50,88,94,99,120,128,130,132,133,134,135,139,158,169,170,201,20
                325,332,345,346,347,348,349,351,352,353,354,355,356,357,358,359,360,
                361,362,363,364,365,366,367,368,369,370];
 
-var id_nids = [15,19,24,65,80,117,135,137,138];
+var id_nids = [11,13,15,19,24,65,80,117,135,137,138];
 
 
 getNotifOnMobile();
@@ -1942,7 +1942,22 @@ function parseHisto() {
     // - Danser : danse pour */
 
 
+    // Searchbar
+    $("#historique").before( $("<span/>").attr("style","font-size: 1.2em; font-weight: bold; margin-right: 10px; margin-left: 10px;").append( $("<i/>").attr("class","fa-solid fa-magnifying-glass") ) ,
+                       $("<span/>").attr("id","search-bar").attr("style","text-align:center;").append( $("<input/>").attr("id","searchHisto").attr("type","text") ) );
+    // add change event for searchbar
+    $('#searchHisto').on("change", searchHisto);
 
+    function searchHisto() {
+        let tex = $("#searchHisto").val() ;
+        if( tex.length > 0 ) {
+            $("#historique tr:not(:contains('"+tex+"'))").hide();
+            $("#historique td[class~='fonce']").parent().show();
+        }
+        else {
+            $("#historique tr").show();
+        }
+    };
 
     if( $("table[id=historique]") ) {
 
@@ -2465,29 +2480,7 @@ function radarVue() {
     //     .append( $("<span/>").text(monstres.length + " monstre" + sm + " :"))
     //     .appendTo( $("#radarContent") );
 
-    $("<div/>").attr("id","listRadarNids").appendTo( $("#radarContent") );
-    $.each( nids, function(index, value) {
-        let name = $(this).parent().find("span.titre").eq(0);
-        let linkDOM = $(this).parent().clone();
-        linkDOM.removeAttr("class").text( name.text() );
-        linkDOM.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
-        linkDOM.css("font-size",taille_liste)
-        linkDOM.css("line-height",interligne)
-        $("#listRadarNids")
-            .append( $(this).clone().attr("class","vue").css("width","18px").css("margin-right","2px") )
-            .append( linkDOM )
-            .append( $("<span/>").attr("style","margin-left:8px;font-size:0.8em;")
-                    .append( $("<img/>").attr("id",index+"popimg").attr("src","images/modificateur/37.gif").attr("width","12").attr("title","Population")
-                            .css("margin-right","2px").css("margin-left","8px").hide() )
-                    .append( $("<b/>").attr("id",index+"nbpop") )
-                    .append( $("<img/>").attr("id",index+"hammimg").attr("src","images/interface/pc.gif").attr("width","12").attr("title","Marteaux")
-                            .css("margin-right","2px").css("margin-left","8px").hide() )
-                    .append( $("<b/>").attr("id",index+"nbhamm") )
-                   )
-            .append($("<br/>"))
-        logPopNid(linkDOM, index)
-    });
-    $("#listRadarNids").append($("<br/>"))
+   
 
     $("<div/>").attr("id","listRadarMonstre").appendTo( $("#radarContent") );
     $.each( monstres, function(index, value) {
@@ -2512,6 +2505,30 @@ function radarVue() {
         logPVMonster(linkDOM, index);
     });
     $("#listRadarMonstre").append($("<br/>"))
+
+    $("<div/>").attr("id","listRadarNids").appendTo( $("#radarContent") );
+    $.each( nids, function(index, value) {
+        let name = $(this).parent().find("span.titre").eq(0);
+        let linkDOM = $(this).parent().clone();
+        linkDOM.removeAttr("class").text( name.text() );
+        linkDOM.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
+        linkDOM.css("font-size",taille_liste)
+        linkDOM.css("line-height",interligne)
+        $("#listRadarNids")
+            .append( $(this).clone().attr("class","vue").css("width","18px").css("margin-right","2px") )
+            .append( linkDOM )
+            .append( $("<span/>").attr("style","margin-left:8px;font-size:0.8em;")
+                    .append( $("<img/>").attr("id",index+"popimg").attr("src","images/modificateur/37.gif").attr("width","12").attr("title","Population")
+                            .css("margin-right","2px").css("margin-left","8px").hide() )
+                    .append( $("<b/>").attr("id",index+"nbpop") )
+                    .append( $("<img/>").attr("id",index+"hammimg").attr("src","images/interface/pc.gif").attr("width","12").attr("title","Marteaux")
+                            .css("margin-right","2px").css("margin-left","8px").hide() )
+                    .append( $("<b/>").attr("id",index+"nbhamm") )
+                   )
+            .append($("<br/>"))
+        logPopNid(linkDOM, index)
+    });
+    $("#listRadarNids").append($("<br/>"))
 
     // let max_width = 0;
     // $("#listRadar>a").each( function() {
