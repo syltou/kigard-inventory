@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.8.5
+// @version	  1.8.6
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -84,6 +84,9 @@ var id_left = [37,50,88,94,99,120,128,130,132,133,134,135,139,158,169,170,201,20
 
 var id_nids = [11,13,15,19,24,65,80,117,135,137,138];
 
+var aide_id = [11,24,25,26,31,38,41,45,46,47,48,49,50,51,52,53,54,71,72,73,74,75,76,77,88,91,93,94,100,101,102,104,105,106,109,113,117,118,119,120,121,127,128,129,133,134,135,136,137,138,139,140,141,143,144,145,149,150,151,152,162,163,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,189,190];
+var aide_name = ["Boule de feu","Coup de bouclier","Foudre","Congélation","Guérison","Entrave","Inspirer","Attaque sournoise","Attaque puissante","Bond athlétique","Protéger","Télékinésie","Téléportation","Invocation de la forêt","Riposter","Poser un piège","Lancer un projectile","Vol de magie","Drain de vie","Jugement","Maléfice de poison","Dévotion","Purification","Réveil des ossements","Attaque précise","Attaque sacrée","Subterfuge mystique","Disparition soudaine","Rafale de givre","Offrir son sang","Incinération","Instinct","Piqûre","Enchaîner","Mur de ronces","Attaque hypnotique","Lire l'avenir","Exaltation","Envoûtement","Exécuter","Incanter","Lance de cristal","Mur de cristal","Subversion","Attaque rapide","Régénération","Discipline","Réflexes","Egide","Armure","Cavalerie","Enflammer une flèche","Ambidextrie","Surcharge magique","Magie de combat","Retraite","Incendie","Embuscade","Attaque défensive","Siphonner","Assomer","Vigilance","Méditation défensive","Soutien dévoué","Soin stimulant","Premiers soins","Recherche intuitive","Maîtrise des bêtes","Disloquer","Entailler","Tir lointain","Balayer","Ravager","Permutation","Attaque mystique","Invisibilité","Attaque incisive","Tourmenter","Maléfice de saignement","Maléfice de nécrose","Réveil des chairs","Réveil des âmes","Invocation de la roche","Invocation du givre","Invocation du cristal","Attaque explosive","Electrocution"];
+
 
 getNotifOnMobile();
 changeMenu();
@@ -92,6 +95,7 @@ changeMenu();
 
 if (page == "vue") {
     $("blockquote img").css("height", "");
+    addAidePopin();
     updateViewSize();
     addMonsterIDs();
     addHideButton();
@@ -174,6 +178,20 @@ if (page == "clan" && subp == "batiments") {
 
 // $("#menu>ul>li:eq(6)>ul>li:eq(4)>a").attr("href","index.php?p=arene"+ (arena_id ? "&id_arene="+list_arenas[arena_id] : "") )
 
+function addAidePopin() {
+
+    $("#historique b").each( function(){
+        let name = $(this).text()
+        let index = aide_name.indexOf(name)
+
+        if( index>-1 ) {
+            $(this).text("")
+            $(this).append( $("<a/>").attr("class","aide_popin").attr("href","aide_public.php?id="+String(aide_id[index])+"&type=action").attr("target","_blank") )
+            $(this).find("a").append(name)
+        }
+        // console.log($(this).text())})
+    });
+}
 
 function displayListPJs() {
 
