@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.8.6
+// @version	  1.8.7
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -2294,7 +2294,6 @@ function logPVMonster( linkDOM, index) {
             $("#"+index+"time").text( "ap."+String((hour+9)%24).padStart(2,'0')+"h"+String(min).padStart(2,'0') )
             $("#"+index+"clock").show()
         }
-
     });
 }
 
@@ -2366,6 +2365,8 @@ function logPopNid( linkDOM, index) {
             $("#"+index+"popimg").show()
             $("#"+index+"nbpop").text( String(nbpop) )
         // }
+        let height_radar = $("#radarContent").height();
+        $("#tab-radar").css("height", height_radar+20)
     });
 }
 
