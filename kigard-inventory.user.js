@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.8.7
+// @version	  1.8.8
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -506,6 +506,14 @@ function addTabs() {
         // Show the current tab, and add an "active" class to the button that opened the tab
         document.getElementById(event.data.id).style.display = "block";
         event.currentTarget.className += " active";
+
+        var radarPJ_height = $("#listRadarPJ").height()
+        var radarMonstre_height = $("#listRadarMonstre").height()
+        var radarNids_height = $("#listRadarNids").height()
+        console.log("PJ", radarPJ_height)
+        console.log("Monstre", radarMonstre_height)
+        console.log("Nids", radarNids_height)
+        $("#tab-radar").css("height",  radarPJ_height+radarMonstre_height+radarNids_height)
     }
 
 }
@@ -2365,8 +2373,6 @@ function logPopNid( linkDOM, index) {
             $("#"+index+"popimg").show()
             $("#"+index+"nbpop").text( String(nbpop) )
         // }
-        let height_radar = $("#radarContent").height();
-        $("#tab-radar").css("height", height_radar+20)
     });
 }
 
@@ -2480,26 +2486,12 @@ function radarVue() {
                             .css("margin-right","2px").css("margin-left","8px").css("color",myred)
                             .hide() )
                     .append( $("<b/>").attr("id",name+"PVloss_clan") )
-                    // .append( $("<i/>").attr("id",name+"PVicon").attr("class","fa-solid fa-heart-crack")
-                    //         .css("margin-right","2px").css("margin-left","8px").css("color",myred)
-                    //         .hide() )
-                    // .append( $("<b/>").attr("id",name+"PVloss") )
-                    // .append( $("<i/>").attr("id",name+"warning").attr("class","fa-regular fa-triangle-exclamation").attr("style","margin-left:2px").attr("style","color:orange;").hide() ) ) //.css("color",myred) ) )
                     )
             .append($("<br/>"));
         logIDPJ(linkDOM, (index==(persos.length-1))?true:false)
-        // if( !list_clan.includes(name) && !list_empathie.includes(name) ) {
-        //     logPVPJ(linkDOM, name);
-        // }
-        //unsafeWindow.fashionCharacter(name, $("img#"+name).get()[0] );
+
     });
     $("#listRadarPJ").append($("<br/>"));
-
-    // $("<div/>").attr("id","textRadarMonstre").attr("style","text-align: left; font-style:italic; margin-top: 0px; margin-bottom: 15px;z-index:0")
-    //     .append( $("<span/>").text(monstres.length + " monstre" + sm + " :"))
-    //     .appendTo( $("#radarContent") );
-
-   
 
     $("<div/>").attr("id","listRadarMonstre").appendTo( $("#radarContent") );
     $.each( monstres, function(index, value) {
@@ -2549,23 +2541,6 @@ function radarVue() {
     });
     $("#listRadarNids").append($("<br/>"))
 
-    // let max_width = 0;
-    // $("#listRadar>a").each( function() {
-    //     if($(this).width()>max_width) max_width=$(this).width();
-    // });
-    // let list_width = Math.min(max_width,290);
-    // $("#listRadar>a").each( function() {
-    //     let trunk = Math.ceil($(this).text().trim().length * ($(this).width()/list_width-1) );
-    //     if( trunk>0 ) $(this).text( $(this).text().trim().slice(0,-trunk)+"..." );
-    // });
-    // $("#listRadar").attr("style","float:right;width:300px;text-align: left; font-style:normal;margin-bottom:0px");
-    // $("div.vue").css("float","center")
-    // if(!details_vue_shown) {
-    //     $("#listRadar").hide();
-    //     $("#textRadar").hide();
-    // }
-    // else $("div.description_vue").css("left",String(list_width+20+346)+"px");
-
     function highlightCase() {
         let href = $(this).attr("href");
         let x,y;
@@ -2594,28 +2569,6 @@ function radarVue() {
     function unhighlightCase() {
         $("#pastille").remove();
     }
-
-    // function toggleDetails() {
-    //     if($("#listRadar").is(":visible")) {
-    //         $("#listRadar").hide();
-    //         $("#textRadar").hide();
-    //         $("#toggleLinkVue").text("Montrer le radar");
-    //         details_vue_shown = false;
-    //         localStorage.setItem('details_vue_shown',false);
-    //         $("div.description_vue").css("left","346px")
-    //     }
-    //     else {
-    //         $("#listRadar").show();
-    //         $("#textRadar").show();
-    //         $("#toggleLinkVue").text("Cacher le radar");
-    //         details_vue_shown = true;
-    //         localStorage.setItem('details_vue_shown',true);
-    //         $("div.description_vue").css("left",String(list_width+20+346)+"px")
-    //     }
-    // }
-
-
-
 
 }
 
