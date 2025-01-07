@@ -1,20 +1,28 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.8.8
+// @version	  1.9
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
-// @icon		 https://tournoi.kigard.fr/images/items/37.gif
-// @grant    GM_addStyle
+// @icon		https://tournoi.kigard.fr/images/items/37.gif
+// @require  https://code.jquery.com/jquery-3.7.1.js
+// @grant    none
 // ==/UserScript==
 
 $("#header").remove();
+
+function GM_addStyle(css) {
+    const style = document.createElement('style');
+    style.textContent = css;
+    document.head.appendChild(style);
+}
 
 var myred = "#CC0000"
 var myyellow = "#D4A253"
 var mygreen = "#009900"
 var myrose = "#E8A8B0"//"#CC6677"
 var mylilac = "#C3B3E5" //#7766CC"
+//var $ = unsafeWindow.jQuery
 
 
 window.mobileCheck = function() {
