@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.9
+// @version	  1.9.1
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -518,9 +518,6 @@ function addTabs() {
         var radarPJ_height = $("#listRadarPJ").height()
         var radarMonstre_height = $("#listRadarMonstre").height()
         var radarNids_height = $("#listRadarNids").height()
-        console.log("PJ", radarPJ_height)
-        console.log("Monstre", radarMonstre_height)
-        console.log("Nids", radarNids_height)
         $("#tab-radar").css("height",  radarPJ_height+radarMonstre_height+radarNids_height)
     }
 
@@ -2390,7 +2387,7 @@ function radarVue() {
     $.get("https://tournoi.kigard.fr/index.php?p=clan&g=membres").done( function(data) {
         var list_clan = []
         $(data).find("table tbody tr").each( function() {
-            let name = $(this).find("a").text().trim()
+            let name = $(this).find("a").text().trim().replaceAll(" ","_")
             let nbPAs = $(this).find("td[data-title=PA]").text().trim()
             let tour = $(this).find("td[data-title=Tour]").text().trim()
             let pvs = $(this).find("div.barre_pv span").text()
@@ -2471,9 +2468,10 @@ function radarVue() {
         let linkDOM = $(this).parent().clone();
 //        let id = $(this).parent()//.attr("href").split("id=")[1].split("&")[0]
 //        console.log(id)
-        name = name.text().trim()
+        let name_clean = name.text().trim()
+        name = name_clean.replaceAll(" ","_")
         let avatar = $(this).clone().attr("class","vue").attr("id",name).css("width","18px").css("margin-right","2px")
-        linkDOM.removeAttr("class").text(clan + " " + name)
+        linkDOM.removeAttr("class").text(clan + " " + name_clean)
         linkDOM.on("mouseenter",highlightCase).on("mouseleave",unhighlightCase)
         linkDOM.css("font-size",taille_liste)
         linkDOM.css("line-height",interligne)
