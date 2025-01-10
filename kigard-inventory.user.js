@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.9.1
+// @version	  1.10.0
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -18,10 +18,12 @@ function GM_addStyle(css) {
 }
 
 var myred = "#CC0000"
+var myorange = "#FF7A00"
 var myyellow = "#D4A253"
 var mygreen = "#009900"
 var myrose = "#E8A8B0"//"#CC6677"
 var mylilac = "#C3B3E5" //#7766CC"
+var myviolet = "#CF00FF"
 //var $ = unsafeWindow.jQuery
 
 
@@ -92,8 +94,8 @@ var id_left = [37,50,88,94,99,120,128,130,132,133,134,135,139,158,169,170,201,20
 
 var id_nids = [11,13,15,19,24,65,80,117,135,137,138];
 
-var aide_id = [11,24,25,26,31,38,41,45,46,47,48,49,50,51,52,53,54,71,72,73,74,75,76,77,88,91,93,94,100,101,102,104,105,106,109,113,117,118,119,120,121,127,128,129,133,134,135,136,137,138,139,140,141,143,144,145,149,150,151,152,162,163,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,189,190];
-var aide_name = ["Boule de feu","Coup de bouclier","Foudre","Congélation","Guérison","Entrave","Inspirer","Attaque sournoise","Attaque puissante","Bond athlétique","Protéger","Télékinésie","Téléportation","Invocation de la forêt","Riposter","Poser un piège","Lancer un projectile","Vol de magie","Drain de vie","Jugement","Maléfice de poison","Dévotion","Purification","Réveil des ossements","Attaque précise","Attaque sacrée","Subterfuge mystique","Disparition soudaine","Rafale de givre","Offrir son sang","Incinération","Instinct","Piqûre","Enchaîner","Mur de ronces","Attaque hypnotique","Lire l'avenir","Exaltation","Envoûtement","Exécuter","Incanter","Lance de cristal","Mur de cristal","Subversion","Attaque rapide","Régénération","Discipline","Réflexes","Egide","Armure","Cavalerie","Enflammer une flèche","Ambidextrie","Surcharge magique","Magie de combat","Retraite","Incendie","Embuscade","Attaque défensive","Siphonner","Assomer","Vigilance","Méditation défensive","Soutien dévoué","Soin stimulant","Premiers soins","Recherche intuitive","Maîtrise des bêtes","Disloquer","Entailler","Tir lointain","Balayer","Ravager","Permutation","Attaque mystique","Invisibilité","Attaque incisive","Tourmenter","Maléfice de saignement","Maléfice de nécrose","Réveil des chairs","Réveil des âmes","Invocation de la roche","Invocation du givre","Invocation du cristal","Attaque explosive","Electrocution"];
+var aide_id = [11,13,24,25,26,31,38,41,45,46,47,48,49,50,51,52,53,54,71,72,73,74,75,76,77,88,91,93,94,100,101,102,104,105,106,109,113,117,118,119,120,121,127,128,129,133,134,135,136,137,138,139,140,141,143,144,145,149,150,151,152,162,163,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,189,190,191,192,193,194,195];
+var aide_name = ["Boule de feu","Provoquer","Coup de bouclier","Foudre","Congélation","Guérison","Entrave","Inspirer","Attaque sournoise","Attaque puissante","Bond athlétique","Protéger","Télékinésie","Téléportation","Invocation de la forêt","Riposter","Poser un piège","Lancer un projectile","Vol de magie","Drain de vie","Jugement","Maléfice de poison","Dévotion","Purification","Réveil des ossements","Attaque précise","Attaque sacrée","Subterfuge mystique","Disparition soudaine","Rafale de givre","Offrir son sang","Incinération","Instinct","Piqûre","Enchaîner","Mur de ronces","Attaque hypnotique","Lire l'avenir","Exaltation","Envoûtement","Exécuter","Incanter","Lance de cristal","Mur de cristal","Subversion","Attaque rapide","Régénération","Discipline","Réflexes","Egide","Armure","Cavalerie","Enflammer une flèche","Ambidextrie","Surcharge magique","Magie de combat","Retraite","Incendie","Embuscade","Attaque défensive","Siphonner","Assomer","Vigilance","Méditation défensive","Soutien dévoué","Soin stimulant","Premiers soins","Recherche intuitive","Maîtrise des bêtes","Disloquer","Entailler","Tir lointain","Balayer","Ravager","Permutation","Attaque mystique","Invisibilité","Attaque incisive","Tourmenter","Maléfice de saignement","Maléfice de nécrose","Réveil des chairs","Réveil des âmes","Invocation de la roche","Invocation du givre","Invocation du cristal","Attaque explosive","Electrocution","Défense obstinée","Opérer les blessures","Administrer une potion","Attaque provocante","Choc mental"];
 
 
 getNotifOnMobile();
@@ -2316,7 +2318,7 @@ function logPVPJ( linkDOM, index) {
     $.get(link).done(function (data) {
         var list_pv = []
         var list_id = []
-        $(data).find("#historique tr").each( function(index) {
+        $(data).find("#historique tr").each( function() {
             var actor = $(this).find("td:nth-child(2) a:nth(0)").text().trim()
             var target = $(this).find("td:nth-child(2) a:nth(1)").text().trim()
             if( actor ) {
@@ -2329,12 +2331,40 @@ function logPVPJ( linkDOM, index) {
                 }
             }
         });
-        var pvloss = sum(list_pv)
-        if( pvloss < 0 ) {
-            $("#"+index+"PVloss_pj").text( String(pvloss)+" " )
-            $("#"+index+"PVicon_pj").show()
-            $("#"+index+"warning").show()
+        var list_statuts = []
+        var list_values = []
+        $(data).find("div.status-wrap span.tooltip>img.statut").each( function() {
+            let id_statut = Number( $(this).attr("src").split("eur/")[1].split(".gif")[0] )
+            let nb_statut = Number( $(this).parent().prev().text() )
+            list_statuts.push(id_statut)
+            list_values.push(nb_statut)
+        });
+
+        for(var k=0; k<list_statuts.length ; k++) {
+            if( list_statuts[k] == 16 ) {
+                $("#"+index+"brulure").text( list_values[k] )
+                $("#"+index+"brulure_icon").show()
+            }
+            if( list_statuts[k] == 17 ) {
+                $("#"+index+"saignement").text( list_values[k] )
+                $("#"+index+"saignement_icon").show()
+            }
+            if( list_statuts[k] == 4 ) {
+                $("#"+index+"poison").text( list_values[k] )
+                $("#"+index+"poison_icon").show()
+            }
+            if( list_statuts[k] == 46 ) {
+                $("#"+index+"poisonrap").text( list_values[k] )
+                $("#"+index+"poisonrap_icon").show()
+            }
         }
+
+        // var pvloss = sum(list_pv)
+        // if( pvloss < 0 ) {
+        //     $("#"+index+"PVloss_pj").text( String(pvloss)+" " )
+        //     $("#"+index+"PVicon_pj").show()
+        //     $("#"+index+"warning").show()
+        // }
     });
 }
 
@@ -2391,13 +2421,15 @@ function radarVue() {
             let nbPAs = $(this).find("td[data-title=PA]").text().trim()
             let tour = $(this).find("td[data-title=Tour]").text().trim()
             let pvs = $(this).find("div.barre_pv span").text()
-            let pvloss = pvs.split(" /")[0].split(": ")[1] - pvs.split("/ ")[1]
+            let pvtotal = pvs.split("/ ")[1]
+            let pvactuels = pvs.split(" /")[0].split(": ")[1]
+            let pvloss = pvactuels - pvtotal
             $("#"+name+"PAtxt").text( nbPAs )
             $("#"+name+"time").text( tour )
             $("#"+name+"PAimg").show()
             $("#"+name+"clock").show()
             if( pvloss<0 ) {
-                $("#"+name+"PVloss_clan").text( String(pvloss) )
+                $("#"+name+"PVloss_clan").text( String(pvactuels) + "/" + String(pvtotal) )
                 $("#"+name+"PVicon_clan").show()
             }
             list_clan.push(name)
@@ -2412,13 +2444,15 @@ function radarVue() {
             let nbPAs = $(this).parent().parent().parent().next().find("p:contains('PA : ')").text().split(" : ")[1].trim()
             let tour = $(this).parent().parent().parent().next().find("p:contains('Tour : ')").text().split(" : ")[1].trim()
             let pvs = $(this).parent().parent().parent().next().find("div.barre_pv span").text()
-            let pvloss = pvs.split(" /")[0].split(": ")[1] - pvs.split("/ ")[1]
+            let pvtotal = pvs.split("/ ")[1]
+            let pvactuels = pvs.split(" /")[0].split(": ")[1]
+            let pvloss = pvactuels - pvtotal
             $("#"+name+"PAtxt").text( nbPAs )
             $("#"+name+"time").text( tour )
             $("#"+name+"PAimg").show()
             $("#"+name+"clock").show()
             if( pvloss<0 ) {
-                $("#"+name+"PVloss_clan").text( String(pvloss) )
+                $("#"+name+"PVloss_clan").text( String(pvactuels) + "/" + String(pvtotal) )
                 $("#"+name+"PVicon_clan").show()
             }
             list_empathie.push(name)
@@ -2477,24 +2511,58 @@ function radarVue() {
         linkDOM.css("line-height",interligne)
         linkDOM.attr("class","in-radar")
         $("#listRadarPJ")
-            .append(avatar)
-            .append(linkDOM)
-            .append( $("<span/>").attr("style","margin-left:8px;font-size:0.8em;")
-                    .append( $("<b/>").attr("id",name+"PAtxt") )
-                    .append( $("<img/>").attr("id",name+"PAimg").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-left:2px;").hide() )
-                    .append( $("<i/>").attr("id",name+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px;margin-left:8px").hide() )
-                    .append( $("<b/>").attr("id",name+"time") )
-                    .append( $("<i/>").attr("id",name+"PVicon_pj").attr("class","fa-solid fa-heart-crack")
-                            .css("margin-right","2px").css("margin-left","8px").css("color",myred)
-                            .hide() )
-                    .append( $("<b/>").attr("id",name+"PVloss_pj") )
-                    .append( $("<i/>").attr("id",name+"PVicon_clan").attr("class","fa-solid fa-heart-pulse")
-                            .css("margin-right","2px").css("margin-left","8px").css("color",myred)
-                            .hide() )
-                    .append( $("<b/>").attr("id",name+"PVloss_clan") )
-                    )
-            .append($("<br/>"));
+            .append( $("<span/>").attr("style","position:relative;top:0px;")
+                    .append(avatar)
+                    .append(linkDOM)
+                    .append( $("<span/>").attr("style","margin-left:8px;font-size:0.8em;")
+                            .append( $("<i/>").attr("id",name+"brulure_icon").attr("class","fa-solid fa-fire")
+                                    .css("margin-right","2px").css("margin-left","5px").css("color",myorange)
+                                    .hide() )
+                            .append( $("<b/>").attr("id",name+"brulure") )
+                            .append( $("<i/>").attr("id",name+"saignement_icon").attr("class","fa-solid fa-droplet")
+                                    .css("margin-right","2px").css("margin-left","5px").css("color",myred)
+                                    .hide() )
+                            .append( $("<b/>").attr("id",name+"saignement") )
+                            .append( $("<i/>").attr("id",name+"poison_icon").attr("class","fa-solid fa-droplet")
+                                    .css("margin-right","2px").css("margin-left","5px").css("color",mygreen)
+                                    .hide() )
+                            .append( $("<b/>").attr("id",name+"poison") )
+                            .append( $("<i/>").attr("id",name+"poisonrap_icon").attr("class","fa-solid fa-droplet")
+                                    .css("margin-right","2px").css("margin-left","5px").css("color",myviolet)
+                                    .hide() )
+                            .append( $("<b/>").attr("id",name+"poisonrap") )
+                            .append( $("<i/>").attr("id",name+"PVicon_pj").attr("class","fa-solid fa-heart-crack")
+                                    .css("margin-right","2px").css("margin-left","5px").css("color",myred)
+                                    .hide() )
+                            .append( $("<b/>").attr("id",name+"PVloss_pj") )
+                            )
+                    .append($("<br/>"))
+                   )
+        if( list_clan.includes(name) || list_empathie.includes(name) ) {
+            $("#listRadarPJ")
+                .append( $("<span/>").attr("style","position:relative;top:-5px;")
+                        .append( $("<span/>").attr("style","margin-left:20px;font-size:0.8em;")
+                                .append( $("<b/>").attr("id",name+"PAtxt") )
+                                .append( $("<img/>").attr("id",name+"PAimg").attr("src","images/interface/pa.gif").attr("width","12").attr("class","pa").attr("alt","PA").attr("title","Points d'Action").attr("style","margin-left:2px;").hide() )
+                                .append( $("<i/>").attr("id",name+"clock").attr("class","fa-regular fa-clock").attr("style","margin-right:2px;margin-left:8px").hide() )
+                                .append( $("<b/>").attr("id",name+"time") )
+                                .append( $("<i/>").attr("id",name+"PVicon_clan").attr("class","fa-solid fa-heart")
+                                        .css("margin-right","2px").css("margin-left","5px").css("color",myred)
+                                        .hide() )
+                                .append( $("<b/>").attr("id",name+"PVloss_clan") )
+                                )
+                        .append($("<br/>"))
+                       )
+        }
+        // else {
+        //     $("#listRadarPJ")
+        //         .append( $("<span/>").attr("style","line-height:5px;").text(" ")
+        //                 .append($("<br/>"))
+        //                )
+        // }
+
         logIDPJ(linkDOM, (index==(persos.length-1))?true:false)
+        logPVPJ(linkDOM, name)
 
     });
     $("#listRadarPJ").append($("<br/>"));
