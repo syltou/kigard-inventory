@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.10.0
+// @version	  1.10.2
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://tournoi.kigard.fr/*
@@ -2414,6 +2414,21 @@ function logPopNid( linkDOM, index) {
 
 function radarVue() {
 
+    function parsePos(dom) {
+        let href = dom.parent().attr("href")
+        let x,y;
+        if( href=="#" ) { // si case sélectionnée on récupère les coordonnées dans la description
+            let coord = $("div.description").text().split("X:")[1];
+            x = coord.split(" | ")[0];
+            y = coord.split("Y:")[1].split(" ")[0];
+        }
+        else {
+            x = Number(href.split("x=")[1].split("&")[0]);
+            y = Number(href.split("y=")[1].split("&")[0]);
+        }
+        return Array(x,y);
+    }
+
     $.get("https://tournoi.kigard.fr/index.php?p=clan&g=membres").done( function(data) {
         var list_clan = []
         $(data).find("table tbody tr").each( function() {
@@ -2460,14 +2475,25 @@ function radarVue() {
         localStorage.setItem("list_empathie",JSON.stringify(list_empathie));
     });
 
+    let currentDist = 0;
     let text = "";
     // if( $("h3").first().text().includes("vue") ) text = "Dans votre vue: ";
     // else text = "Dans cette arène: ";
 
     let top = $("table.vue>tbody>tr").first().find("td").first().text()
     let left = $("table.vue>tbody>tr").last().find("td").eq(1).text()
-    let persos = $("table.vue>tbody>tr>td>a>img[src*='pj']").filter(function(index){
-        return ( !$(this).parent().find("span.titre").eq(0).text().includes(myname) );
+    // let persos = $("table.vue>tbody>tr>td>a>img[src*='pj']").filter(function(index){
+    //     //return ( !$(this).parent().find("span.titre").eq(0).text().includes(myname) );
+    //     return ( !$(this).parent().find("span.titre").eq(0).text().includes(myname) );
+    // });
+    let persos = $("table.vue>tbody>tr>td>a>img[src*='pj']").sort(function(a,b){
+        let posA = parsePos($(a))
+        let posB = parsePos($(b))
+        let distA = distance(posA,mypos)
+        let distB = distance(posB,mypos)
+        if (distA < distB) return -1;
+        if (distA > distB) return 1;
+        return 0;
     });
     let sp = (persos.length>1) ? "s" : ""
     let monstres = $("table.vue>tbody>tr>td>a>img[src*='monstre']").filter(function(index){
@@ -2497,6 +2523,9 @@ function radarVue() {
         // let list_clan = (v=localStorage.getItem("list_clan")) ? JSON.parse(v) : [];
         // let list_empathie = (v=localStorage.getItem("list_empathie")) ? JSON.parse(v) : [];
         let name = $(this).parent().find("span.titre").eq(0);
+        let pos = parsePos( $(this) )
+        let dist = distance(mypos,pos)
+        console.log(pos,dist)
         // let pvtext = $(this).parent().find("div.mini_barre_pv").attr("title");
         let clan = name.next().text();
         let linkDOM = $(this).parent().clone();
@@ -2510,6 +2539,19 @@ function radarVue() {
         linkDOM.css("font-size",taille_liste)
         linkDOM.css("line-height",interligne)
         linkDOM.attr("class","in-radar")
+
+        if(dist>currentDist) {
+            currentDist = dist;
+            let str = String(dist)
+            // document.styleSheets[0].addRule('hr.special:after','content: "'+str+'";');
+            $("#listRadarPJ")
+                .append( $("<span/>").attr("style","position:relative;top:-2px;")
+                        .css("text-align","right")
+                        .css("font-style","italic")
+                        .css("font-size","0.8em")
+                        .text("――――――――――――― "+str+" ―――――――――――――") )
+                .append( $("<br/>") )
+        }
         $("#listRadarPJ")
             .append( $("<span/>").attr("style","position:relative;top:0px;")
                     .append(avatar)
