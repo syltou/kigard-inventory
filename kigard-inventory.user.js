@@ -3162,13 +3162,18 @@ function improveFormulasPage() {
         else return $("<a/>").attr('href','#').attr('data-difficulty',String(percent)).text(percent+"%");
     }
 
+    function linkRang(number) {
+        if(number=="Tous") return $("<a/>").attr('href','#').attr('data-rang',"Tous").text("Tous");
+        else return $("<a/>").attr('href','#').attr('data-rang',String(number)).append( $("<i/>").addClass("fa-solid fa-star"), "&nbsp;", String(number) );
+    }
+
     function imageCategory(id) {
         return $("<img/>").attr("src","images/items/"+id+".gif").attr("class","item");
     }
 
 
     //---------------------------------------------
-    // ADD CATEGORY ATTRIBUTES TO EVERY LINE FOR FILTERING
+    // ADD ATTRIBUTES TO EVERY LINE FOR FILTERING
     $("table:first").attr("id","formulas_table");
     $("#formulas_table td:first-child small:first-of-type").each( function() {
         if( $(this).parent().prop("tagName")!='EM' ) {
@@ -3176,6 +3181,11 @@ function improveFormulasPage() {
             let value = $(this).text().split('-')[1].trim();
             $(this).parent().parent().attr('data-category', parseCategory(value));
         }
+    });
+    $("#formulas_table tr[data-metier!=fixe] td:first-child").each( function() {
+        let tx = $(this).html();
+        let rang = tx.split("<i class=\"fa-solid fa-star\"></i>")[1].split("<i class=\"fa-solid fa-weight-hanging\"></i>")[0];
+        $(this).parent().attr('data-rang',Number(rang));
     });
     $("#formulas_table tr[data-metier!=fixe]").each( function() {
         if( $(this).attr('data-category') == null ) {
@@ -3234,6 +3244,23 @@ function improveFormulasPage() {
     // add click event for difficulty filter, select Tous by default
     $('a[data-difficulty]').on("click", { filter: "difficulty"}, selectFormulaFilter);
     $('a[data-difficulty="Tous"]').attr("class", "sel");
+
+    //---------------------------------------------
+    // ADD RANG FILTER
+    // duplicate blockquote and change title
+    $("blockquote.bloc:first").clone().insertAfter($("blockquote.bloc:last"));
+    $("blockquote.bloc:last > br:first ~ *").remove();
+    $("blockquote.bloc:last > strong:first").text("Rang");
+    // add puces, icons and filter links
+    $("blockquote.bloc:last")
+        .append( linkRang("Tous") )
+        .append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", linkRang(0)) )
+        .append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", linkRang(1)) )
+        .append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", linkRang(2)) )
+        .append( $("<span/>").append("&nbsp;", puce.clone(), "&nbsp;", linkRang(3)) );
+    // add click event for rang filter, select Tous by default
+    $('a[data-rang]').on("click", { filter: "rang"}, selectFormulaFilter);
+    $('a[data-rang="Tous"]').attr("class", "sel");
 
     //---------------------------------------------
     // ADD EXTRA FILTERS (COMPONENTS AND SEARCHBAR)
@@ -3341,6 +3368,9 @@ function applyFiltering() {//formule,metier,cat,diff,comp) {
     var metier = $('a[data-metier][class="sel"]').data('metier');
     var cat = $('a[data-category][class="sel"]').data('category');
     var diff = $('a[data-difficulty][class="sel"]').data('difficulty');
+    var rang = $('a[data-rang][class="sel"]').data('rang');
+
+    console.log(rang)
 
     $('tr[data-formule]').show();
     if (formule != 'Connues') {
@@ -3357,6 +3387,9 @@ function applyFiltering() {//formule,metier,cat,diff,comp) {
         $('td:nth-child(2)').filter(function() {
             return $(this).text() !== diff+'%';
         }).parent('[data-formule]').hide();
+    }
+    if (rang != 'Tous') {
+        $('tr:not([data-rang=' + rang + '])').hide();
     }
 
     $('tr[data-metier=fixe]').show();
