@@ -3,9 +3,9 @@
 // @version	  1.10.5
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
-// @match		https://tournoi.kigard.fr/*
-// @exclude     https://tournoi.kigard.fr/index.php?p=options&sm=portrait
-// @icon		https://tournoi.kigard.fr/images/items/37.gif
+// @match		https://www.kigard.fr/*
+// @exclude     https://www.kigard.fr/index.php?p=options&sm=portrait
+// @icon		https://www.kigard.fr/images/items/37.gif
 // @require  https://code.jquery.com/jquery-3.7.1.js
 // @grant    none
 // ==/UserScript==
@@ -3491,3 +3491,4 @@ function copyListFormulas() {
 
     navigator.clipboard.writeText(buffer);
 }
+
