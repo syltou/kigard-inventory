@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.10.5
+// @version	  1.11
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://www.kigard.fr/*
@@ -3523,3 +3523,4 @@ function copyListFormulas() {
 
     navigator.clipboard.writeText(buffer);
 }
+
