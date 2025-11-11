@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.10.6
+// @version	  1.10.5
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://www.kigard.fr/*
@@ -111,6 +111,7 @@ if (page == "vue") {
     addMonsterIDs();
     addHideButton();
     parseHisto();
+    checkMounts();
     //if(!window.mobileCheck()) radarVue();
     //parseMonsterLogs();
     addGrid();
@@ -261,7 +262,7 @@ function displayListPJs() {
             $(this).remove();
     });
     $("#contenu").append( $("<div/>").attr("id","liste_pj") )
-    $("#liste_pj").load("https://tournoi.kigard.fr/liste_pj.php #page_profil_public > *", function(response, status, xhr) {
+    $("#liste_pj").load("/liste_pj.php #page_profil_public > *", function(response, status, xhr) {
         if (status === "success") {
             var diplo = (v=localStorage.getItem("diploPJ")) ? JSON.parse(v) : {};
             if( Object.keys(diplo).length == 0 ) {
@@ -372,7 +373,7 @@ function displayListClans() {
             $(this).remove();
     });
     $("#contenu").append( $("<div/>").attr("id","liste_clan") )
-    $("#liste_clan").load("https://tournoi.kigard.fr/liste_clan.php #page_profil_public > *", function(response, status, xhr) {
+    $("#liste_clan").load("/liste_clan.php #page_profil_public > *", function(response, status, xhr) {
         if (status === "success") {
             var diplo = (v=localStorage.getItem("diploClan")) ? JSON.parse(v) : {};
             if( Object.keys(diplo).length == 0 ) {
@@ -551,7 +552,7 @@ function selectTab(id) {
 
 function addMulesToInventory() {
 
-    $.get("https://tournoi.kigard.fr/index.php?p=empathie", function(data) {
+    $.get("/index.php?p=empathie", function(data) {
         var mules_list = new Map();
         $(data).find("tr:contains(Mulet)").each( function(index) {
             var link = $(this).find("a[href*='gestion_stock']").first();
@@ -591,7 +592,7 @@ function addMulesToInventory() {
 
         var items_list = [];
 
-        $.get("https://tournoi.kigard.fr/index.php?p=gestion_stock&id_monstre="+id, function (data) {
+        $.get("/index.php?p=gestion_stock&id_monstre="+id, function (data) {
 
             var items_list_grouped = new Map();
 
@@ -605,7 +606,7 @@ function addMulesToInventory() {
                 }
                 else {
                     items_list_grouped.set(item,1);
-                    var obj = $("<a/>").attr("href","https://tournoi.kigard.fr/index.php?p=gestion_stock&id_monstre="+id)
+                    var obj = $("<a/>").attr("href","/index.php?p=gestion_stock&id_monstre="+id)
                     .append( $("<div/>").attr("class","item")
                             .append( $("<b/>").text( 1 ) )
                             .append( $(icon).attr("alt",name).attr("title",name)
@@ -658,7 +659,7 @@ function enhanceInventory() {
         var item = current_items_list[index];
 
         // Make the $.get request
-        $.get('https://tournoi.kigard.fr/index.php?p=inventaire&item_id=' + item, function(data) {
+        $.get('/index.php?p=inventaire&item_id=' + item, function(data) {
             let name = $(data).find("div.info-item div.label").text().trim();
             let ench = $(data).find("span.enchantement").text().trim();
             let sert = $(data).find("span.sertissage").text().trim();
@@ -704,7 +705,7 @@ function someTests() {
 
     for(var k=1; k<180; k++) {
         a=$("<img>")
-            .attr("src","https://tournoi.kigard.fr/images/vue/monstre/"+k+".gif")
+            .attr("src","/images/vue/monstre/"+k+".gif")
             .attr("width","100").attr("height","100")
             .insertAfter(a);
     }
@@ -713,7 +714,7 @@ function someTests() {
 
     for( k=1; k<400; k++) {
         a=$("<img>")
-            .attr("src","https://tournoi.kigard.fr/images/items/"+k+".gif")
+            .attr("src","/images/items/"+k+".gif")
             .attr("width","100").attr("height","100")
             .insertAfter(a);
     }
@@ -722,7 +723,7 @@ function someTests() {
 
     for( k=1; k<180; k++) {
         a=$("<img>")
-            .attr("src","https://tournoi.kigard.fr/images/vue/lieu/"+k+".gif")
+            .attr("src","/images/vue/lieu/"+k+".gif")
             .attr("width","100").attr("height","100")
             .insertAfter(a);
     }
@@ -749,7 +750,7 @@ function someTests() {
 }
 
 function getDon(don,a) {
-    $.get("https://tournoi.kigard.fr/aide_public.php?id="+don+"&type=don", function(data) {
+    $.get("/aide_public.php?id="+don+"&type=don", function(data) {
         a=$("<div/>")
             .append( $("<strong/>").text(don) )
             .append( $(data).find("div.description") )
@@ -758,7 +759,7 @@ function getDon(don,a) {
 }
 
 function getLieu(id,a) {
-    $.get("https://tournoi.kigard.fr/lieu.php?id="+String(id), function(data) {
+    $.get("/lieu.php?id="+String(id), function(data) {
         let titre = $(data).find("blockquote.popin_titre").text()
         if( titre=="Lieu" ) {
             a=a;
@@ -773,7 +774,7 @@ function getLieu(id,a) {
 }
 
 function getBestiaire(id,a) {
-    $.get("https://tournoi.kigard.fr/bestiaire.php?id="+String(id), function(data) {
+    $.get("/bestiaire.php?id="+String(id), function(data) {
         let titre = $(data).find("blockquote.popin_titre").text()
         if( titre=="Bestiaire" ) {
             a=a;
@@ -2249,7 +2250,7 @@ function parseMonsterLogs() {
 }
 
 function getClanPAs( dict) {
-    $.get("https://tournoi.kigard.fr/index.php?p=clan&g=membres", function(data) {
+    $.get("index.php?p=clan&g=membres", function(data) {
         $(data).find("table tbody tr").each( function() {
             dict[ $(this).find("a").text().trim() ] = $(this).find("td[data-title=PA]").text().trim()
         });
@@ -2430,7 +2431,7 @@ function radarVue() {
         return Array(x,y);
     }
 
-    $.get("https://tournoi.kigard.fr/index.php?p=clan&g=membres").done( function(data) {
+    $.get("/index.php?p=clan&g=membres").done( function(data) {
         var list_clan = []
         $(data).find("table tbody tr").each( function() {
             let name = $(this).find("a").text().trim().replaceAll(" ","_")
@@ -2453,7 +2454,7 @@ function radarVue() {
         localStorage.setItem("list_clan",JSON.stringify(list_clan));
     });
 
-    $.get("https://tournoi.kigard.fr/index.php?p=empathie").done( function(data) {
+    $.get("/index.php?p=empathie").done( function(data) {
         var list_empathie = []
         $(data).find("table tbody td.fonce a.profil_popin[href*=pj]").each( function() {
             let name = $(this).text().trim()
@@ -2700,7 +2701,7 @@ function navigateArenas() {
         let pos = parsePositionArena(name);
         let id = getArenaID(pos);
         let coord = getArenaCenter(id);
-        window.location.href = "https://tournoi.kigard.fr/index.php?p=arene&id_arene=" + id + "&clic_x=" + coord[0] + "&clic_y=" + coord[1] + "&clic_z=0";
+        window.location.href = "/index.php?p=arene&id_arene=" + id + "&clic_x=" + coord[0] + "&clic_y=" + coord[1] + "&clic_z=0";
         let index = list_arenas.indexOf(id);
         localStorage.setItem('last_arena',index);
     }
@@ -2717,7 +2718,7 @@ function navigateArenas() {
     //     let old_id = list_arenas[old_index];
     //     if(old_id != id ) {
     //         let coord = getArenaCenter(old_id);
-    //         window.location.href = "https://tournoi.kigard.fr/index.php?p=arene&id_arene=" + old_id + "&clic_x=" + coord[0] + "&clic_y=" + coord[1] + "&clic_z=0";
+    //         window.location.href = "/index.php?p=arene&id_arene=" + old_id + "&clic_x=" + coord[0] + "&clic_y=" + coord[1] + "&clic_z=0";
     //         localStorage.setItem('last_arena',old_index);
     //     }
 
@@ -2726,7 +2727,7 @@ function navigateArenas() {
 
 
 
-    //link = "https://tournoi.kigard.fr/index.php?p=arene&id_arene=" 1147&clic_x=-2&clic_y=3&clic_z=0
+    //link = "/index.php?p=arene&id_arene=" 1147&clic_x=-2&clic_y=3&clic_z=0
 
     $("#msdrpdd20_msdd").next().remove();
     //     $("#msdrpdd20_msdd").next().attr("type","button");
@@ -2741,7 +2742,7 @@ function navigateArenas() {
         if(index==9) index=0;
         let id = list_arenas[index];
         let coord = getArenaCenter(id);
-        window.location.href = "https://tournoi.kigard.fr/index.php?p=arene&id_arene=" + id + "&clic_x=" + coord[0] + "&clic_y=" + coord[1] + "&clic_z=0";
+        window.location.href = "/index.php?p=arene&id_arene=" + id + "&clic_x=" + coord[0] + "&clic_y=" + coord[1] + "&clic_z=0";
         localStorage.setItem('last_arena',index);
     }
 
@@ -2750,7 +2751,7 @@ function navigateArenas() {
         if(index==-1) index=8;
         let id = list_arenas[index];
         let coord = getArenaCenter(id);
-        window.location.href = "https://tournoi.kigard.fr/index.php?p=arene&id_arene=" + id + "&clic_x=" + coord[0] + "&clic_y=" + coord[1] + "&clic_z=0";
+        window.location.href = "/index.php?p=arene&id_arene=" + id + "&clic_x=" + coord[0] + "&clic_y=" + coord[1] + "&clic_z=0";
         localStorage.setItem('last_arena',index);
     }
 
@@ -2766,7 +2767,7 @@ function displayAttributsBonus() {
     $("div.core-stats > div").css("width", "200px").css("justify-content","left")
     $("div.core-stats > div > div.value").css("padding-left","10px")
 
-    $.get("https://tournoi.kigard.fr/index.php?p=evolution").done( function(data) {
+    $.get("/index.php?p=evolution").done( function(data) {
         $(data).find("table tbody tr").each( function(index) {
             let base_value = Number($(this).find("td:eq(2)").text())
             let place = $("div.title:contains('"+list_attr[index]+"')").parent().find("div.value")
@@ -2835,6 +2836,37 @@ function convertDate(date) {
 
 }
 
+
+function checkMounts() {
+
+    let selectedId = Number($("div.header div.label a").attr("href").split("id=")[1].split("&type")[0]);
+    let selectedURL = $("div.header div.label a").attr("href");
+    var div;
+
+    $.get("/index.php?p=empathie", function(data) {
+
+        let monture = $(data).find("tbody tr a").filter( function(index) {
+            return $(this).attr("href")=="profil_public.php?id=335&type=monstre";
+            });
+        console.log("ALLLOOL CAN ANYBODY HEAR ME");
+        console.log(monture.parent().parent().parent().next());
+        div = monture.parent().parent().parent().next().find("div.barre_pv");
+    });
+
+    let action = $("div.select-action>label").filter(function( index ) {
+                    return $(this).text().includes("Rappeler");
+    });
+
+    if( action.length==1 ) {
+
+        action[0].after( div[0] )
+
+    }
+
+}
+
+
+
 // temporary !!!
 function showStats() {
 
@@ -2868,9 +2900,9 @@ function addGrid() {
 
 
 
-    let gridh = $("<div/>").attr("class","grid").attr("style","display: none; z-index: 2; width: " + String(vue_x2?36:18) + "px; height: 1px; text-align: center; position: absolute; font-size: 1em; background: #AAAAAA50;"+
+    let gridh = $("<div/>").attr("class","grid").attr("style","display: none; z-index: 2; width: " + String(vue_x2?36:18) + "px; height: 1px; text-align: center; position: absolute; font-size: 1em; background: #33333350;"+
                                                       "color: gold; border-radius: 0px; bottom: -" + String(vue_x2?36:18) + "px; pointer-events: none; border: 0px solid white; font-family: monospace;").text(" ");
-    let gridv = $("<div/>").attr("class","grid").attr("style","display: none; z-index: 2; width: 1px; height: " + String(vue_x2?36:18) + "px; text-align: center; position: absolute; font-size: 1em; background: #AAAAAA50;"+
+    let gridv = $("<div/>").attr("class","grid").attr("style","display: none; z-index: 2; width: 1px; height: " + String(vue_x2?36:18) + "px; text-align: center; position: absolute; font-size: 1em; background: #33333350;"+
                                                       "color: gold; border-radius: 0px; bottom: -" + String(vue_x2?36:18) + "px; pointer-events: none; border: 0px solid white; font-family: monospace;").text(" ");
 
     $("table.vue>tbody>tr").find("a").append( gridh, gridv);
@@ -3491,5 +3523,3 @@ function copyListFormulas() {
 
     navigator.clipboard.writeText(buffer);
 }
-
-
