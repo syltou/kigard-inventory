@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name		 Kigard Inventory
-// @version	  1.11
+// @version	  1.11.1
 // @description  Permet un meilleur usage de l'inventaire et des formules d'artisanat, et rajoute un radar dans la vue
 // @author	   Fergal <ffeerrggaall@gmail.com>
 // @match		https://www.kigard.fr/*
@@ -111,7 +111,7 @@ if (page == "vue") {
     addMonsterIDs();
     addHideButton();
     parseHisto();
-    checkMounts();
+    //checkMounts();
     //if(!window.mobileCheck()) radarVue();
     //parseMonsterLogs();
     addGrid();
@@ -3523,4 +3523,5 @@ function copyListFormulas() {
 
     navigator.clipboard.writeText(buffer);
 }
+
 
